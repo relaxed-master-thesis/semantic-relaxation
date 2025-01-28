@@ -15,7 +15,7 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 
 	for (size_t deq_ind = 0; deq_ind < get_stamps_size; deq_ind++) {
 
-		uint64_t key = (*get_stamps)[deq_ind].value;
+		uint64_t key = (*get_stamps)[deq_ind]->value;
 
 		uint64_t rank_error;
 		if (head->value == key) {
@@ -40,7 +40,7 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 		}
 
 		// Store rank error in get_stamps for variance calculation
-		(*get_stamps)[deq_ind].value = rank_error;
+		(*get_stamps)[deq_ind]->value = rank_error;
 
 		rank_error_sum += rank_error;
 		if (rank_error > rank_error_max)
@@ -57,7 +57,7 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 	long double rank_error_variance = 0;
 	for (size_t deq_ind; deq_ind < get_stamps_size; deq_ind += 1) {
 		long double off =
-			(long double)(*get_stamps)[deq_ind].value - rank_error_mean;
+			(long double)(*get_stamps)[deq_ind]->value - rank_error_mean;
 		rank_error_variance += off * off;
 	}
 	rank_error_variance /= get_stamps_size - 1;
@@ -77,7 +77,7 @@ void GeijerImp::prepare(InputData data) {
 	struct item *item_list = static_cast<struct item *>(
 		malloc(put_stamps_size * (sizeof(item))));
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
-		item_list[enq_ind].value = (*data.gets)[enq_ind].value;
+		item_list[enq_ind].value = (*data.puts)[enq_ind]->value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
 	}
 	item_list[put_stamps_size - 1].next = NULL;
@@ -88,10 +88,10 @@ void GeijerImp::execute(){
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-	std::cout << "Runtime: " << duration.count() << " ms\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max;
+	std::cout << "Runtime: " << duration.count() << " us\n";
+	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
 }
 
 } // namespace bench
