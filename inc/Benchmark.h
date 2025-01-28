@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Operation.h"
+#include "UnsafeVector.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -10,64 +11,6 @@
 #include <type_traits>
 
 namespace bench {
-
-template <typename T> class UnsafeVector {
-  public:
-	UnsafeVector() : capacity(128), length(0) {
-		arr = static_cast<T *>(calloc(sizeof(T), capacity));
-	}
-
-	UnsafeVector(size_t size) : capacity(size), length(0) {
-		arr = static_cast<T *>(calloc(sizeof(T), size));
-	}
-
-	~UnsafeVector() { free(arr); }
-
-	void push(T &t) {
-		if (length == capacity)
-			expand();
-
-		T *src = &t;
-		T *dst = &(arr[length++]);
-		T *res = static_cast<T *>(memcpy(dst, src, sizeof(T)));
-		assert(res != NULL && res == dst && "Pushing failed");
-	}
-
-	void pop(size_t index) { 
-		assert(index < length && "Index out of bounds");
-
-		// TODO: do some flagging or smarter shit to make this less tragic
-		T *dst = &(arr[index]);
-		T *src = &(arr[index + 1]);
-		auto res = static_cast<T*>(memmove(dst, src, (length - index)));
-		assert(res != NULL && res == dst && "Popping failed");
-	}
-
-	size_t size() { return length; }
-
-	T *operator[](size_t index) {
-		assert(index < length && "Index out of bounds");
-
-		return &(arr[index]);
-	}
-
-  private:
-	void expand() {
-		if (capacity >= 512'000)
-			capacity += 100'000;
-		else
-			capacity *= 2;
-
-		T *newArr = static_cast<T *>(realloc(arr, capacity * sizeof(T)));
-		assert(arr != NULL && "Expansion of backing array failed (OOM)");
-		arr = newArr;
-	}
-
-  private:
-	T *arr;
-	size_t capacity;
-	size_t length;
-};
 
 struct InputData {
   public:

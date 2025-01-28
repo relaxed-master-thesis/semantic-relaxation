@@ -50,8 +50,8 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 		(long double)rank_error_sum / (long double)get_stamps_size;
 	if (get_stamps_size == 0)
 		rank_error_mean = 0.0;
-	//printf("mean_relaxation , %.4Lf\n", rank_error_mean);
-	//printf("max_relaxation , %zu\n", rank_error_max);
+	// printf("mean_relaxation , %.4Lf\n", rank_error_mean);
+	// printf("max_relaxation , %zu\n", rank_error_max);
 
 	// Find variance
 	long double rank_error_variance = 0;
@@ -72,23 +72,24 @@ void GeijerImp::prepare(InputData data) {
 	put_stamps_size = data.puts->size();
 	std::cout << "here" << std::endl;
 	get_stamps_size = data.gets->size();
-    get_stamps = data.gets;
+	get_stamps = data.gets;
 
-	struct item *item_list = static_cast<struct item *>(
-		malloc(put_stamps_size * (sizeof(item))));
+	struct item *item_list =
+		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
 		item_list[enq_ind].value = (*data.puts)[enq_ind]->value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
 	}
 	item_list[put_stamps_size - 1].next = NULL;
-    put_stamps_head = &item_list[0];
+	put_stamps_head = &item_list[0];
 }
 
-void GeijerImp::execute(){
+void GeijerImp::execute() {
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+	auto duration =
+		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
 	std::cout << "Runtime: " << duration.count() << " us\n";
 	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
