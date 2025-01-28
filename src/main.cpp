@@ -1,11 +1,14 @@
-#include "qkparser.h"
-
-using bench::QKParser;
+#include "Benchmark.h"
+#include "QKParser.h"
+#include "GeijerImp.h"
 
 int main(int argc, char * argv[]) {
-    QKParser parser{};
+    bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{}; 
 
-    parser.print();
+    geijerBench.run(
+        "/home/virre/thesis/semantic-relaxation/data/timestamps/combined_get_stamps.txt", 
+        "/home/virre/thesis/semantic-relaxation/data/timestamps/combined_put_stamps.txt",
+        "/home/virre/thesis/semantic-relaxation/data/timestamps/output.txt");  
 
     return 0;
 }
