@@ -1,0 +1,20 @@
+
+#include "Benchmark.h"
+#include "ErrorCalculator.h"
+namespace bench {
+class ReplayImp : public ErrorCalculator, public AbstractExecutor {
+  public:
+	ReplayImp() = default;
+	~ReplayImp(){};
+	Result calcMaxMeanError() override;
+	void prepare(InputData data) override;
+	void execute() override;
+
+  private:
+   
+	std::shared_ptr<UnsafeVector<Operation>> put_stamps;
+	std::shared_ptr<UnsafeVector<Operation>> get_stamps;
+	size_t put_stamps_size;
+	size_t get_stamps_size;
+};
+} // namespace bench

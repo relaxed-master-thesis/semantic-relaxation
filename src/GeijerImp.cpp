@@ -70,7 +70,6 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 void GeijerImp::prepare(InputData data) {
 
 	put_stamps_size = data.puts->size();
-	std::cout << "here" << std::endl;
 	get_stamps_size = data.gets->size();
 	get_stamps = data.gets;
 
@@ -85,6 +84,7 @@ void GeijerImp::prepare(InputData data) {
 }
 
 void GeijerImp::execute() {
+    std::cout << "Running GeijerImp...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();
