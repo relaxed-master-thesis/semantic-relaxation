@@ -1,8 +1,11 @@
+#pragma once
+
 #include "Benchmark.h"
 #include "ErrorCalculator.h"
 #include "Operation.h"
+
 #include <memory>
-#include <utility>
+#include <vector>
 
 namespace bench {
 class GeijerImp : public ErrorCalculator, public AbstractExecutor {
@@ -18,7 +21,7 @@ class GeijerImp : public ErrorCalculator, public AbstractExecutor {
 		uint64_t value;
 		item *next;
 	};
-	std::shared_ptr<UnsafeVector<Operation>> get_stamps;
+	std::shared_ptr<std::vector<Operation>> get_stamps;
 	item *put_stamps_head;
 	size_t put_stamps_size;
 	size_t get_stamps_size;

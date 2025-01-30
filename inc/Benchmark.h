@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Operation.h"
-#include "UnsafeVector.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -9,17 +8,18 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace bench {
 
 struct InputData {
   public:
-	InputData(std::shared_ptr<UnsafeVector<Operation>> gets,
-			  std::shared_ptr<UnsafeVector<Operation>> puts)
+	InputData(std::shared_ptr<std::vector<Operation>> gets,
+			  std::shared_ptr<std::vector<Operation>> puts)
 		: gets(gets), puts(puts) {}
 
-	std::shared_ptr<UnsafeVector<Operation>> gets;
-	std::shared_ptr<UnsafeVector<Operation>> puts;
+	std::shared_ptr<std::vector<Operation>> gets;
+	std::shared_ptr<std::vector<Operation>> puts;
 };
 
 class AbstractParser {
@@ -33,6 +33,8 @@ class AbstractExecutor {
 	virtual void execute() = 0;
 };
 
+// TODO: enforce shared data format between parser and executor
+// or create shared format
 template <class T, class V> class Benchmark {
   public:
 	Benchmark() {
