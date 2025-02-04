@@ -6,6 +6,7 @@ target_sources(SemanticRelaxation PRIVATE
     GeijerImp.cpp
     QKParser.cpp
     ReplayImp.cpp
+    BatchPopImp.cpp
 )
 
 target_include_directories(SemanticRelaxation PUBLIC "../inc")
