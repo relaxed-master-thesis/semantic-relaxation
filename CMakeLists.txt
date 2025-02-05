@@ -9,3 +9,9 @@ set(CMAKE_BUILD_TYPE Debug)
 add_subdirectory(
     src
 )
+
+find_package(OpenMP)
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(SemanticRelaxation PUBLIC OpenMP::OpenMP_CXX)
+endif()
