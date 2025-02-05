@@ -55,7 +55,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 		std::map<uint64_t, uint64_t> pops;
 		/* Do deletions. */
 		uint64_t ins = 0;
-		while (next_del_tick < next_ins_tick || del_ix < get_stamps_size) {
+		while (next_del_tick < next_ins_tick && del_ix < get_stamps_size) {
             uint64_t val = (*get_stamps)[del_ix++].value;
             if(pops.contains(val)){
                 std::cout << "value already in map " << val << ", MAYDAY MAYDAY WE ARE GOING TO CRASH\n";

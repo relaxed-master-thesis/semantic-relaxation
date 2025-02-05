@@ -40,7 +40,7 @@ template <class T> class Queue {
 	}
 	void batch_deq(std::map<T, uint64_t> m, std::vector<uint64_t> *ranks){
 		//map of all pops and where they were found
-		ordered_set<int> found_ins;
+		ordered_set<int> found_pops;
 		
 		int dels = m.size();
 		ordered_set<int> erase_idxs;
@@ -54,8 +54,8 @@ template <class T> class Queue {
 				uint64_t pop_order = m.at(curr);
 				uint64_t rank = idx;
 				//fi is the ammount of pops that are in fron of me in the q and in time. 
-				uint64_t fi = found_ins.order_of_key(pop_order);
-				found_ins.insert(pop_order);
+				uint64_t fi = found_pops.order_of_key(pop_order);
+				found_pops.insert(pop_order);
 
 				//the ranks is the found rank minus the ammount of pops in front in the q and in the 
 				ranks->at(pop_order) = rank - fi;
