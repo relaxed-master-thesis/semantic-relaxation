@@ -12,6 +12,7 @@
 #include <iostream>
 #include <numeric>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -34,6 +35,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 	bool keep_running = true;
 	int s = 0;
 	Queue<uint64_t> q;
+	uint64_t max_pop_seq = 0;
 	while (keep_running) {
 		assert(ins_ix < put_stamps_size);
 		assert(next_ins_tick <= next_del_tick);
@@ -52,15 +54,15 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 		}
 
 		// map from value to insert order 0...n
-		std::map<uint64_t, uint64_t> pops;
+		std::unordered_map<uint64_t, uint64_t> pops;
 		/* Do deletions. */
 		uint64_t ins = 0;
 		while (next_del_tick < next_ins_tick && del_ix < get_stamps_size) {
             uint64_t val = (*get_stamps)[del_ix++].value;
-            if(pops.contains(val)){
-                std::cout << "value already in map " << val << ", MAYDAY MAYDAY WE ARE GOING TO CRASH\n";
-				throw std::invalid_argument("We cant have duplicate elements in one continous pop sequence");
-            }
+            // if(pops.contains(val)){
+            //     std::cout << "value already in map " << val << ", MAYDAY MAYDAY WE ARE GOING TO CRASH\n";
+			// 	throw std::invalid_argument("We cant have duplicate elements in one continous pop sequence");
+            // }
 			pops.insert({val, ins++});
 			if (del_ix >= get_stamps_size) {
 				keep_running = false;
@@ -69,6 +71,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 
 			next_del_tick = (*get_stamps)[del_ix].time;
 		}
+		max_pop_seq = std::max(max_pop_seq, ins);
 		
 		std::vector<uint64_t> rs;
 		rs.resize(pops.size());
@@ -89,6 +92,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 
 	const double rank_stddev =
 		std::sqrt(rank_squared_difference / ranks.size());
+	printf("Max pop sequence: %lu\n", max_pop_seq);
 
 	return {rank_max, rank_mean};
 }

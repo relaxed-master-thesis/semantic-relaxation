@@ -38,7 +38,7 @@ template <class T> class Queue {
 		fprintf(stderr, "item %lu not found\n", item);
 		return 0;
 	}
-	void batch_deq(std::map<T, uint64_t> m, std::vector<uint64_t> *ranks){
+	void batch_deq(std::unordered_map<T, uint64_t> m, std::vector<uint64_t> *ranks){
 		//map of all pops and where they were found
 		ordered_set<int> found_pops;
 		
@@ -59,6 +59,7 @@ template <class T> class Queue {
 
 				//the ranks is the found rank minus the ammount of pops in front in the q and in the 
 				ranks->at(pop_order) = rank - fi;
+				m.erase(curr);
 
 				erase_idxs.insert(idx);
 				found++;
