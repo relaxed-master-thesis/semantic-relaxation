@@ -101,7 +101,7 @@ void GeijerBatch::prepare(InputData data) {
 	put_stamps_head = &item_list[0];
 }
 
-void GeijerBatch::execute() {
+long GeijerBatch::execute() {
 	std::cout << "Running GeijerBatch...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
@@ -111,6 +111,7 @@ void GeijerBatch::execute() {
 
 	std::cout << "Runtime: " << duration.count() << " us\n";
 	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
+	return duration.count();
 }
 
 } // namespace bench

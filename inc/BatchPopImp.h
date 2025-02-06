@@ -10,7 +10,7 @@ class BatchPopImp : public ErrorCalculator, public AbstractExecutor {
 	~BatchPopImp(){};
 	Result calcMaxMeanError() override;
 	void prepare(InputData data) override;
-	void execute() override;
+	long execute() override;
 
   private:
 	std::shared_ptr<std::vector<Operation>> put_stamps;

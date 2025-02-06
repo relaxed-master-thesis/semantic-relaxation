@@ -14,7 +14,7 @@ class GeijerBatch : public ErrorCalculator, public AbstractExecutor {
 	~GeijerBatch() = default;
 	Result calcMaxMeanError() override;
 	void prepare(InputData data) override;
-	void execute() override;
+	long execute() override;
 
   private:
 	struct item {

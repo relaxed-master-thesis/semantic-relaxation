@@ -30,7 +30,7 @@ class AbstractParser {
 class AbstractExecutor {
   public:
 	virtual void prepare(InputData data) = 0;
-	virtual void execute() = 0;
+	virtual long execute() = 0;
 };
 
 // TODO: enforce shared data format between parser and executor
@@ -47,7 +47,7 @@ template <class T, class V> class Benchmark {
 		executor = std::make_shared<V>();
 	}
 
-	void run(const std::string &getOps, const std::string &putOps,
+	long run(const std::string &getOps, const std::string &putOps,
 			 const std::string &output) {
 		std::shared_ptr<AbstractParser> aparser =
 			std::dynamic_pointer_cast<AbstractParser>(this->parser);
@@ -58,10 +58,10 @@ template <class T, class V> class Benchmark {
 		std::cout << "parse successful\n";
 		aexecutor->prepare(data);
 		std::cout << "prepare successful\n";
-		aexecutor->execute();
+		return aexecutor->execute();
 	}
 
-  private:
+//   private:
 	std::shared_ptr<T> parser;
 	std::shared_ptr<V> executor;
 };

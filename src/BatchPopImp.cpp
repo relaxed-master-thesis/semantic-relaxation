@@ -103,7 +103,7 @@ void BatchPopImp::prepare(InputData data) {
 	put_stamps = data.puts;
 	get_stamps = data.gets;
 }
-void BatchPopImp::execute() {
+long BatchPopImp::execute() {
 	std::cout << "Running BatchPopImp...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
@@ -113,5 +113,6 @@ void BatchPopImp::execute() {
 
 	std::cout << "Runtime: " << duration.count() << " us\n";
 	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
+	return duration.count();
 }
 } // namespace bench

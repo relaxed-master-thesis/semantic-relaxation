@@ -88,7 +88,7 @@ void ReplayImp::prepare(InputData data) {
 	put_stamps = data.puts;
 	get_stamps = data.gets;
 }
-void ReplayImp::execute() {
+long ReplayImp::execute() {
 	std::cout << "Running ReplayImp...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
@@ -98,5 +98,6 @@ void ReplayImp::execute() {
 
 	std::cout << "Runtime: " << duration.count() << " us\n";
 	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
+	return duration.count();
 }
 } // namespace bench
