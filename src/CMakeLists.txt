@@ -6,13 +6,11 @@ target_compile_options(SemanticRelaxation PRIVATE -fpie -fpic)
 
 target_sources(SemanticRelaxation PRIVATE
     main.cpp
-    GeijerImp.cpp
-    QKParser.cpp
-    ReplayImp.cpp
-    BatchPopImp.cpp
-    GeijerBatch.cpp
-    GeijerBatchPopImp.cpp
-    GeijerBatchPopParallel.cpp
+)
+
+add_subdirectory(
+    implementations
+    util
 )
 
 target_include_directories(SemanticRelaxation PUBLIC "../inc")
