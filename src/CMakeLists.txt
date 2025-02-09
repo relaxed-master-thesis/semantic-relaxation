@@ -12,6 +12,7 @@ target_sources(SemanticRelaxation PRIVATE
     BatchPopImp.cpp
     GeijerBatch.cpp
     GeijerBatchPopImp.cpp
+    GeijerBatchPopParallel.cpp
 )
 
 target_include_directories(SemanticRelaxation PUBLIC "../inc")

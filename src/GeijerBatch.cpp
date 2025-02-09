@@ -13,58 +13,50 @@ ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
 
-	item *global = put_stamps_head;
-	item *head;
+	item *head = put_stamps_head;
 
-#pragma omp parallel shared(global, rank_error_sum, rank_error_max) private(head)
-	{
-		int n_threads = omp_get_num_threads();
-		int thread_id = omp_get_thread_num();
+#pragma omp parallel for shared(head, rank_error_sum, rank_error_max, get_stamps, get_stamps_size)
+	for (size_t deq_ind = 0; deq_ind < get_stamps_size; deq_ind++) {
+		if (deq_ind == 0) [[unlikely]] {
+			std::cout << omp_get_num_threads() << " OMP threads\n";
+		}
 
-		const size_t num_local_items = put_stamps_size / n_threads;
-		head = static_cast<item *>(
-			malloc((put_stamps_size / n_threads) * sizeof(item)));
-		size_t start = num_local_items * thread_id;
-		size_t end = std::min(start + num_local_items, put_stamps_size);
-		(void)memcpy(head, &global[start], (end - start) * sizeof(item));
+		uint64_t key = (*get_stamps)[deq_ind].value;
 
-#pragma parallel for private(num_local_items, head, deq_ind) shared(get_stamps)
-		{
-			for (size_t deq_ind = start; deq_ind < end; deq_ind++) {
-
-				uint64_t key = (*get_stamps)[deq_ind].value;
-
-				uint64_t rank_error;
-				if (head->value == key) {
-					head = head->next;
-					rank_error = 0;
-				} else {
-					rank_error = 1;
-					item *current = head;
-					while (current->next->value != key) {
-						current = current->next;
-						rank_error += 1;
-						if (current->next == NULL) {
-							perror(
-								"Out of bounds on finding matching relaxation "
-								"enqueue\n");
-							printf("%zu\n", deq_ind);
-                            std::exit(-1);
-						}
-					}
-					// current->next has the removed item, so just unlink it
-					// from the data structure
-					current->next = current->next->next;
+		uint64_t rank_error;
+		if (head->value == key) {
+#pragma omp critical
+			{
+				head = head->next;
+			}
+			rank_error = 0;
+		} else {
+			rank_error = 1;
+			item *current = head;
+			while (current->next->value != key) {
+				current = current->next;
+				rank_error += 1;
+				if (current->next == NULL) {
+					perror("Out of bounds on finding matching relaxation "
+						   "enqueue\n");
+					printf("deq_ind: %zu\n", deq_ind);
+					exit(-1);
 				}
-
-				// Store rank error in get_stamps for variance calculation
-				(*get_stamps)[deq_ind].value = rank_error;
-
-				rank_error_sum += rank_error;
-				if (rank_error > rank_error_max)
-					rank_error_max = rank_error;
+			}
+// current->next has the removed item, so just unlink it from
+// the data structure
+#pragma omp critical
+			{
+				current->next = current->next->next;
 			}
 		}
+
+		// Store rank error in get_stamps for variance calculation
+		(*get_stamps)[deq_ind].value = rank_error;
+
+		rank_error_sum += rank_error;
+		if (rank_error > rank_error_max)
+			rank_error_max = rank_error;
 	}
 
 	long double rank_error_mean =
