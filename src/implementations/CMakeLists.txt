@@ -7,4 +7,7 @@ target_sources(SemanticRelaxation PRIVATE
     BatchPopImp.cpp
     GeijerBatch.cpp
     GeijerBatchPopImp.cpp
+    AugmentedIntervalTree.cpp
+    Interval.cpp
+    AITImp.cpp
 )
