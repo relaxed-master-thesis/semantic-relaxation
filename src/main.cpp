@@ -14,8 +14,19 @@
 
 int main(int argc, char *argv[]) {
 
-	std::string folder_name = "queue-k-seg-1s-4t";
-	// std::string folder_name = "queue-k-seg-1ms-1t";
+	// bench::Benchmark<bench::QKParser, bench::GeijerImp> geiTest{};
+	// geiTest.run("./data/fake/mega-err-small/combined_get_stamps.txt",
+	// 			"./data/fake/mega-err-small/combined_put_stamps.txt",
+	// 			"./data/fake/mega-err-small/output.txt");
+
+	// bench::Benchmark<bench::QKParser, bench::AITImp> errTest{};
+	// errTest.run("./data/fake/mega-err-small/combined_get_stamps.txt",
+	// 			"./data/fake/mega-err-small/combined_put_stamps.txt",
+	// 			"./data/fake/mega-err-small/output.txt");
+	// return 0;
+
+	// std::string folder_name = "queue-k-seg-1s-4t";
+	std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "SHORT_REAL";
 
 	bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{};

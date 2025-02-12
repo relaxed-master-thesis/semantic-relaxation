@@ -46,24 +46,23 @@ template <typename T> class VectorTree {
 		}
 	}
 
-	bool hasLeftChild(size_t index) {
-		return 2 * index + 1 < arr.size();
+	inline bool hasLeftChild(size_t index) const noexcept {
+		return (2 * index + 1) < arr.size();
 	}
 
-	bool hasRightChild(size_t index) {
-		return 2 * index + 2 < arr.size();
+	inline bool hasRightChild(size_t index) const noexcept {
+		return (2 * index + 2) < arr.size();
 	}
 
-	size_t leftChild(size_t index) { return 2 * index + 1; }
+	inline size_t leftChild(size_t index) const noexcept { return 2 * index + 1; }
 
-	size_t rightChild(size_t index) { return 2 * index + 2; }
+	inline size_t rightChild(size_t index) const noexcept { return 2 * index + 2; }
 
 	T &getNode(size_t index) {
-		assert(index < arr.size());
 		return arr[index];
 	}
 
-	const std::vector<T> &getArr() { return arr; }
+	std::vector<T> &getArr() { return arr; }
 
   private:
 	std::vector<T> arr{};

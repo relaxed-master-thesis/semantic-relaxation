@@ -1,6 +1,5 @@
 #include "AITImp.h"
 #include "Benchmark.h"
-#include "Queue.h"
 
 #include <cassert>
 #include <chrono>
@@ -8,17 +7,52 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
-#include <numeric>
-#include <sys/types.h>
-#include <unordered_map>
-#include <vector>
 #include <omp.h>
 #include <queue>
+#include <unordered_map>
+#include <vector>
 
 namespace bench {
+void AITImp::printTree() {
+	auto &arr = tree.getArr();
+
+	std::cout << "arr = [";
+	for (size_t i = 0; i < arr.size() - 1; ++i) {
+		auto &e = arr[i];
+		std::cout << "\t{st=" << e.start << ", en=" << e.end
+				  << ", min=" << e.min << ", max=" << e.max << "},\n";
+	}
+	auto &e = arr[arr.size() - 1];
+	std::cout << "\t{st=" << e.start << ", en=" << e.end << ", min=" << e.min
+			  << ", max=" << e.max << "}]\n";
+}
+
 uint64_t AITImp::getRank(Interval &interval) {
 	std::queue<size_t> toVisit{};
 	toVisit.push(0);
+
+	/*
+	example: arr = [{st=3, en=8, min=0, max=10},
+					{st=1, en=10, min=0, max=10},
+					{st=4, en=6, min=4, max=6},
+					{st=0, en=9, min=0, max=9},
+					{st=2, en=7, min=2, max=7}]
+
+	tree:
+		- (3, 8)
+			- (1, 10)
+				- (0, 9)
+				- (2, 7)
+			- (4, 6)
+
+
+	calc err for (3, 8): (2)
+
+	tovisit: (3, 8)x (1,10)
+	rank: 		0
+
+
+	*/
 
 	uint64_t rank = 0;
 	while (!toVisit.empty()) {
@@ -26,31 +60,36 @@ uint64_t AITImp::getRank(Interval &interval) {
 		toVisit.pop();
 		Interval &data = tree.getNode(i);
 
-		if (data.start < interval.start && data.end > interval.end)
+		// this should never be <= or >= because the data-node might be the
+		// interval we are investigating as timestamps are unique
+		if (data.start < interval.start && data.end > interval.end) {
 			++rank;
+		}
 		if (tree.hasLeftChild(i)) {
 			Interval &left = tree.getNode(tree.leftChild(i));
-			if (left.max >= interval.start)
+			if (left.min <= interval.start && left.max >= interval.end)
 				toVisit.push(tree.leftChild(i));
 		}
 		if (tree.hasRightChild(i)) {
 			Interval &right = tree.getNode(tree.rightChild(i));
-			if (right.min <= interval.end)
+			if (right.min <= interval.start && right.max >= interval.end)
 				toVisit.push(tree.rightChild(i));
 		}
 	}
-	
+
 	return rank;
 }
 
 ErrorCalculator::Result AITImp::calcMaxMeanError() {
+	// printTree();
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
 
-// #pragma omp parallel for
-	for (auto i : segments) {
-		uint64_t rank = getRank(i);
+// #pragma omp parallel for shared(segments) reduction(+ : rank_sum)              \
+// 	reduction(max : rank_max)
+	for (size_t i = 0; i < segments.size(); ++i) {
+		uint64_t rank = getRank(segments[i]);
 		if (rank > rank_max)
 			rank_max = rank;
 		rank_sum += rank;
@@ -63,6 +102,7 @@ ErrorCalculator::Result AITImp::calcMaxMeanError() {
 
 // Fix this why is it so slow???
 void AITImp::fix_dup_timestamps() {
+	std::cout << "lens: " << put_stamps_size << ", " << get_stamps_size << "\n";
 	bool keep_going = true;
 	uint64_t next_ins_tick = put_stamps->at(0).time;
 	uint32_t ins_ix = 0;
@@ -87,20 +127,33 @@ void AITImp::fix_dup_timestamps() {
 	}
 }
 
+void AITImp::updateMinMax() {
+	auto &arr = tree.getArr();
+	for (size_t i = arr.size() - 1; i > 0; --i) {
+		Interval &node = arr[i];
+		Interval &parent = arr[(i - 1) / 2];
+		parent.min = std::min(parent.min, node.min);
+		parent.max = std::max(parent.max, node.max);
+	}
+}
+
 void AITImp::prepare(InputData data) {
 	put_stamps_size = data.puts->size();
 	get_stamps_size = data.gets->size();
 	put_stamps = data.puts;
 	get_stamps = data.gets;
-	fix_dup_timestamps();
-	for (auto put : *put_stamps) {
-		put_map[put.value] = put.time;
-	}
+	std::cout << "putting timestamps...\n";
+	uint64_t time = put_stamps_size + 1;
 	for (auto get : *get_stamps) {
-		uint64_t put_time = put_map[get.value];
-		segments.emplace_back(put_time, get.time);
+		put_map[get.value] = time++;
+	}
+	time = 0;
+	for (auto put : *put_stamps) {
+		uint64_t get_time = put_map[put.value];
+		segments.emplace_back(time++, get_time);
 	}
 	tree.build(segments);
+	updateMinMax();
 }
 
 long AITImp::execute() {

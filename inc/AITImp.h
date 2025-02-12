@@ -10,6 +10,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
 namespace bench {
 class AITImp : public ErrorCalculator, public AbstractExecutor {
   public:
@@ -22,6 +23,7 @@ class AITImp : public ErrorCalculator, public AbstractExecutor {
 
   private:
 	uint64_t getRank(Interval &interval);
+	void updateMinMax();
 	
 	std::shared_ptr<std::vector<Operation>> put_stamps;
 	std::shared_ptr<std::vector<Operation>> get_stamps;
@@ -33,7 +35,7 @@ class AITImp : public ErrorCalculator, public AbstractExecutor {
 
 	// AugmentedIntervalTree ait;
 
-
+	void printTree();
 	void fix_dup_timestamps();
 	VectorTree<Interval> tree;
 
