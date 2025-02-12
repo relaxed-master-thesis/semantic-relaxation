@@ -25,20 +25,20 @@ namespace bench {
         return tmp;
     }
 
-    uint64_t AugmentedIntervalTree::getRank(std::shared_ptr<Interval> tmp, std::shared_ptr<Interval> interval, uint64_t rank){
-        if(tmp == nullptr)
-            return rank;
+    // uint64_t AugmentedIntervalTree::getRank(std::shared_ptr<Interval> tmp, std::shared_ptr<Interval> interval, uint64_t rank){
+    //     if(tmp == nullptr)
+    //         return rank;
         
-        //tmp contains interval
-        if(tmp->start < interval->start && tmp->end > interval->end){ 
-            rank += 1;
-        }
+    //     //tmp contains interval
+    //     if(tmp->start < interval->start && tmp->end > interval->end){ 
+    //         rank += 1;
+    //     }
         
-        //do we need to check the left tree?
-        if(tmp->left != nullptr && tmp->left->max >= interval->start){
-            rank = this->getRank(tmp->left, interval, rank);
-        }
-        return this->getRank(tmp->right, interval, rank);
-    }
+    //     //do we need to check the left tree?
+    //     if(tmp->left != nullptr && tmp->left->max >= interval->start){
+    //         rank = this->getRank(tmp->left, interval, rank);
+    //     }
+    //     return this->getRank(tmp->right, interval, rank);
+    // }
 
 }
