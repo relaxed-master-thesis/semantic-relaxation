@@ -1,13 +1,12 @@
-#include "AITImp.h"
-#include "BatchPopImp.h"
-#include "Benchmark.h"
-#include "GeijerBatch.h"
-#include "GeijerBatchPopImp.h"
-#include "GeijerImp.h"
-#include "QKParser.h"
-#include "ReplayImp.h"
-#include "IVTImp.h"
-#include "GeijerBatch.h"
+#include "bench/Benchmark.h"
+#include "bench/impl/AITImp.h"
+#include "bench/impl/BatchPopImp.h"
+#include "bench/impl/GeijerBatch.h"
+#include "bench/impl/GeijerBatchPopImp.h"
+#include "bench/impl/GeijerImp.h"
+#include "bench/impl/IVTImp.h"
+#include "bench/util/QKParser.h"
+#include "bench/impl/ReplayImp.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -32,22 +31,24 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "SHORT_REAL";
 
 	bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{};
-	long geijer_duration = geijerBench.run( "./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-				  "./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-				  "./data/timestamps/" + folder_name + "/output.txt");
+	long geijer_duration = geijerBench.run(
+		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
+		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
+		"./data/timestamps/" + folder_name + "/output.txt");
 
 	bench::Benchmark<bench::QKParser, bench::AITImp> AITImp{};
-	long ait_duration = AITImp.run("./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-				  "./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-				  "./data/timestamps/" + folder_name + "/output.txt");
+	long ait_duration = AITImp.run(
+		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
+		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
+		"./data/timestamps/" + folder_name + "/output.txt");
 
-	// bench::Benchmark<bench::QKParser, bench::GeijerBatchPopImp> geijerBatchPopImp{};
-	// long geijer_batch_duration = geijerBatchPopImp.run("./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-	// 			  "./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
+	// bench::Benchmark<bench::QKParser, bench::GeijerBatchPopImp>
+	// geijerBatchPopImp{}; long geijer_batch_duration =
+	// geijerBatchPopImp.run("./data/timestamps/" + folder_name +
+	// "/combined_get_stamps.txt",
+	// 			  "./data/timestamps/" + folder_name +
+	// "/combined_put_stamps.txt",
 	// 			  "./data/timestamps/" + folder_name + "/output.txt");
-
-
-
 
 	// double speedup = (double)geijer_duration / (double)geijer_batch_duration;
 	// printf("\n\nSpeedup using batch in Geijer: %f\n", speedup);

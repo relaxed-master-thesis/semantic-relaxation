@@ -1,23 +1,17 @@
-#include "BatchPopImp.h"
-#include "Benchmark.h"
-#include "Operation.h"
-#include "Queue.h"
+#include "bench/impl/ReplayImp.h"
+#include "bench/Benchmark.h"
+#include "bench/Operation.h"
+#include "bench/util/VectorQueue.h"
 
-#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
-#include <numeric>
-#include <stdexcept>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 namespace bench {
-ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
+ErrorCalculator::Result ReplayImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -33,9 +27,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 	std::vector<uint64_t> ranks;
 
 	bool keep_running = true;
-	int s = 0;
-	Queue<uint64_t> q;
-	uint64_t max_pop_seq = 0;
+	VectorQueue<uint64_t> q;
 	while (keep_running) {
 		assert(ins_ix < put_stamps_size);
 		assert(next_ins_tick <= next_del_tick);
@@ -53,17 +45,20 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 			next_ins_tick = (*put_stamps)[ins_ix].time;
 		}
 
-		// map from value to insert order 0...n
-		std::unordered_map<uint64_t, uint64_t> pops;
 		/* Do deletions. */
-		uint64_t ins = 0;
-		while (next_del_tick < next_ins_tick && del_ix < get_stamps_size) {
-            uint64_t val = (*get_stamps)[del_ix++].value;
-            // if(pops.contains(val)){
-            //     std::cout << "value already in map " << val << ", MAYDAY MAYDAY WE ARE GOING TO CRASH\n";
-			// 	throw std::invalid_argument("We cant have duplicate elements in one continous pop sequence");
-            // }
-			pops.insert({val, ins++});
+		while (next_del_tick < next_ins_tick) {
+
+			Operation &deleted_item = (*get_stamps)[del_ix++];
+
+			/* Look up the key. */
+			uint64_t rank;
+			q.deq(deleted_item.value, &rank);
+
+			ranks.push_back(rank);
+
+			rank_sum += rank;
+			rank_max = std::max(rank_max, rank);
+
 			if (del_ix >= get_stamps_size) {
 				keep_running = false;
 				break;
@@ -71,15 +66,6 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 
 			next_del_tick = (*get_stamps)[del_ix].time;
 		}
-		max_pop_seq = std::max(max_pop_seq, ins);
-		
-		std::vector<uint64_t> rs;
-		rs.resize(pops.size());
-		q.batch_deq(pops, &rs);
-		rank_sum += std::reduce(rs.begin(), rs.end());
-		rank_max = std::max(rank_max,
-							*std::max_element(rs.begin(), rs.end()));
-        ranks.insert(ranks.end(), rs.begin(), rs.end());
 	}
 
 	const double rank_mean = (double)rank_sum / ranks.size();
@@ -92,19 +78,18 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 
 	const double rank_stddev =
 		std::sqrt(rank_squared_difference / ranks.size());
-	printf("Max pop sequence: %lu\n", max_pop_seq);
 
 	return {rank_max, rank_mean};
 }
 
-void BatchPopImp::prepare(InputData data) {
+void ReplayImp::prepare(InputData data) {
 	put_stamps_size = data.puts->size();
 	get_stamps_size = data.gets->size();
 	put_stamps = data.puts;
 	get_stamps = data.gets;
 }
-long BatchPopImp::execute() {
-	std::cout << "Running BatchPopImp...\n";
+long ReplayImp::execute() {
+	std::cout << "Running ReplayImp...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();

@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Benchmark.h"
-#include "ErrorCalculator.h"
-#include "Operation.h"
+#include "bench/Benchmark.h"
+#include "bench/ErrorCalculator.h"
+#include "bench/Operation.h"
 
-#include <memory>
+#include <memory.h>
 #include <vector>
 
 namespace bench {
-class GeijerImp : public ErrorCalculator, public AbstractExecutor {
+class GeijerBatch : public ErrorCalculator, public AbstractExecutor {
   public:
-	GeijerImp() = default;
-	~GeijerImp() = default;
+	GeijerBatch() = default;
+	~GeijerBatch() = default;
 	Result calcMaxMeanError() override;
 	void prepare(InputData data) override;
 	long execute() override;

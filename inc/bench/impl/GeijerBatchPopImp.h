@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Benchmark.h"
-#include "ErrorCalculator.h"
-#include "Operation.h"
+#include "bench/Benchmark.h"
+#include "bench/ErrorCalculator.h"
+#include "bench/Operation.h"
 
 #include <memory>
 #include <vector>

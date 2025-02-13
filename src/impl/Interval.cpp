@@ -1,4 +1,4 @@
-#include "Interval.h"
+#include "bench/Interval.h"
 namespace bench {
 int Interval::compareTo(Interval &other) {
 	if (this->start < other.start)
@@ -8,5 +8,4 @@ int Interval::compareTo(Interval &other) {
 	else
 		return 1;
 }
-
 } // namespace bench

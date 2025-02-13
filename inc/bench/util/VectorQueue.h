@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <functional>
-#include <map>
 #include <vector>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
@@ -19,12 +18,11 @@ using ordered_set = tree<
     rb_tree_tag,
     tree_order_statistics_node_update>;
 
-
 namespace bench {
-template <class T> class Queue {
+template <class T> class VectorQueue {
   public:
-	Queue() : vec({}) {}
-	~Queue(){};
+	VectorQueue() : vec({}) {}
+	~VectorQueue(){};
 	void enq(T item) { vec.push_back(item); };
 	T deq(T item, uint64_t *rank) {
 		for (size_t pos = 0; pos < vec.size(); pos++) {

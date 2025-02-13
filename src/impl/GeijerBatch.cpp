@@ -1,24 +1,34 @@
-#include "GeijerImp.h"
-#include "Benchmark.h"
+#include "bench/impl/GeijerBatch.h"
+#include "bench/Benchmark.h"
+#include "bench/ErrorCalculator.h"
 
 #include <chrono>
-#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <omp.h>
 
 namespace bench {
-
-ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
+ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
 
 	item *head = put_stamps_head;
 
+#pragma omp parallel for shared(head, rank_error_sum, rank_error_max, get_stamps, get_stamps_size)
 	for (size_t deq_ind = 0; deq_ind < get_stamps_size; deq_ind++) {
+		if (deq_ind == 0) [[unlikely]] {
+			std::cout << omp_get_num_threads() << " OMP threads\n";
+		}
 
 		uint64_t key = (*get_stamps)[deq_ind].value;
 
 		uint64_t rank_error;
 		if (head->value == key) {
-			head = head->next;
+#pragma omp critical
+			{
+				head = head->next;
+			}
 			rank_error = 0;
 		} else {
 			rank_error = 1;
@@ -29,23 +39,26 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 				if (current->next == NULL) {
 					perror("Out of bounds on finding matching relaxation "
 						   "enqueue\n");
-					printf("%zu\n", deq_ind);
+					printf("deq_ind: %zu\n", deq_ind);
 					exit(-1);
 				}
 			}
-			// current->next has the removed item, so just unlink it from the
-			// data structure
-			current->next = current->next->next;
+// current->next has the removed item, so just unlink it from
+// the data structure
+#pragma omp critical
+			{
+				current->next = current->next->next;
+			}
 		}
 
 		// Store rank error in get_stamps for variance calculation
 		(*get_stamps)[deq_ind].value = rank_error;
 
-		std::cout << "key " << key << " has error " << rank_error << "\n";
 		rank_error_sum += rank_error;
 		if (rank_error > rank_error_max)
 			rank_error_max = rank_error;
 	}
+
 	long double rank_error_mean =
 		(long double)rank_error_sum / (long double)get_stamps_size;
 	if (get_stamps_size == 0)
@@ -65,8 +78,7 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 	return {rank_error_max, rank_error_mean};
 }
 
-void GeijerImp::prepare(InputData data) {
-
+void GeijerBatch::prepare(InputData data) {
 	put_stamps_size = data.puts->size();
 	get_stamps_size = data.gets->size();
 	get_stamps = data.gets;
@@ -81,8 +93,8 @@ void GeijerImp::prepare(InputData data) {
 	put_stamps_head = &item_list[0];
 }
 
-long GeijerImp::execute() {
-	std::cout << "Running GeijerImp...\n";
+long GeijerBatch::execute() {
+	std::cout << "Running GeijerBatch...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();

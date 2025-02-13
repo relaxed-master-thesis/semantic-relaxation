@@ -9,7 +9,7 @@ target_sources(SemanticRelaxation PRIVATE
 )
 
 add_subdirectory(
-    implementations
+    impl
     util
 )
 

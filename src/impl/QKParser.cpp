@@ -1,6 +1,6 @@
-#include "QKParser.h"
-#include "Benchmark.h"
-#include "Operation.h"
+#include "bench/util/QKParser.h"
+#include "bench/Benchmark.h"
+#include "bench/Operation.h"
 
 #include <cstdint>
 #include <cstdio>

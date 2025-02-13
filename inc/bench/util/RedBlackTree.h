@@ -1,30 +1,28 @@
-// C++ Program to Implement Red Black Tree
 #pragma once
 
 #include <iostream>
-using namespace std;
 
 // Enumeration for colors of nodes in Red-Black Tree
-enum Color { RED, BLACK };
 
 // Class template for Red-Black Tree
 namespace bench {
 template <typename T> class RedBlackTree {
   public:
-  	// Structure for a node in Red-Black Tree
-  	struct Node {
-	  T data;
-	  Color color;
-	  Node *parent;
-	  Node *left;
-	  Node *right;
+	// Structure for a node in Red-Black Tree
+	enum Color { RED, BLACK };
+	struct Node {
+		T data;
+		Color color;
+		Node *parent;
+		Node *left;
+		Node *right;
 
-	  // Constructor to initialize node with data and
-	  // color
-	  Node(T value)
-		  : data(value), color(RED), parent(nullptr), left(nullptr),
-			right(nullptr) {}
-  	};
+		// Constructor to initialize node with data and
+		// color
+		Node(T value)
+			: data(value), color(RED), parent(nullptr), left(nullptr),
+			  right(nullptr) {}
+	};
 	// Constructor: Initialize Red-Black Tree
 	RedBlackTree() : root(nullptr) {}
 
@@ -74,7 +72,7 @@ template <typename T> class RedBlackTree {
 		}
 
 		if (z == nullptr) {
-			cout << "Key not found in the tree" << endl;
+			std::cout << "Key not found in the tree" << std::endl;
 			return;
 		}
 
@@ -112,14 +110,14 @@ template <typename T> class RedBlackTree {
 	// Public function: Print the Red-Black Tree
 	void printTree() {
 		if (root == nullptr)
-			cout << "Tree is empty." << endl;
+			std::cout << "Tree is empty." << std::endl;
 		else {
-			cout << "Red-Black Tree:" << endl;
+			std::cout << "Red-Black Tree:" << std::endl;
 			printHelper(root, "", true);
 		}
 	}
-	private:
 
+  private:
 	Node *root; // Root of the Red-Black Tree
 
 	// Utility function: Left Rotation
@@ -292,18 +290,18 @@ template <typename T> class RedBlackTree {
 	}
 
 	// Utility function: Helper to print Red-Black Tree
-	void printHelper(Node *root, string indent, bool last) {
+	void printHelper(Node *root, std::string indent, bool last) {
 		if (root != nullptr) {
-			cout << indent;
+			std::cout << indent;
 			if (last) {
-				cout << "R----";
+				std::cout << "R----";
 				indent += "   ";
 			} else {
-				cout << "L----";
+				std::cout << "L----";
 				indent += "|  ";
 			}
-			string sColor = (root->color == RED) ? "RED" : "BLACK";
-			cout << root->data << "(" << sColor << ")" << endl;
+			std::string sColor = (root->color == RED) ? "RED" : "BLACK";
+			std::cout << root->data << "(" << sColor << ")" << std::endl;
 			printHelper(root->left, indent, false);
 			printHelper(root->right, indent, true);
 		}
@@ -318,6 +316,5 @@ template <typename T> class RedBlackTree {
 			delete node;
 		}
 	}
-
 };
 } // namespace bench

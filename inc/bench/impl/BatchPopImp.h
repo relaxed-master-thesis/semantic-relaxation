@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Benchmark.h"
-#include "ErrorCalculator.h"
+#include "bench/Benchmark.h"
+#include "bench/ErrorCalculator.h"
 
 namespace bench {
-class ReplayImp : public ErrorCalculator, public AbstractExecutor {
+class BatchPopImp : public ErrorCalculator, public AbstractExecutor {
   public:
-	ReplayImp() = default;
-	~ReplayImp(){};
+	BatchPopImp() = default;
+	~BatchPopImp(){};
 	Result calcMaxMeanError() override;
 	void prepare(InputData data) override;
 	long execute() override;

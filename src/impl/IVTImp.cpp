@@ -1,20 +1,11 @@
-#include "AITImp.h"
-#include "Benchmark.h"
+#include "bench/impl/IVTImp.h"
 
-#include <cassert>
 #include <chrono>
-#include <cstdint>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <omp.h>
-#include <queue>
 #include <stack>
-#include <unordered_map>
-#include <vector>
+#include <unordered_set>
 
 namespace bench {
-void AITImp::printTreePretty() {
+void IVTImp::printTreePretty() {
 	std::cout << "Tree {start, end, min, max}:\n";
 
 	auto &arr = tree.getArr();
@@ -45,7 +36,7 @@ void AITImp::printTreePretty() {
 	}
 }
 
-void AITImp::printTree() {
+void IVTImp::printTree() {
 	auto &arr = tree.getArr();
 
 	std::cout << "arr = [";
@@ -59,11 +50,9 @@ void AITImp::printTree() {
 			  << ", max=" << e.max << "}]\n";
 }
 
-uint64_t AITImp::getRank2(size_t root, Interval &interval) {
-	return 0;
-}
+uint64_t IVTImp::getRank2(size_t root, Interval &interval) { return 0; }
 
-uint64_t AITImp::getRank(size_t root, Interval &interval) {
+uint64_t IVTImp::getRank(size_t root, Interval &interval) {
 	std::queue<size_t> toVisit{};
 	std::unordered_set<size_t> visited{};
 	if (tree.hasLeftChild(root))
@@ -128,7 +117,7 @@ uint64_t AITImp::getRank(size_t root, Interval &interval) {
 		if (tree.hasLeftChild(i)) {
 			Interval &left = tree.getNode(tree.leftChild(i));
 			if (left.min <= interval.start && left.max >= interval.end)
-			toVisit.push(tree.leftChild(i));
+				toVisit.push(tree.leftChild(i));
 		}
 		if (tree.hasRightChild(i)) {
 			Interval &right = tree.getNode(tree.rightChild(i));
@@ -141,7 +130,7 @@ uint64_t AITImp::getRank(size_t root, Interval &interval) {
 	return rank;
 }
 
-ErrorCalculator::Result AITImp::calcMaxMeanError() {
+ErrorCalculator::Result IVTImp::calcMaxMeanError() {
 	// printTree();
 	printTreePretty();
 
@@ -150,7 +139,7 @@ ErrorCalculator::Result AITImp::calcMaxMeanError() {
 
 	auto &arr = tree.getArr();
 	// #pragma omp parallel for shared(arr) reduction(+ : rank_sum)                   \
-// 	reduction(max : rank_max)
+    // 	reduction(max : rank_max)
 	for (size_t i = 0; i < arr.size(); ++i) {
 		Interval &interval = arr[i];
 		uint64_t rank = getRank(i, interval);
@@ -167,7 +156,7 @@ ErrorCalculator::Result AITImp::calcMaxMeanError() {
 }
 
 // Fix this why is it so slow???
-void AITImp::fix_dup_timestamps() {
+void IVTImp::fix_dup_timestamps() {
 	std::cout << "lens: " << put_stamps_size << ", " << get_stamps_size << "\n";
 	bool keep_going = true;
 	uint64_t next_ins_tick = put_stamps->at(0).time;
@@ -193,7 +182,7 @@ void AITImp::fix_dup_timestamps() {
 	}
 }
 
-void AITImp::updateMinMax() {
+void IVTImp::updateMinMax() {
 	auto &arr = tree.getArr();
 	for (size_t i = arr.size() - 1; i > 0; --i) {
 		Interval &node = arr[i];
@@ -203,7 +192,7 @@ void AITImp::updateMinMax() {
 	}
 }
 
-void AITImp::prepare(InputData data) {
+void IVTImp::prepare(InputData data) {
 	put_stamps_size = data.puts->size();
 	get_stamps_size = data.gets->size();
 	put_stamps = data.puts;
@@ -222,8 +211,8 @@ void AITImp::prepare(InputData data) {
 	updateMinMax();
 }
 
-long AITImp::execute() {
-	std::cout << "Running AITImp...\n";
+long IVTImp::execute() {
+	std::cout << "Running IVTImp...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 	auto result = calcMaxMeanError();
 	auto end = std::chrono::high_resolution_clock::now();
@@ -234,5 +223,4 @@ long AITImp::execute() {
 	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
 	return duration.count();
 }
-
 } // namespace bench

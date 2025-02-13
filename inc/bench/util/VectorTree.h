@@ -1,14 +1,10 @@
 #pragma once
 
-#include "Benchmark.h"
-#include "ErrorCalculator.h"
-
-#include <algorithm>
 #include <cmath>
+#include <stdint.h>
+#include <vector>
 #include <queue>
-#include <unordered_set>
 
-namespace bench {
 template <typename T> class VectorTree {
   private:
 	struct Reorder {
@@ -52,20 +48,20 @@ template <typename T> class VectorTree {
 		return static_cast<size_t>(std::floor(std::log2(index + 1)));
 	}
 
-	inline bool isRoot(size_t index) const noexcept {
-		return index == 0;
-	}
+	inline bool isRoot(size_t index) const noexcept { return index == 0; }
 
 	inline size_t getParent(size_t index) const noexcept {
 		return (index - 1) / 2;
 	}
 
 	inline bool isLeftChild(size_t index) const noexcept {
-		return (double(index - 1) / 2.f) - std::floor((index - 1) / 2) > std::numeric_limits<double>::epsilon();
+		return (double(index - 1) / 2.f) - std::floor((index - 1) / 2) >
+			   std::numeric_limits<double>::epsilon();
 	}
 
 	inline bool isRightChild(size_t index) const noexcept {
-		return (double(index - 2) / 2.f) - std::floor((index - 2) / 2) > std::numeric_limits<double>::epsilon();
+		return (double(index - 2) / 2.f) - std::floor((index - 2) / 2) >
+			   std::numeric_limits<double>::epsilon();
 	}
 
 	inline bool isLeaf(size_t index) const noexcept {
@@ -96,13 +92,3 @@ template <typename T> class VectorTree {
 	size_t size{0};
 	std::vector<T> arr{};
 };
-
-class IVTImp : public ErrorCalculator, public AbstractExecutor {
-  public:
-	IVTImp() = default;
-	~IVTImp() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
-};
-} // namespace bench

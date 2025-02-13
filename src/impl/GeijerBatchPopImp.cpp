@@ -1,13 +1,12 @@
-#include "GeijerBatchPopImp.h"
-#include "Benchmark.h"
-#include "Queue.h"
+#include "bench/impl/GeijerBatchPopImp.h"
+#include "bench/Benchmark.h"
+#include "bench/util/VectorQueue.h"
 
 #include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
-#include <numeric>
 #include <unordered_map>
 
 #include <ext/pb_ds/assoc_container.hpp>
@@ -32,17 +31,16 @@ ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
-	
+
 	bool keep_running = true;
 	size_t batches_done = 0;
 	// add heuristic?
 	uint64_t batch_size = 10000;
 	size_t total_batches_needed = get_stamps_size / batch_size;
-	printf("Batches of size %lu needed: %lu\n", batch_size, total_batches_needed);
+	printf("Batches of size %lu needed: %lu\n", batch_size,
+		   total_batches_needed);
 
-
-	
-	item* head = put_stamps_head;
+	item *head = put_stamps_head;
 	while (keep_running) {
 
 		// map from value to insert order 0...n
@@ -58,13 +56,12 @@ ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
 			}
 		}
 
-
 		int dels = pops.size();
 		// map of all pops and where they were found
 		ordered_set<int> found_pops;
 
 		uint64_t found = 0;
-		while(found < dels && pops.contains(head->value)){
+		while (found < dels && pops.contains(head->value)) {
 			uint64_t pop_order = pops.at(head->value);
 			uint64_t fi = found_pops.order_of_key(pop_order);
 			found_pops.insert(pop_order);
@@ -75,10 +72,9 @@ ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
 
 			head = head->next;
 			found++;
-
 		}
 		uint64_t idx = found;
-		item* current = head;
+		item *current = head;
 		while (found < dels) {
 			idx++;
 			if (pops.contains(current->next->value)) {
@@ -96,16 +92,15 @@ ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
 				if (rank_error > rank_max)
 					rank_max = rank_error;
 
-
 				current->next = current->next->next;
 				found++;
-			}else {
+			} else {
 				current = current->next;
 			}
 		}
 	}
 	const double rank_mean = (double)rank_sum / get_stamps_size;
-	
+
 	return {rank_max, rank_mean};
 }
 

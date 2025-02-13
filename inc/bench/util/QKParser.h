@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Benchmark.h"
+#include "bench/Benchmark.h"
 
 #include <memory.h>
 #include <stdint.h>
