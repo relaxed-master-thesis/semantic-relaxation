@@ -41,6 +41,7 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 		// Store rank error in get_stamps for variance calculation
 		(*get_stamps)[deq_ind].value = rank_error;
 
+		std::cout << "key " << key << " has error " << rank_error << "\n";
 		rank_error_sum += rank_error;
 		if (rank_error > rank_error_max)
 			rank_error_max = rank_error;

@@ -22,7 +22,8 @@ class AITImp : public ErrorCalculator, public AbstractExecutor {
 
 
   private:
-	uint64_t getRank(Interval &interval);
+	uint64_t getRank(size_t root, Interval &interval);
+	uint64_t getRank2(size_t root, Interval &interval);
 	void updateMinMax();
 	
 	std::shared_ptr<std::vector<Operation>> put_stamps;
@@ -35,6 +36,7 @@ class AITImp : public ErrorCalculator, public AbstractExecutor {
 
 	// AugmentedIntervalTree ait;
 
+	void printTreePretty();
 	void printTree();
 	void fix_dup_timestamps();
 	VectorTree<Interval> tree;

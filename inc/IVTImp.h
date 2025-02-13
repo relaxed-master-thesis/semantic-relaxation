@@ -23,6 +23,8 @@ template <typename T> class VectorTree {
 
 	void build(std::vector<T> &nodes) {
 		size_t n = nodes.size();
+		size = n;
+		arr.clear();
 		arr.resize(n, T{}); // initialize with default values
 		std::queue<Reorder> q{};
 		q.push({0, n - 1, 0});
@@ -46,6 +48,30 @@ template <typename T> class VectorTree {
 		}
 	}
 
+	inline size_t getLevel(size_t index) const noexcept {
+		return static_cast<size_t>(std::floor(std::log2(index + 1)));
+	}
+
+	inline bool isRoot(size_t index) const noexcept {
+		return index == 0;
+	}
+
+	inline size_t getParent(size_t index) const noexcept {
+		return (index - 1) / 2;
+	}
+
+	inline bool isLeftChild(size_t index) const noexcept {
+		return (double(index - 1) / 2.f) - std::floor((index - 1) / 2) > std::numeric_limits<double>::epsilon();
+	}
+
+	inline bool isRightChild(size_t index) const noexcept {
+		return (double(index - 2) / 2.f) - std::floor((index - 2) / 2) > std::numeric_limits<double>::epsilon();
+	}
+
+	inline bool isLeaf(size_t index) const noexcept {
+		return !hasLeftChild(index) && !hasRightChild(index);
+	}
+
 	inline bool hasLeftChild(size_t index) const noexcept {
 		return (2 * index + 1) < arr.size();
 	}
@@ -54,17 +80,20 @@ template <typename T> class VectorTree {
 		return (2 * index + 2) < arr.size();
 	}
 
-	inline size_t leftChild(size_t index) const noexcept { return 2 * index + 1; }
-
-	inline size_t rightChild(size_t index) const noexcept { return 2 * index + 2; }
-
-	T &getNode(size_t index) {
-		return arr[index];
+	inline size_t leftChild(size_t index) const noexcept {
+		return 2 * index + 1;
 	}
+
+	inline size_t rightChild(size_t index) const noexcept {
+		return 2 * index + 2;
+	}
+
+	T &getNode(size_t index) { return arr[index]; }
 
 	std::vector<T> &getArr() { return arr; }
 
   private:
+	size_t size{0};
 	std::vector<T> arr{};
 };
 

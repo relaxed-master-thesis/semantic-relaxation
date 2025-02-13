@@ -9,10 +9,42 @@
 #include <memory>
 #include <omp.h>
 #include <queue>
+#include <stack>
 #include <unordered_map>
 #include <vector>
 
 namespace bench {
+void AITImp::printTreePretty() {
+	std::cout << "Tree {start, end, min, max}:\n";
+
+	auto &arr = tree.getArr();
+
+	auto prindent = [](size_t lvl) -> void {
+		for (size_t i = 0; i < lvl; ++i) {
+			std::cout << "  ";
+		}
+	};
+
+	auto prelem = [](Interval &interval) -> void {
+		std::cout << "- {" << interval.start << ", " << interval.end << ", "
+				  << interval.min << ", " << interval.max << "}\n";
+	};
+
+	std::stack<size_t> toPrint{};
+	toPrint.push(0);
+
+	while (!toPrint.empty()) {
+		size_t i = toPrint.top();
+		toPrint.pop();
+		prindent(tree.getLevel(i));
+		prelem(arr[i]);
+		if (tree.hasRightChild(i))
+			toPrint.push(tree.rightChild(i));
+		if (tree.hasLeftChild(i))
+			toPrint.push(tree.leftChild(i));
+	}
+}
+
 void AITImp::printTree() {
 	auto &arr = tree.getArr();
 
@@ -27,9 +59,24 @@ void AITImp::printTree() {
 			  << ", max=" << e.max << "}]\n";
 }
 
-uint64_t AITImp::getRank(Interval &interval) {
+uint64_t AITImp::getRank2(size_t root, Interval &interval) {
+	return 0;
+}
+
+uint64_t AITImp::getRank(size_t root, Interval &interval) {
 	std::queue<size_t> toVisit{};
-	toVisit.push(0);
+	std::unordered_set<size_t> visited{};
+	if (tree.hasLeftChild(root))
+		toVisit.push(tree.leftChild(root));
+	if (!tree.isRoot(root) && tree.isRightChild(root))
+		toVisit.push(tree.leftChild(tree.getParent(root)));
+
+	// push all indices of nodes to your left on the same level
+	size_t currLevel = tree.getLevel(root);
+	size_t i = root - 1;
+	while (tree.getLevel(i) == currLevel) {
+		toVisit.push(i--);
+	}
 
 	/*
 	example: arr = [{st=3, en=8, min=0, max=10},
@@ -51,13 +98,21 @@ uint64_t AITImp::getRank(Interval &interval) {
 	tovisit: (3, 8)x (1,10)
 	rank: 		0
 
+	revelation:
+		- only your left childs can contain yourself
+		- traverse the list
+
 
 	*/
 
 	uint64_t rank = 0;
 	while (!toVisit.empty()) {
 		size_t i = toVisit.front();
-		toVisit.pop();
+		if (visited.find(i) != visited.end()) {
+			toVisit.pop();
+			continue;
+		}
+		visited.insert(i);
 		Interval &data = tree.getNode(i);
 
 		// this should never be <= or >= because the data-node might be the
@@ -65,16 +120,22 @@ uint64_t AITImp::getRank(Interval &interval) {
 		if (data.start < interval.start && data.end > interval.end) {
 			++rank;
 		}
+		if (tree.isRightChild(i)) {
+			Interval &parent = tree.getNode(tree.getParent(i));
+			if (parent.min <= interval.start && parent.max >= interval.end)
+				toVisit.push(tree.getParent(i));
+		}
 		if (tree.hasLeftChild(i)) {
 			Interval &left = tree.getNode(tree.leftChild(i));
 			if (left.min <= interval.start && left.max >= interval.end)
-				toVisit.push(tree.leftChild(i));
+			toVisit.push(tree.leftChild(i));
 		}
 		if (tree.hasRightChild(i)) {
 			Interval &right = tree.getNode(tree.rightChild(i));
 			if (right.min <= interval.start && right.max >= interval.end)
 				toVisit.push(tree.rightChild(i));
 		}
+		toVisit.pop();
 	}
 
 	return rank;
@@ -82,19 +143,24 @@ uint64_t AITImp::getRank(Interval &interval) {
 
 ErrorCalculator::Result AITImp::calcMaxMeanError() {
 	// printTree();
+	printTreePretty();
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
 
-// #pragma omp parallel for shared(segments) reduction(+ : rank_sum)              \
+	auto &arr = tree.getArr();
+	// #pragma omp parallel for shared(arr) reduction(+ : rank_sum)                   \
 // 	reduction(max : rank_max)
-	for (size_t i = 0; i < segments.size(); ++i) {
-		uint64_t rank = getRank(segments[i]);
+	for (size_t i = 0; i < arr.size(); ++i) {
+		Interval &interval = arr[i];
+		uint64_t rank = getRank(i, interval);
+		std::cout << "arr[" << i << "] = {" << interval.start << ", "
+				  << interval.end << ", " << interval.min << ", "
+				  << interval.max << "} has error " << rank << "\n";
 		if (rank > rank_max)
 			rank_max = rank;
 		rank_sum += rank;
 	}
-	std::cout << "max: " << rank_max << ", stamps: " << get_stamps_size << "\n";
 	const double rank_mean = (double)rank_sum / get_stamps_size;
 
 	return {rank_max, rank_mean};
@@ -147,7 +213,7 @@ void AITImp::prepare(InputData data) {
 	for (auto get : *get_stamps) {
 		put_map[get.value] = time++;
 	}
-	time = 0;
+	time = 1;
 	for (auto put : *put_stamps) {
 		uint64_t get_time = put_map[put.value];
 		segments.emplace_back(time++, get_time);

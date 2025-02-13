@@ -1,0 +1,84 @@
+
+key 15 has error 14
+key 14 has error 13
+key 13 has error 12
+key 12 has error 11
+key 11 has error 10
+key 10 has error 9
+key 9 has error 8
+key 8 has error 7
+key 7 has error 6
+key 6 has error 5
+key 5 has error 4
+key 4 has error 3
+key 3 has error 2
+key 2 has error 1
+key 1 has error 0
+
+Tree {start, end, min, max}:
+- {8, 23, 1, 30}          0
+  - {4, 27, 1, 30}        1
+    - {2, 29, 1, 30}      3   x
+      - {1, 30, 1, 30}    7   x
+      - {3, 28, 3, 28}    8   x
+    - {6, 25, 5, 26}      4   x
+      - {5, 26, 5, 26}    9   x
+      - {7, 24, 7, 24}    10  x
+  - {12, 19, 9, 22}       2
+    - {10, 21, 9, 22}     5   x
+      - {9, 22, 9, 22}    11  x
+      - {11, 20, 11, 20}  12  x
+    - {14, 17, 13, 18}    6   n
+      - {13, 18, 13, 18}  13  x
+      - {15, 16, 15, 16}  14
+
+idea:
+if you are right child add parent
+if you are left child go up until you reach a grandparent that is a right child, then add all parents
+
+2 has errs: 5, 1, 11, 12, 3, 4, 7, 8, 9, 10
+(parent (0) missing because its a right child)
+arr[2] = {12, 19, 9, 22} has error 10
+
+4 has errs: 9, 3, 7, 8
+(parent (1) missing because its a right child)
+arr[4] = {6, 25, 5, 26} has error 4
+
+5 has errs: 11, 4, 3, 9, 10, 7, 8
+(parent and sibling of parent (0 & 1) missing because its a left child)
+arr[5] = {10, 21, 9, 22} has error 7
+
+6 has errs: 13, 5, 4, 3, 11, 12, 9, 10, 7, 8,
+(parent (2) missing because its a right child)
+arr[6] = {14, 17, 13, 18} has error 10
+
+8 has errs: 7, 
+arr[8] = {3, 28, 3, 28} has error 1
+
+9 has errs: 8, 7, 
+arr[9] = {5, 26, 5, 26} has error 2
+
+10 has errs: 9, 8, 7, 
+arr[10] = {7, 24, 7, 24} has error 3
+
+11 has errs: 10, 9, 8, 7, 
+arr[11] = {9, 22, 9, 22} has error 4
+
+12 has errs: 11, 10, 9, 8, 7, 
+arr[12] = {11, 20, 11, 20} has error 5
+
+13 has errs: 12, 11, 10, 9, 8, 7, 
+arr[13] = {13, 18, 13, 18} has error 6
+
+14 has errs: 13, 12, 11, 10, 9, 8, 7, 
+arr[14] = {15, 16, 15, 16} has error 7
+
+
+0 has errs: 1, 3, 4, 7, 8, 9, 10, 
+arr[0] = {8, 23, 1, 30} has error 7
+1 has errs: 3, 7, 8, 
+arr[1] = {4, 27, 1, 30} has error 3
+3 has errs: 7, 
+arr[3] = {2, 29, 1, 30} has error 1
+7 has errs: 
+arr[7] = {1, 30, 1, 30} has error 0

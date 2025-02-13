@@ -1,11 +1,13 @@
 #include "AITImp.h"
 #include "BatchPopImp.h"
 #include "Benchmark.h"
+#include "GeijerBatch.h"
 #include "GeijerBatchPopImp.h"
 #include "GeijerImp.h"
 #include "QKParser.h"
 #include "ReplayImp.h"
 #include "IVTImp.h"
+#include "GeijerBatch.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -14,16 +16,16 @@
 
 int main(int argc, char *argv[]) {
 
-	// bench::Benchmark<bench::QKParser, bench::GeijerImp> geiTest{};
-	// geiTest.run("./data/fake/mega-err-small/combined_get_stamps.txt",
-	// 			"./data/fake/mega-err-small/combined_put_stamps.txt",
-	// 			"./data/fake/mega-err-small/output.txt");
+	bench::Benchmark<bench::QKParser, bench::GeijerImp> geiTest{};
+	geiTest.run("./data/timestamps/queue-k-seg-1ms-6t/combined_get_stamps.txt",
+				"./data/timestamps/queue-k-seg-1ms-6t/combined_put_stamps.txt",
+				"./data/timestamps/queue-k-seg-1ms-6t/output.txt");
 
-	// bench::Benchmark<bench::QKParser, bench::AITImp> errTest{};
-	// errTest.run("./data/fake/mega-err-small/combined_get_stamps.txt",
-	// 			"./data/fake/mega-err-small/combined_put_stamps.txt",
-	// 			"./data/fake/mega-err-small/output.txt");
-	// return 0;
+	bench::Benchmark<bench::QKParser, bench::GeijerBatch> errTest{};
+	errTest.run("./data/timestamps/queue-k-seg-1ms-6t/combined_get_stamps.txt",
+				"./data/timestamps/queue-k-seg-1ms-6t/combined_put_stamps.txt",
+				"./data/timestamps/queue-k-seg-1ms-6t/output.txt");
+	return 0;
 
 	// std::string folder_name = "queue-k-seg-1s-4t";
 	std::string folder_name = "2dd-queue-opt-1ms";
