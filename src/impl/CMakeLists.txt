@@ -1,13 +1,14 @@
 project(SemanticRelaxation VERSION 0.1)
 
 target_sources(SemanticRelaxation PRIVATE
-    GeijerImp.cpp
-    QKParser.cpp
-    ReplayImp.cpp
+    AITImp.cpp
+    AugmentedIntervalTree.cpp
     BatchPopImp.cpp
     GeijerBatch.cpp
     GeijerBatchPopImp.cpp
-    AugmentedIntervalTree.cpp
+    GeijerImp.cpp
     Interval.cpp
-    AITImp.cpp
+    IVTImp.cpp
+    QKParser.cpp
+    ReplayImp.cpp
 )

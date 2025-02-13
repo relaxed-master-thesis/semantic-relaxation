@@ -1,6 +1,5 @@
-#include "AITImp.h"
-#include "Benchmark.h"
-#include "Queue.h"
+#include "bench/impl/AITImp.h"
+#include "bench/Benchmark.h"
 
 #include <cassert>
 #include <chrono>
@@ -8,7 +7,6 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
-#include <numeric>
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>

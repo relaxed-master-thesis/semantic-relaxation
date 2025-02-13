@@ -1,6 +1,9 @@
-#include "Interval.h"
-#include <cstdint>
+#pragma once
+
+#include "bench/Interval.h"
+
 #include <memory>
+
 namespace bench {
 class AugmentedIntervalTree {
   public:
