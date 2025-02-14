@@ -8,4 +8,5 @@ target_sources(SemanticRelaxation PRIVATE
     GeijerImp.cpp
     IVTImp.cpp
     ReplayImp.cpp
+    HeuristicGeijer.cpp
 )
