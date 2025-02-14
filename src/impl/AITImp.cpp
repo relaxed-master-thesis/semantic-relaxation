@@ -7,11 +7,11 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
+#include <omp.h>
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>
 
-#include <omp.h>
 namespace bench {
 
 ErrorCalculator::Result AITImp::calcMaxMeanError() {
@@ -19,10 +19,10 @@ ErrorCalculator::Result AITImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
 
-	#pragma omp parallel for
-	for(auto i : segments){
+#pragma omp parallel for
+	for (auto i : segments) {
 		uint64_t rank = ait.getRank(ait.root, i, 0);
-		if(rank > rank_max)
+		if (rank > rank_max)
 			rank_max = rank;
 		rank_sum += rank;
 	}
@@ -32,20 +32,20 @@ ErrorCalculator::Result AITImp::calcMaxMeanError() {
 	return {rank_max, rank_mean};
 }
 
-void AITImp::fix_dup_timestamps(){
+void AITImp::fix_dup_timestamps() {
 	bool keep_going = true;
 	uint64_t next_ins_tick = put_stamps->at(0).time;
 	uint32_t ins_ix = 0;
 	uint64_t next_del_tick = get_stamps->at(0).time;
 	uint32_t del_ix = 0;
 	uint64_t time = 0;
-	while(keep_going){
-		//fix insert timestamps
+	while (keep_going) {
+		// fix insert timestamps
 		while (ins_ix < put_stamps_size && next_ins_tick <= next_del_tick) {
 			next_ins_tick = (*put_stamps)[ins_ix].time;
 			(*put_stamps)[ins_ix++].time = time++;
 		}
-		//fix deletion timestamps
+		// fix deletion timestamps
 		while (next_del_tick < next_ins_tick) {
 			next_del_tick = (*get_stamps)[del_ix].time;
 			(*get_stamps)[del_ix++].time = time++;
@@ -63,17 +63,16 @@ void AITImp::prepare(InputData data) {
 	put_stamps = data.puts;
 	get_stamps = data.gets;
 	fix_dup_timestamps();
-	for(auto put: *put_stamps){
+	for (auto put : *put_stamps) {
 		put_map[put.value] = put.time;
 	}
-	for(auto get : *get_stamps){
+	for (auto get : *get_stamps) {
 		uint64_t put_time = put_map[get.value];
 		segments.emplace_back(std::make_shared<Interval>(put_time, get.time));
 	}
-	for(auto i : segments){
+	for (auto i : segments) {
 		ait.root = ait.insertNode(ait.root, i);
 	}
-	
 }
 
 long AITImp::execute() {
