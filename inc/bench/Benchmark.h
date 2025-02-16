@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Operation.h"
+#include "bench/Operation.h"
+#include "bench/Interval.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -35,7 +36,8 @@ class AbstractExecutor {
 
 // TODO: enforce shared data format between parser and executor
 // or create shared format
-template <class T, class V> class Benchmark {
+template <class T, class V>
+class Benchmark {
   public:
 	Benchmark() {
 		static_assert(std::is_base_of<AbstractParser, T>::value,
@@ -61,7 +63,7 @@ template <class T, class V> class Benchmark {
 		return aexecutor->execute();
 	}
 
-//   private:
+	//   private:
 	std::shared_ptr<T> parser;
 	std::shared_ptr<V> executor;
 };

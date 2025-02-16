@@ -27,6 +27,7 @@ class Interval {
 	uint64_t end;
     uint64_t min;
     uint64_t max;
+	uint64_t value;
 	std::shared_ptr<Interval> left;
 	std::shared_ptr<Interval> right;
   private:
