@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <list>
+#include <unordered_set>
 #include <vector>
 
 namespace bench {
@@ -18,12 +19,14 @@ class ParallelBatchImp : public AbstractExecutor, public ErrorCalculator {
 	void prepare(InputData data) override;
 	long execute() override;
 
+
   private:
 	struct SubProblem {
 		std::vector<Interval> intervals{};
+		std::unordered_set<uint64_t> non_counting_puts{};
 		std::list<uint64_t> puts{};
 		std::vector<uint64_t> getValues{};
-		uint64_t start_time;
+		int64_t start_time;
 		uint64_t end_time;
 	};
 

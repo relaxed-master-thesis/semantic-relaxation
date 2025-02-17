@@ -6,18 +6,24 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 #include <iterator>
-#include <limits>
+#include <numeric>
 #include <omp.h>
+#include <sys/types.h>
 #include <unordered_map>
+#include <vector>
 
 namespace bench {
 ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 	uint64_t rankSum = 0, rankMax = 0;
 	size_t start = 0, end = 0;
+	std::vector<uint64_t> rankSums(subProblems.size(), 0);
+	std::vector<uint64_t> rankMaxs(subProblems.size(), 0);
 
-#pragma omp parallel reduction(+ : rankSum)                   \
-	reduction(max : rankMax)
+#pragma omp parallel // reduction(+ : rankSum) reduction(max : rankMax)
 	{
 		int tid = omp_get_thread_num();
 		SubProblem &problem = subProblems.at(tid);
@@ -38,29 +44,33 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 				while (*std::next(current, 1) != key) {
 					std::advance(current, 1); // current = current->next;
 					rank_error += 1;
-					if (current ==
-						problem.puts.end()) { //(current->next == NULL) {
+					// if (current->next == NULL) {
+					if (current == problem.puts.end()) {
 						perror("Out of bounds on finding matching relaxation "
 							   "enqueue\n");
 						printf("%zu\n", deq_ind);
 						exit(-1);
 					}
 				}
-				// current->next has the removed item, so just unlink it from
-				// the data structure
-				problem.puts.erase(std::next(
-					current, 1)); // current->next = current->next->next;
+				// current->next has the removed item, so just unlink it
+				// from the data structure
+				problem.puts.erase(std::next(current));
+				// current->next = current->next->next;
 			}
 
-			// Store rank error in get_stamps for variance calculation
-			// (*get_stamps)[deq_ind].value = rank_error;
-
-			rankSum += rank_error;
-			if (rank_error > rankMax) {
-				rankMax = rank_error;
+			if (problem.non_counting_puts.find(key) !=
+				problem.non_counting_puts.end()) {
+				// printf("Thread %d: Skipping key: %lu\n", tid, key);
+				continue;
+			}
+			rankSums[tid] += rank_error;
+			if (rank_error > rankMaxs[tid]) {
+				rankMaxs[tid] = rank_error;
 			}
 		}
 	}
+	rankSum = std::accumulate(rankSums.begin(), rankSums.end(), 0);
+	rankMax = *std::max_element(rankMaxs.begin(), rankMaxs.end());
 
 	const double rankMean = (double)rankSum / numGets;
 
@@ -88,27 +98,48 @@ void ParallelBatchImp::prepare(InputData data) {
 			max_time = interval.end;
 		}
 	}
-	size_t numThreads = 16;
+	size_t numThreads = 12;
 	subProblems.resize(numThreads);
 	uint64_t min_time = intervals.at(0).start;
 	uint64_t time_range = max_time - min_time;
 	uint64_t time_window = time_range / numThreads;
+	printf("min_time: %lu, max_time: %lu, time_range: %lu, time_window:%lu\n",
+		   min_time, max_time, time_range, time_window);
+	std::vector<int64_t> start_times(numThreads);
+	std::vector<int64_t> end_times(numThreads);
+	for (int i = 0; i < numThreads; i++) {
+		start_times[i] = min_time + time_window * i;
+		end_times[i] = std::min(start_times[i] + time_window, max_time);
+		if (i == 0) {
+			start_times[i] = min_time - 1;
+		}
+		if (i == numThreads - 1) {
+			end_times[i] = max_time + 1;
+		}
+	}
+
 	uint64_t idx = 0;
 	for (int i = 0; i < numThreads; i++) {
-		uint64_t curr_start = min_time + time_window * i;
-		uint64_t curr_end =
-			std::min(curr_start + time_window * (i + 1), max_time);
-		// interval to add to thread i
+
+		int64_t curr_start = start_times[i];
+		int64_t curr_end = end_times[i];
+
 		subProblems[i].start_time = curr_start;
 		subProblems[i].end_time = curr_end;
-		while (idx < intervals.size() && intervals.at(idx).start < curr_end) {
+		while (idx < intervals.size() && intervals.at(idx).start <= curr_end) {
 			auto &interv = intervals.at(idx);
 			subProblems[i].puts.push_back(interv.value);
 			subProblems[i].intervals.push_back(interv);
-			if (interv.end > curr_end && i != numThreads - 1) {
-				// dup interval
-				subProblems[i + 1].intervals.push_back(interv);
-				subProblems[i + 1].puts.push_back(interv.value);
+			if (interv.end >= curr_end && i != numThreads - 1) {
+				int next_i = i + 1;
+				int64_t next_start = start_times[next_i];
+				while (next_i < numThreads && interv.end > next_start) {
+					subProblems[next_i].intervals.push_back(interv);
+					subProblems[next_i].puts.push_back(interv.value);
+					subProblems[next_i].non_counting_puts.insert(interv.value);
+					next_i++;
+					next_start = start_times[next_i];
+				}
 			}
 			idx++;
 		}
@@ -121,7 +152,9 @@ void ParallelBatchImp::prepare(InputData data) {
 			});
 
 		for (auto &intv : subProblems[i].intervals) {
-			subProblems[i].getValues.push_back(intv.value);
+			// bruh, we added values that were only put but never get
+			if (intv.end < max_time)
+				subProblems[i].getValues.push_back(intv.value);
 		}
 	}
 }

@@ -6,6 +6,7 @@
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/impl/IVTImp.h"
+#include "bench/impl/ParallelBatchImp.h"
 #include "bench/util/QKParser.h"
 #include "bench/impl/ReplayImp.h"
 
@@ -19,29 +20,28 @@ int main(int argc, char *argv[]) {
 
 	// std::string folder_name = "queue-k-seg-1s-4t";
 	std::string folder_name = "2dd-queue-opt-1ms";
-	// std::string folder_name = "REAL";
+	// std::string folder_name = "q-k-1ms-8t";
+	// std::string folder_name = "FAKE";
 
 	bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{};
 	long geijer_duration = geijerBench.run(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
 		"./data/timestamps/" + folder_name + "/output.txt");
-	// bench::Benchmark<bench::QKParser, bench::GeijerBatchPopImp>
-	// geijerBatchPopImp{}; long geijer_batch_duration =
-	// geijerBatchPopImp.run("./data/timestamps/" + folder_name +
-	// "/combined_get_stamps.txt",
-	// 			  "./data/timestamps/" + folder_name +
-	// "/combined_put_stamps.txt",
-	// 			  "./data/timestamps/" + folder_name + "/output.txt");
-
-
-	bench::Benchmark<bench::QKParser, bench::HeuristicGeijer> heuristicGeijer{};
-	heuristicGeijer.executor->setHeuristicSizeAndCutoff(10000, 2000);
-	heuristicGeijer.executor->setBatchSize(10000);
-	long heu_duration = heuristicGeijer.run(
+	bench::Benchmark<bench::QKParser, bench::ParallelBatchImp> parBench{};
+	long par_duration = parBench.run(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
 		"./data/timestamps/" + folder_name + "/output.txt");
+	
+
+	// bench::Benchmark<bench::QKParser, bench::HeuristicGeijer> heuristicGeijer{};
+	// heuristicGeijer.executor->setHeuristicSizeAndCutoff(10000, 2000);
+	// heuristicGeijer.executor->setBatchSize(10000);
+	// long heu_duration = heuristicGeijer.run(
+	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
+	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
+	// 	"./data/timestamps/" + folder_name + "/output.txt");
 
 
 	// bench::Benchmark<bench::QKParser, bench::AITImp> AITImp{};
