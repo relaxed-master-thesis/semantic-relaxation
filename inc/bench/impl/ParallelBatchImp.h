@@ -24,6 +24,7 @@ class ParallelBatchImp : public AbstractExecutor, public ErrorCalculator {
 	struct SubProblem {
 		std::vector<Interval> intervals{};
 		std::unordered_set<uint64_t> non_counting_puts{};
+		uint64_t fully_containing_intervals {0};
 		std::list<uint64_t> puts{};
 		std::vector<uint64_t> getValues{};
 		int64_t start_time;

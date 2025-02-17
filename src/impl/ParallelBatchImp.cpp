@@ -9,30 +9,40 @@
 #include <cstdio>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
+#include <future>
 #include <iterator>
 #include <numeric>
 #include <omp.h>
 #include <sys/types.h>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace bench {
 ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
-	uint64_t rankSum = 0, rankMax = 0;
-	size_t start = 0, end = 0;
-	std::vector<uint64_t> rankSums(subProblems.size(), 0);
-	std::vector<uint64_t> rankMaxs(subProblems.size(), 0);
+	// uint64_t rankSum = 0, rankMax = 0;
+	// size_t start = 0, end = 0;
+	// std::vector<uint64_t> rankSums(subProblems.size(), 0);
+	// std::vector<uint64_t> rankMaxs(subProblems.size(), 0);
 
-#pragma omp parallel // reduction(+ : rankSum) reduction(max : rankMax)
-	{
-		int tid = omp_get_thread_num();
+	// #pragma omp parallel // reduction(+ : rankSum) reduction(max : rankMax)
+	auto func = [this](size_t tid, std::pair<uint64_t, uint64_t> *results) -> void {
+		uint64_t rankSum = 0, rankMax = 0, wasted_work = 0;
 		SubProblem &problem = subProblems.at(tid);
+		uint64_t constError = problem.fully_containing_intervals;
 		auto head = problem.puts.begin();
+		printf("Thread %lu: getValues.size(): %zu\n", tid, problem.getValues.size());
+
 		for (size_t deq_ind = 0; deq_ind < problem.getValues.size();
 			 deq_ind++) {
 
 			//(*get_stamps)[deq_ind].value;
 			uint64_t key = problem.getValues[deq_ind];
+			// printf("Thread %lu: key: %lu\n", tid, key);
+			bool isNonCounting = problem.non_counting_puts.find(key) !=
+								 problem.non_counting_puts.end();
+			
 
 			uint64_t rank_error = 0;
 			if (*head == key) {
@@ -60,21 +70,49 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 
 			if (problem.non_counting_puts.find(key) !=
 				problem.non_counting_puts.end()) {
-				// printf("Thread %d: Skipping key: %lu\n", tid, key);
+				wasted_work++;
+				// printf("Thread %lu: Skipping key: %lu\n", tid, key);
 				continue;
 			}
-			rankSums[tid] += rank_error;
-			if (rank_error > rankMaxs[tid]) {
-				rankMaxs[tid] = rank_error;
+			// printf("Thread %d: key: %lu, rank_error: %lu\n", tid, key, rank_error);
+			rank_error += constError;
+			rankSum += rank_error;
+			if (rank_error > rankMax) {
+				rankMax = rank_error;
 			}
 		}
+
+		printf("Thread %lu:  wasted_work: %lu\n", tid, wasted_work);
+		*results = {rankMax, rankSum};
+		// promise.set_value({rankMax, rankSum});
+	};
+
+	const size_t numThreads = 1;
+	std::pair<uint64_t, uint64_t> results[numThreads];
+	std::vector<std::thread> threads{};
+	for (size_t i = 0; i < numThreads; ++i) {
+		std::thread thread(func, i, &(results[i]));
+		threads.push_back(std::move(thread));
 	}
-	rankSum = std::accumulate(rankSums.begin(), rankSums.end(), 0);
-	rankMax = *std::max_element(rankMaxs.begin(), rankMaxs.end());
 
-	const double rankMean = (double)rankSum / numGets;
+	uint64_t rankSum = 0, rankMax = 0;
+	for (size_t i = 0; i < numThreads; ++i) {
+		threads.at(i).join();
+		auto [max, sum] = results[i];
+		// auto [max, sum] = func(i);
+		rankSum += sum;
+		if (max > rankMax) {
+			rankMax = max;
+		}
+	}
+	return {rankMax, (double)rankSum / numGets};
 
-	return {rankMax, rankMean};
+	// rankSum = std::accumulate(rankSums.begin(), rankSums.end(), 0);
+	// rankMax = *std::max_element(rankMaxs.begin(), rankMaxs.end());
+
+	// const double rankMean = (double)rankSum / numGets;
+
+	// return {rankMax, rankMean};
 }
 
 void ParallelBatchImp::prepare(InputData data) {
@@ -98,13 +136,13 @@ void ParallelBatchImp::prepare(InputData data) {
 			max_time = interval.end;
 		}
 	}
-	size_t numThreads = 12;
+	size_t numThreads = 1;
 	subProblems.resize(numThreads);
 	uint64_t min_time = intervals.at(0).start;
 	uint64_t time_range = max_time - min_time;
 	uint64_t time_window = time_range / numThreads;
-	printf("min_time: %lu, max_time: %lu, time_range: %lu, time_window:%lu\n",
-		   min_time, max_time, time_range, time_window);
+	// printf("min_time: %lu, max_time: %lu, time_range: %lu, time_window:%lu\n",
+		//    min_time, max_time, time_range, time_window);
 	std::vector<int64_t> start_times(numThreads);
 	std::vector<int64_t> end_times(numThreads);
 	for (int i = 0; i < numThreads; i++) {
@@ -117,6 +155,8 @@ void ParallelBatchImp::prepare(InputData data) {
 			end_times[i] = max_time + 1;
 		}
 	}
+	// start_times = {-1, 2, 4};
+	// end_times = {2, 4, 6};
 
 	uint64_t idx = 0;
 	for (int i = 0; i < numThreads; i++) {
@@ -133,10 +173,18 @@ void ParallelBatchImp::prepare(InputData data) {
 			if (interv.end >= curr_end && i != numThreads - 1) {
 				int next_i = i + 1;
 				int64_t next_start = start_times[next_i];
-				while (next_i < numThreads && interv.end > next_start) {
-					subProblems[next_i].intervals.push_back(interv);
-					subProblems[next_i].puts.push_back(interv.value);
-					subProblems[next_i].non_counting_puts.insert(interv.value);
+				while (next_i < numThreads && next_start < interv.end) {
+					//kanske >= istället för > här
+					if(end_times[next_i] <= interv.end && interv.start <= start_times[next_i]){ // if fully containing
+						// this can be integer
+						subProblems[next_i].fully_containing_intervals++;
+					}else if(interv.start <= start_times[next_i] && interv.end <= end_times[next_i]){ //interval starts before next_i and ends inside next_i
+						subProblems[next_i].non_counting_puts.insert(interv.value);
+						subProblems[next_i].intervals.push_back(interv);
+						subProblems[next_i].puts.push_back(interv.value);
+					}else{
+						printf("WTF is this /vote surr \n");
+					}
 					next_i++;
 					next_start = start_times[next_i];
 				}
@@ -153,9 +201,17 @@ void ParallelBatchImp::prepare(InputData data) {
 
 		for (auto &intv : subProblems[i].intervals) {
 			// bruh, we added values that were only put but never get
-			if (intv.end < max_time)
+			if (intv.end < max_time + 1)
 				subProblems[i].getValues.push_back(intv.value);
 		}
+		// printf("Thread %d: start_time: %lu, end_time: %lu constErr: %lu\n", i,
+		// 	   subProblems[i].start_time, subProblems[i].end_time, subProblems[i].fully_containing_intervals);
+		// for(auto &intv: subProblems[i].intervals){
+		// 	printf("Value: %lu, start: %lu, end: %lu\n", intv.value, intv.start, intv.end);
+		// }
+	}
+	for(auto problem: subProblems){
+		// printf("non_counting_puts.size(): %zu\n", problem.non_counting_puts.size());
 	}
 }
 
