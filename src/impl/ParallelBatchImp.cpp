@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 #include <future>
@@ -21,17 +23,11 @@
 
 namespace bench {
 ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
-	// uint64_t rankSum = 0, rankMax = 0;
-	// size_t start = 0, end = 0;
-	// std::vector<uint64_t> rankSums(subProblems.size(), 0);
-	// std::vector<uint64_t> rankMaxs(subProblems.size(), 0);
-
-	// #pragma omp parallel // reduction(+ : rankSum) reduction(max : rankMax)
 	auto func = [this](size_t tid, std::pair<uint64_t, uint64_t> *results) -> void {
 		uint64_t rankSum = 0, rankMax = 0, wasted_work = 0;
 		SubProblem &problem = subProblems.at(tid);
 		uint64_t constError = problem.fully_containing_intervals;
-		auto head = problem.puts.begin();
+		auto head = problem.puts2;
 		printf("Thread %lu: getValues.size(): %zu\n", tid, problem.getValues.size());
 
 		for (size_t deq_ind = 0; deq_ind < problem.getValues.size();
@@ -45,17 +41,18 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 			
 
 			uint64_t rank_error = 0;
-			if (*head == key) {
-				std::advance(head, 1);
+			if (head->value == key) {
+				// std::advance(head, 1);
+				head = head->next;
 				rank_error = 0;
 			} else {
 				rank_error = 1;
 				auto current = head;
-				while (*std::next(current, 1) != key) {
-					std::advance(current, 1); // current = current->next;
+				while (current->next->value != key) {
+					current = current->next; // current = current->next;
 					rank_error += 1;
 					// if (current->next == NULL) {
-					if (current == problem.puts.end()) {
+					if (current->next == NULL) {
 						perror("Out of bounds on finding matching relaxation "
 							   "enqueue\n");
 						printf("%zu\n", deq_ind);
@@ -64,8 +61,7 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 				}
 				// current->next has the removed item, so just unlink it
 				// from the data structure
-				problem.puts.erase(std::next(current));
-				// current->next = current->next->next;
+				current->next = current->next->next;
 			}
 
 			if (problem.non_counting_puts.find(key) !=
@@ -87,7 +83,7 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 		// promise.set_value({rankMax, rankSum});
 	};
 
-	const size_t numThreads = 1;
+	const size_t numThreads = 16;
 	std::pair<uint64_t, uint64_t> results[numThreads];
 	std::vector<std::thread> threads{};
 	for (size_t i = 0; i < numThreads; ++i) {
@@ -99,20 +95,12 @@ ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
 	for (size_t i = 0; i < numThreads; ++i) {
 		threads.at(i).join();
 		auto [max, sum] = results[i];
-		// auto [max, sum] = func(i);
 		rankSum += sum;
 		if (max > rankMax) {
 			rankMax = max;
 		}
 	}
 	return {rankMax, (double)rankSum / numGets};
-
-	// rankSum = std::accumulate(rankSums.begin(), rankSums.end(), 0);
-	// rankMax = *std::max_element(rankMaxs.begin(), rankMaxs.end());
-
-	// const double rankMean = (double)rankSum / numGets;
-
-	// return {rankMax, rankMean};
 }
 
 void ParallelBatchImp::prepare(InputData data) {
@@ -136,11 +124,11 @@ void ParallelBatchImp::prepare(InputData data) {
 			max_time = interval.end;
 		}
 	}
-	size_t numThreads = 1;
+	size_t numThreads = 16;
 	subProblems.resize(numThreads);
 	uint64_t min_time = intervals.at(0).start;
 	uint64_t time_range = max_time - min_time;
-	uint64_t time_window = time_range / numThreads;
+	uint64_t time_window = (time_range / numThreads) + 1;
 	// printf("min_time: %lu, max_time: %lu, time_range: %lu, time_window:%lu\n",
 		//    min_time, max_time, time_range, time_window);
 	std::vector<int64_t> start_times(numThreads);
@@ -209,10 +197,20 @@ void ParallelBatchImp::prepare(InputData data) {
 		// for(auto &intv: subProblems[i].intervals){
 		// 	printf("Value: %lu, start: %lu, end: %lu\n", intv.value, intv.start, intv.end);
 		// }
+
+		size_t nItems = subProblems[i].puts.size();
+		subProblems[i].puts2 = static_cast<Item*>(calloc(nItems, sizeof(Item)));
+		auto putsiter = subProblems[i].puts.begin();
+		for (size_t j = 0; j < nItems; ++j) {
+			Item *item = &subProblems[i].puts2[j];
+			item->value = *putsiter;
+			item->next = j < nItems-1 ? &subProblems[i].puts2[j+1] : NULL;
+			std::advance(putsiter, 1);
+		}
 	}
-	for(auto problem: subProblems){
-		// printf("non_counting_puts.size(): %zu\n", problem.non_counting_puts.size());
-	}
+	// for(auto problem: subProblems){
+	// 	printf("non_counting_puts.size(): %zu\n", problem.non_counting_puts.size());
+	// }
 }
 
 long ParallelBatchImp::execute() {
