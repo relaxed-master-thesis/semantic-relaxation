@@ -10,4 +10,5 @@ target_sources(SemanticRelaxation PRIVATE
     ReplayImp.cpp
     HeuristicGeijer.cpp
     ParallelBatchImp.cpp
+    SweepingLineImp.cpp
 )
