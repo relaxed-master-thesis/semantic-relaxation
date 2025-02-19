@@ -22,6 +22,8 @@ class FenwickImp : public ErrorCalculator, public AbstractExecutor {
 
 	class SInterval {
 	  public:
+		SInterval() = default;
+		~SInterval() = default;
 		int64_t start;
 		int64_t end;
 		int64_t value;
