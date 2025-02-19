@@ -21,7 +21,9 @@ class IVTImp : public ErrorCalculator, public AbstractExecutor {
   private:
 	class Entry : public Interval {
 	  public:
+	  	Entry() = default;
 		Entry(uint64_t start, uint64_t end) : Interval(start, end) {}
+		~Entry() = default;
 
 		uint64_t rank;
 		bool evaluated;
