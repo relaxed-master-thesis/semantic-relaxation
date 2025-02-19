@@ -1,11 +1,10 @@
-#include "bench/ErrorCalculator.h"
 #include "bench/impl/FenwickImp.h"
+#include "bench/ErrorCalculator.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <limits>
-#include <numeric>
 #include <unordered_map>
 
 namespace bench {
@@ -48,19 +47,10 @@ ErrorCalculator::Result FenwickImp::calcMaxMeanError() {
 	std::vector<int64_t> result(n, 0);
 	int64_t constError = 0;
 	int64_t countedElems = 0;
-    int64_t sum = 0;
-	auto printArr = [](const std::vector<int64_t> &arr) {
-		for (auto &elem : arr) {
-			std::cout << elem << ", ";
-		}
-		std::cout << "\n";
-	};
-
-	printArr(BIT.getBit());
+	int64_t sum = 0;
 
 	for (int64_t i = 0; i < n; ++i) {
 		int64_t endVal = intervals[i].end;
-		printArr(BIT.getBit());
 
 		if (endVal == std::numeric_limits<int64_t>::max()) {
 			++constError;
@@ -69,19 +59,12 @@ ErrorCalculator::Result FenwickImp::calcMaxMeanError() {
 		++countedElems;
 		int64_t comprEnd = endIndices[endVal];
 
-		std::cout << "sum += " << BIT.query(n) << " - " << BIT.query(comprEnd)
-				  << " + " << constError << "\n";
 		sum += BIT.query(n) - BIT.query(comprEnd) + constError;
 		BIT.update(comprEnd, 1);
 	}
 
-	printArr(BIT.getBit());
-
 	uint64_t max =
 		static_cast<uint64_t>(*std::max_element(result.begin(), result.end()));
-	std::cout << "max: " << max << ", sum: " << sum
-			  << ", countedElems: " << countedElems << ", totElems: " << n
-			  << "\n";
 	return {max, (double)sum / countedElems};
 }
 

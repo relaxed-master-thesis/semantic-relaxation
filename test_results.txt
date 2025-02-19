@@ -1,0 +1,84 @@
+FAKE
+----------------------------------
+Geijer: 26
+SweepingLine: 14 speedup: 1.86
+Fenwick: 19 speedup: 1.37
+ParallelBatch: 905 speedup: 0.03
+GeijerBatchPop: 20 speedup: 1.30
+----------------------------------
+
+2dd-queue-opt-1ms-1t
+----------------------------------
+Geijer: 24413
+SweepingLine: 16326 speedup: 1.50
+Fenwick: 23558 speedup: 1.04
+ParallelBatch: 16737 speedup: 1.46
+GeijerBatchPop: 25829 speedup: 0.95
+HeuristicGeijer: 34457 speedup: 0.71
+----------------------------------
+
+2dd-queue-opt-1ms-4t
+----------------------------------
+Geijer: 30530
+SweepingLine: 22736 speedup: 1.34
+Fenwick: 70349 speedup: 0.43
+ParallelBatch: 35517 speedup: 0.86
+GeijerBatchPop: 69940 speedup: 0.44
+HeuristicGeijer: 39630 speedup: 0.77
+----------------------------------
+
+2dd-queue-opt-1ms-4t-i10k
+----------------------------------
+Geijer: 635571
+SweepingLine: 71015 speedup: 8.95
+Fenwick: 103117 speedup: 6.16
+ParallelBatch: 127679 speedup: 4.98
+GeijerBatchPop: 72134 speedup: 8.81
+HeuristicGeijer: 282376 speedup: 2.25
+----------------------------------
+
+2dd-queue-opt-30ms-8t-i1M
+----------------------------------
+Geijer: 17400372
+SweepingLine: 3717594 speedup: 4.68
+Fenwick: 5638206 speedup: 3.09
+ParallelBatch: 2806894 speedup: 6.20
+GeijerBatchPop: 2559228 speedup: 6.80
+HeuristicGeijer: 2745358 speedup: 6.34
+----------------------------------
+
+queue-k-seg-1ms-1t-i0
+----------------------------------
+Geijer: 278
+SweepingLine: 15278 speedup: 0.02
+Fenwick: 17257 speedup: 0.02
+ParallelBatch: 20321 speedup: 0.01
+GeijerBatchPop: 19264 speedup: 0.01
+----------------------------------
+
+queue-k-seg-1ms-4t-i10k
+----------------------------------
+Geijer: 268
+SweepingLine: 17824 speedup: 0.02
+Fenwick: 35235 speedup: 0.01
+ParallelBatch: 61063 speedup: 0.00
+GeijerBatchPop: 19913 speedup: 0.01
+----------------------------------
+
+queue-k-seg-30ms-4t-i1M
+----------------------------------
+Geijer: 6305
+SweepingLine: 454480 speedup: 0.01
+Fenwick: 2269093 speedup: 0.00
+ParallelBatch: 849103 speedup: 0.01
+GeijerBatchPop: 379420 speedup: 0.02
+----------------------------------
+
+2dd-queue-opt-100ms-i50k
+----------------------------------
+Geijer: 23982773
+SweepingLine: 2812303 speedup: 8.53
+ParallelBatch: 751607 speedup: 31.91
+GeijerBatchPop: 2250797 speedup: 10.66
+HeuristicGeijer: 2657266 speedup: 9.03
+----------------------------------
