@@ -1,12 +1,21 @@
 #include "bench/impl/IVTImp.h"
+#include "bench/Interval.h"
 
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <stack>
 #include <unordered_set>
+
+#define POWER_OF_2 ((n > 0 && ((n & (n - 1)) == 0)))
 
 namespace bench {
 void IVTImp::printTreePretty() {
 	std::cout << "Tree {start, end, min, max}:\n";
+
+	// for (size_t i = 0; i < 16; ++i) {
+	// 	std::cout << i << " is right child: " << tree.isRightChild(i) << "\n";
+	// }
 
 	auto &arr = tree.getArr();
 
@@ -50,7 +59,106 @@ void IVTImp::printTree() {
 			  << ", max=" << e.max << "}]\n";
 }
 
-uint64_t IVTImp::getRank2(size_t root, Interval &interval) { return 0; }
+uint64_t IVTImp::inheritRank(Entry &entry) {
+	size_t i = 0;
+
+	auto &iintv = tree.getNode(i);
+	if (iintv.start < entry.start && entry.end < iintv.end) {
+		if (!iintv.evaluated) {
+			std::cout << "Evaluation order error at root!\n";
+		}
+		return iintv.rank;
+	}
+
+	std::stack<size_t> toVisit{};
+	toVisit.push(1); // start evaluating the left half of the tree
+	while (!toVisit.empty()) {
+		size_t i = toVisit.top();
+		Entry &data = tree.getNode(i);
+		if (data.start < entry.start && entry.end < data.end) {
+			if (!data.evaluated) {
+				std::cout << "Evaluation order error at " << i << "!\n";
+			}
+			return data.rank;
+		}
+		if (tree.hasLeftChild(i)) {
+			Interval &left = tree.getNode(tree.leftChild(i));
+			if (left.min < entry.start && entry.end < left.max)
+				toVisit.push(tree.leftChild(i));
+		}
+		// Important here to push this last so that the traversal order is from
+		// rightmost to leftmost
+		if (tree.hasRightChild(i)) {
+			Interval &right = tree.getNode(tree.rightChild(i));
+			if (right.min < entry.start && entry.end < right.max)
+				toVisit.push(tree.rightChild(i));
+		}
+		toVisit.pop();
+	}
+
+	// Unclear what to do here, if we reach this point then there is no
+	// containing node in the left half of the tree, idk if this means that the
+	std::cout << "Got to the unclear point for entry {" << entry.start << ", "
+			  << entry.end << "}\n";
+	return 0;
+}
+
+uint64_t IVTImp::evalSubtree(size_t root, Entry &entry) {
+	std::queue<size_t> toVisit{};
+	uint64_t rank = 0;
+
+	toVisit.push(tree.leftChild(root));
+	while (!toVisit.empty()) {
+		size_t i = toVisit.front();
+		Interval &data = tree.getNode(i);
+		if (data.start < entry.start && entry.end < data.end) {
+			++rank;
+		}
+		if (tree.hasLeftChild(i)) {
+			Interval &left = tree.getNode(tree.leftChild(i));
+			if (left.min < entry.start && entry.end < left.max)
+				toVisit.push(tree.leftChild(i));
+		}
+		if (tree.hasRightChild(i)) {
+			Interval &right = tree.getNode(tree.rightChild(i));
+			if (right.min < entry.start && entry.end < right.max)
+				toVisit.push(tree.rightChild(i));
+		}
+		toVisit.pop();
+	}
+
+	tree.getNode(root).rank = rank;
+	return rank;
+}
+
+uint64_t IVTImp::getRank2(size_t root, Entry &entry) {
+	std::queue<size_t> toVisit{};
+
+	// Evaluate left subtree
+	if (tree.hasLeftChild(root)) {
+		entry.rank += evalSubtree(tree.leftChild(root), entry);
+	}
+
+	// If root is right child then there must exist a left child
+	if (tree.isRightChild(root)) {
+		auto parentIdx = tree.getParent(root);
+		auto &parent = tree.getNode(parentIdx);
+		if (parent.start < entry.start && entry.end < parent.end) {
+			++entry.rank;
+		}
+		entry.rank += evalSubtree(tree.leftChild(parentIdx), entry);
+	}
+
+	// If root belongs to right half of tree
+	if (tree.getHalf(root) == 1) {
+		entry.rank += inheritRank(entry);
+		// Here we want to find the smallest node in the left half that contains
+		// ourselves, so we should search from right to left of every level
+	}
+
+	entry.evaluated = true;
+	return entry.rank;
+}
 
 uint64_t IVTImp::getRank(size_t root, Interval &interval) {
 	std::queue<size_t> toVisit{};
@@ -66,33 +174,6 @@ uint64_t IVTImp::getRank(size_t root, Interval &interval) {
 	while (tree.getLevel(i) == currLevel) {
 		toVisit.push(i--);
 	}
-
-	/*
-	example: arr = [{st=3, en=8, min=0, max=10},
-					{st=1, en=10, min=0, max=10},
-					{st=4, en=6, min=4, max=6},
-					{st=0, en=9, min=0, max=9},
-					{st=2, en=7, min=2, max=7}]
-
-	tree:
-		- (3, 8)
-			- (1, 10)
-				- (0, 9)
-				- (2, 7)
-			- (4, 6)
-
-
-	calc err for (3, 8): (2)
-
-	tovisit: (3, 8)x (1,10)
-	rank: 		0
-
-	revelation:
-		- only your left childs can contain yourself
-		- traverse the list
-
-
-	*/
 
 	uint64_t rank = 0;
 	while (!toVisit.empty()) {
@@ -141,7 +222,7 @@ ErrorCalculator::Result IVTImp::calcMaxMeanError() {
 	// #pragma omp parallel for shared(arr) reduction(+ : rank_sum)                   \
     // 	reduction(max : rank_max)
 	for (size_t i = 0; i < arr.size(); ++i) {
-		Interval &interval = arr[i];
+		Interval &interval = arr.at(i);
 		uint64_t rank = getRank(i, interval);
 		std::cout << "arr[" << i << "] = {" << interval.start << ", "
 				  << interval.end << ", " << interval.min << ", "

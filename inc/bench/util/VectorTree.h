@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cmath>
+#include <queue>
 #include <stdint.h>
 #include <vector>
-#include <queue>
 
 template <typename T> class VectorTree {
   private:
@@ -17,6 +17,8 @@ template <typename T> class VectorTree {
 	VectorTree() = default;
 	~VectorTree() = default;
 
+	// This will move elements into the tree and render the nodes vector in an
+	// undefined state
 	void build(std::vector<T> &nodes) {
 		size_t n = nodes.size();
 		size = n;
@@ -54,14 +56,30 @@ template <typename T> class VectorTree {
 		return (index - 1) / 2;
 	}
 
+	// Returns -1 if the node is in the left half of the tree, 1 if it is in the
+	// right half of the tree. Returns 0 if the node is the root.
+	inline int getHalf(size_t index) const noexcept {
+		// Root does not belong to any half
+		if (index == 0) {
+			return 0;
+		}
+
+		auto currLevel = getLevel(index);
+		auto levelStartIndex = static_cast<size_t>(std::pow(2, currLevel) - 1);
+		auto kidsInLevel = levelStartIndex + 1;
+		auto indexInLevel = index - levelStartIndex;
+		return indexInLevel <= kidsInLevel / 2 ? -1 : 1;
+	}
+
 	inline bool isLeftChild(size_t index) const noexcept {
 		return (double(index - 1) / 2.f) - std::floor((index - 1) / 2) >
 			   std::numeric_limits<double>::epsilon();
 	}
 
 	inline bool isRightChild(size_t index) const noexcept {
-		return (double(index - 2) / 2.f) - std::floor((index - 2) / 2) >
-			   std::numeric_limits<double>::epsilon();
+		// (double(index - 2) / 2.f) - std::floor((index - 2) / 2) >
+		// 	   std::numeric_limits<double>::epsilon();
+		return index > 0 && index % 2 == 0;
 	}
 
 	inline bool isLeaf(size_t index) const noexcept {

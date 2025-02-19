@@ -19,8 +19,18 @@ class IVTImp : public ErrorCalculator, public AbstractExecutor {
 	long execute() override;
 
   private:
+	class Entry : public Interval {
+	  public:
+		Entry(uint64_t start, uint64_t end) : Interval(start, end) {}
+
+		uint64_t rank;
+		bool evaluated;
+	};
+
+	uint64_t inheritRank(Entry &interval);
+	uint64_t evalSubtree(size_t root, Entry &interval);
 	uint64_t getRank(size_t root, Interval &interval);
-	uint64_t getRank2(size_t root, Interval &interval);
+	uint64_t getRank2(size_t root, Entry &interval);
 	void updateMinMax();
 
 	std::shared_ptr<std::vector<Operation>> put_stamps;
@@ -29,13 +39,11 @@ class IVTImp : public ErrorCalculator, public AbstractExecutor {
 	size_t get_stamps_size;
 
 	std::unordered_map<uint64_t, uint64_t> put_map;
-	std::vector<Interval> segments;
-
-	// AugmentedIntervalTree ait;
+	std::vector<Entry> segments;
 
 	void printTreePretty();
 	void printTree();
 	void fix_dup_timestamps();
-	VectorTree<Interval> tree;
+	VectorTree<Entry> tree;
 };
 } // namespace bench
