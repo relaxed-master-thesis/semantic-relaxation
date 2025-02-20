@@ -1,5 +1,4 @@
 #include "bench/impl/FenwickImp.h"
-#include "bench/ErrorCalculator.h"
 
 #include <algorithm>
 #include <chrono>
