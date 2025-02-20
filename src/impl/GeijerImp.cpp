@@ -2,8 +2,6 @@
 #include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
-#include <chrono>
-#include <iostream>
 #include <memory>
 
 namespace bench {

@@ -4,11 +4,9 @@
 #include "bench/util/VectorQueue.h"
 
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 
 namespace bench {
 AbstractExecutor::Measurement ReplayImp::calcMaxMeanError() {

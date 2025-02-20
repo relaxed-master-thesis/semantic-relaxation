@@ -3,7 +3,6 @@
 #include "bench/Interval.h"
 #include "bench/Operation.h"
 
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <stack>

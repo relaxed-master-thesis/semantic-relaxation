@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 
 namespace bench {
 class ReplayImp : public AbstractExecutor {

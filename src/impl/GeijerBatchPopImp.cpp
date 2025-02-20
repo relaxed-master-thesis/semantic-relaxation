@@ -3,10 +3,8 @@
 #include "bench/util/VectorQueue.h"
 
 #include <cassert>
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <unordered_map>
 
 #include <ext/pb_ds/assoc_container.hpp>

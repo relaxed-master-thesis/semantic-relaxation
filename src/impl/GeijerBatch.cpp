@@ -1,8 +1,6 @@
 #include "bench/impl/GeijerBatch.h"
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 
-#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <memory>

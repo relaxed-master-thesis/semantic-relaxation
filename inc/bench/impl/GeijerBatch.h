@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 #include "bench/Operation.h"
 
 #include <memory.h>

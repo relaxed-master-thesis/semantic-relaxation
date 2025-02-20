@@ -2,10 +2,8 @@
 #include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <sys/types.h>
 #include <unordered_map>
 #include <unordered_set>

@@ -3,10 +3,8 @@
 #include "bench/Operation.h"
 
 #include <cassert>
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <memory>
 #include <unordered_map>
 

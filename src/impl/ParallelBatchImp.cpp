@@ -1,17 +1,14 @@
 #include "bench/impl/ParallelBatchImp.h"
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 #include "bench/Interval.h"
 
 #include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-#include <iostream>
 #include <iterator>
 #include <omp.h>
 #include <sys/types.h>
