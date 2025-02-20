@@ -96,10 +96,13 @@ template <class T> class Benchmark {
 	std::string getTemplateParamTypeName() {
 #ifdef __GNUC__
 		int status;
-		char *name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
-		std::string result(name);
-		free(name);
-		return result;
+		std::string tname = typeid(T).name();
+		char *demangledName = abi::__cxa_demangle(tname.c_str(), 0, 0, &status);
+		if (status == 0) {
+			tname = demangledName;
+			std::free(demangledName);
+		}
+		return tname;
 #else
 		return typeid(T)
 			.name(); // idk how to do this on compilers other than gcc
