@@ -4,7 +4,6 @@
 #include "bench/ErrorCalculator.h"
 #include "bench/Interval.h"
 
-#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <list>
@@ -13,14 +12,14 @@
 #include <vector>
 
 namespace bench {
-class ParallelBatchImp : public AbstractExecutor, public ErrorCalculator {
+class ParallelBatchImp : public AbstractExecutor {
   public:
 	ParallelBatchImp() = default;
 	~ParallelBatchImp() = default;
 
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
 
   private:

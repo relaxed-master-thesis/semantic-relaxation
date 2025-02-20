@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 #include "bench/Operation.h"
 #include "bench/util/AugmentedIntervalTree.h"
 
@@ -11,13 +10,13 @@
 #include <vector>
 
 namespace bench {
-class AITImp : public ErrorCalculator, public AbstractExecutor {
+class AITImp : public AbstractExecutor {
   public:
 	AITImp() = default;
 	~AITImp() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	Measurement execute() override;
 
   private:
 	std::shared_ptr<std::vector<Operation>> put_stamps;

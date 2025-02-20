@@ -1,21 +1,18 @@
 #include "bench/impl/IVTImp.h"
+#include "bench/Benchmark.h"
 #include "bench/Interval.h"
+#include "bench/Operation.h"
 
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <stack>
 #include <unordered_set>
-
-#define POWER_OF_2 ((n > 0 && ((n & (n - 1)) == 0)))
+#include <vector>
 
 namespace bench {
 void IVTImp::printTreePretty() {
 	std::cout << "Tree {start, end, min, max}:\n";
-
-	// for (size_t i = 0; i < 16; ++i) {
-	// 	std::cout << i << " is right child: " << tree.isRightChild(i) << "\n";
-	// }
 
 	auto &arr = tree.getArr();
 
@@ -211,7 +208,7 @@ uint64_t IVTImp::getRank(size_t root, Interval &interval) {
 	return rank;
 }
 
-ErrorCalculator::Result IVTImp::calcMaxMeanError() {
+AbstractExecutor::Measurement IVTImp::calcMaxMeanError() {
 	// printTree();
 	printTreePretty();
 
@@ -273,11 +270,11 @@ void IVTImp::updateMinMax() {
 	}
 }
 
-void IVTImp::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
+void IVTImp::prepare(const InputData &data) {
+	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	put_stamps_size = put_stamps->size();
+	get_stamps_size = get_stamps->size();
 	std::cout << "putting timestamps...\n";
 	uint64_t time = put_stamps_size + 1;
 	for (auto get : *get_stamps) {
@@ -292,16 +289,5 @@ void IVTImp::prepare(InputData data) {
 	updateMinMax();
 }
 
-long IVTImp::execute() {
-	std::cout << "Running IVTImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
-}
+AbstractExecutor::Measurement IVTImp::execute() { return calcMaxMeanError(); }
 } // namespace bench

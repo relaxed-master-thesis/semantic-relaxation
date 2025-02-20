@@ -19,34 +19,32 @@ template <typename T>
 using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
 						 tree_order_statistics_node_update>;
 
+//  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineImp : public ErrorCalculator, public AbstractExecutor {
+class SweepingLineImp : public AbstractExecutor {
   public:
 	SweepingLineImp() = default;
 	~SweepingLineImp() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
 	struct item {
 		uint64_t value;
 		item *next;
 	};
-    enum class EventType {
-        START,
-        END
-    };
-    struct Event {
-        EventType type;
-        uint64_t time;
-        uint64_t start_time;
-        uint64_t end_time;
-    };
-    std::vector<Event> events;
+	enum class EventType { START, END };
+	struct Event {
+		EventType type;
+		uint64_t time;
+		uint64_t start_time;
+		uint64_t end_time;
+	};
+	std::vector<Event> events;
 	std::shared_ptr<std::vector<Operation>> get_stamps;
 	std::shared_ptr<std::vector<Operation>> put_stamps;
-    ordered_set<uint64_t> end_tree;
-    uint64_t get_stamps_size;
+	ordered_set<uint64_t> end_tree;
+	uint64_t get_stamps_size;
 };
 } // namespace bench

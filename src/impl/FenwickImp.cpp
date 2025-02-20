@@ -24,7 +24,7 @@ int64_t FenwickImp::FenwickTree::query(int64_t idx) {
 	return sum;
 }
 
-ErrorCalculator::Result FenwickImp::calcMaxMeanError() {
+AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 	int64_t n = static_cast<int64_t>(intervals.size());
 
 	std::ranges::sort(
@@ -68,12 +68,17 @@ ErrorCalculator::Result FenwickImp::calcMaxMeanError() {
 	return {max, (double)sum / countedElems};
 }
 
-void FenwickImp::prepare(InputData data) {
-	intervals.resize(data.puts->size());
+void FenwickImp::prepare(const InputData &data) {
+	auto gets = data.getGets();
+	auto puts = data.getPuts();
+
+	intervals.resize(puts->size());
+
 	std::unordered_map<int64_t, size_t> putMap{};
 	int64_t time = 0;
-	for (size_t i = 0; i < data.puts->size(); ++i) {
-		auto &put = data.puts->at(i);
+
+	for (size_t i = 0; i < puts->size(); ++i) {
+		auto &put = puts->at(i);
 		auto &interval = intervals.at(i);
 		interval.start = time;
 		interval.end = std::numeric_limits<int64_t>::max();
@@ -81,8 +86,8 @@ void FenwickImp::prepare(InputData data) {
 		putMap[put.value] = i;
 		++time;
 	}
-	for (size_t i = 0; i < data.gets->size(); ++i) {
-		auto &get = data.gets->at(i);
+	for (size_t i = 0; i < gets->size(); ++i) {
+		auto &get = gets->at(i);
 		int64_t getv = static_cast<int64_t>(get.value);
 		auto &interval = intervals.at(putMap[getv]);
 		interval.end = time;
@@ -90,16 +95,7 @@ void FenwickImp::prepare(InputData data) {
 	}
 }
 
-long FenwickImp::execute() {
-	std::cout << "Running FenwickImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement FenwickImp::execute() {
+	return calcMaxMeanError();
 }
 } // namespace bench

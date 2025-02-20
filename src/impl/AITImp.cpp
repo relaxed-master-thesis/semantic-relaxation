@@ -14,7 +14,7 @@
 
 namespace bench {
 
-ErrorCalculator::Result AITImp::calcMaxMeanError() {
+AbstractExecutor::Measurement AITImp::calcMaxMeanError() {
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
@@ -57,11 +57,11 @@ void AITImp::fix_dup_timestamps() {
 	}
 }
 
-void AITImp::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
+void AITImp::prepare(const InputData &data) {
+	get_stamps_size = data.getGets()->size();
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	put_stamps_size = data.getPuts()->size();
+	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
 	fix_dup_timestamps();
 	for (auto put : *put_stamps) {
 		put_map[put.value] = put.time;
@@ -75,17 +75,6 @@ void AITImp::prepare(InputData data) {
 	}
 }
 
-long AITImp::execute() {
-	std::cout << "Running AITImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
-}
+AbstractExecutor::Measurement AITImp::execute() { return calcMaxMeanError(); }
 
 } // namespace bench

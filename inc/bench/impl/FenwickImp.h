@@ -1,11 +1,11 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
+
 #include <cstdint>
 
 namespace bench {
-class FenwickImp : public ErrorCalculator, public AbstractExecutor {
+class FenwickImp : public AbstractExecutor {
   public:
 	class FenwickTree {
 	  private:
@@ -32,9 +32,9 @@ class FenwickImp : public ErrorCalculator, public AbstractExecutor {
 	FenwickImp() = default;
 	~FenwickImp() = default;
 
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
 	std::vector<SInterval> intervals{};

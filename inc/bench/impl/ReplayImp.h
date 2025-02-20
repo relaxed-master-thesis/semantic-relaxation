@@ -4,17 +4,17 @@
 #include "bench/ErrorCalculator.h"
 
 namespace bench {
-class ReplayImp : public ErrorCalculator, public AbstractExecutor {
+class ReplayImp : public AbstractExecutor {
   public:
 	ReplayImp() = default;
 	~ReplayImp(){};
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
-	std::shared_ptr<std::vector<Operation>> put_stamps;
-	std::shared_ptr<std::vector<Operation>> get_stamps;
+	std::shared_ptr<const std::vector<Operation>> put_stamps;
+	std::shared_ptr<const std::vector<Operation>> get_stamps;
 	size_t put_stamps_size;
 	size_t get_stamps_size;
 };

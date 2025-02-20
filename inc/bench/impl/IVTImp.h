@@ -10,18 +10,18 @@
 #include <vector>
 
 namespace bench {
-class IVTImp : public ErrorCalculator, public AbstractExecutor {
+class IVTImp : public AbstractExecutor {
   public:
 	IVTImp() = default;
 	~IVTImp() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
 	class Entry : public Interval {
 	  public:
-	  	Entry() = default;
+		Entry() = default;
 		Entry(uint64_t start, uint64_t end) : Interval(start, end) {}
 		~Entry() = default;
 

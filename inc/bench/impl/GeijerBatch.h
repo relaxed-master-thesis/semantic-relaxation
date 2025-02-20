@@ -8,13 +8,13 @@
 #include <vector>
 
 namespace bench {
-class GeijerBatch : public ErrorCalculator, public AbstractExecutor {
+class GeijerBatch : public AbstractExecutor {
   public:
 	GeijerBatch() = default;
 	~GeijerBatch() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
 	struct item {

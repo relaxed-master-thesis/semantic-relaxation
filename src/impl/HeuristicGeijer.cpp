@@ -1,15 +1,18 @@
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/Benchmark.h"
+#include "bench/Operation.h"
 
 #include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
+#include <vector>
 
 using namespace __gnu_pbds;
 
@@ -20,17 +23,17 @@ using ordered_set = tree<T, null_type, std::less<T>, rb_tree_tag,
 
 namespace bench {
 
-ErrorCalculator::Result HeuristicGeijer::calcMaxMeanError() {
+AbstractExecutor::Measurement HeuristicGeijer::calcMaxMeanError() {
 	if (!heuristicsSet) {
-		perror("Heuristic size and cutoff not set\n");
-		exit(-1);
+		throw std::runtime_error("Heuristic size and cutoff not set\n");
 	}
 	if (!batchSizeSet) {
-		perror("Batch size not set\n");
-		exit(-1);
+		throw std::runtime_error("Batch size not set\n");
 	}
-	Result heuristicResult = getHeuristicResult(heuristicSize);
-    printf("Heuristic values: size %lu, cutoff %lu, mean %LF, max %lu\n", heuristicSize, mean_cutoff, heuristicResult.mean, heuristicResult.max);
+	auto heuristicResult = getHeuristicResult(heuristicSize);
+	printf("Heuristic values: size %lu, cutoff %lu, mean %LF, max %lu\n",
+		   heuristicSize, mean_cutoff, heuristicResult.mean,
+		   heuristicResult.max);
 
 	if (heuristicResult.mean > mean_cutoff) {
 		// here we could use the mean and max from the heuristic to set the
@@ -41,7 +44,7 @@ ErrorCalculator::Result HeuristicGeijer::calcMaxMeanError() {
 	}
 }
 
-ErrorCalculator::Result HeuristicGeijer::calcMaxMeanErrorBatch() {
+AbstractExecutor::Measurement HeuristicGeijer::calcMaxMeanErrorBatch() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -51,8 +54,8 @@ ErrorCalculator::Result HeuristicGeijer::calcMaxMeanErrorBatch() {
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
-    //set rank_min to the maximum value of an unsigned int
-    uint64_t rank_min = UINT64_MAX;
+	// set rank_min to the maximum value of an unsigned int
+	uint64_t rank_min = UINT64_MAX;
 
 	bool keep_running = true;
 	size_t batches_done = 0;
@@ -90,8 +93,8 @@ ErrorCalculator::Result HeuristicGeijer::calcMaxMeanErrorBatch() {
 			rank_sum += rank_error;
 			if (rank_error > rank_max)
 				rank_max = rank_error;
-            if(rank_error < rank_min)
-                rank_min = rank_error;
+			if (rank_error < rank_min)
+				rank_min = rank_error;
 
 			head = head->next;
 			found++;
@@ -114,8 +117,8 @@ ErrorCalculator::Result HeuristicGeijer::calcMaxMeanErrorBatch() {
 				rank_sum += rank_error;
 				if (rank_error > rank_max)
 					rank_max = rank_error;
-                if(rank_error < rank_min)
-                    rank_min = rank_error;
+				if (rank_error < rank_min)
+					rank_min = rank_error;
 
 				current->next = current->next->next;
 				found++;
@@ -128,9 +131,9 @@ ErrorCalculator::Result HeuristicGeijer::calcMaxMeanErrorBatch() {
 
 	return {rank_max, rank_mean};
 }
-ErrorCalculator::Result
+AbstractExecutor::Measurement
 HeuristicGeijer::calcMaxMeanErrorGeijer(uint64_t get_stamps_to_use) {
-    bool is_heuristic = get_stamps_to_use == heuristicSize;
+	bool is_heuristic = get_stamps_to_use == heuristicSize;
 
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
@@ -152,10 +155,7 @@ HeuristicGeijer::calcMaxMeanErrorGeijer(uint64_t get_stamps_to_use) {
 				current = current->next;
 				rank_error += 1;
 				if (current->next == NULL) {
-					perror("Out of bounds on finding matching relaxation "
-						   "enqueue\n");
-					printf("%zu\n", deq_ind);
-					exit(-1);
+					throw std::runtime_error("Out of bounds on finding matching relaxation enqueue\n");
 				}
 			}
 			// current->next has the removed item, so just unlink it from the
@@ -164,8 +164,8 @@ HeuristicGeijer::calcMaxMeanErrorGeijer(uint64_t get_stamps_to_use) {
 		}
 
 		// Store rank error in get_stamps for variance calculation
-        if(!is_heuristic)
-		    (*get_stamps)[deq_ind].value = rank_error;
+		if (!is_heuristic)
+			(*get_stamps)[deq_ind].value = rank_error;
 
 		rank_error_sum += rank_error;
 		if (rank_error > rank_error_max)
@@ -175,8 +175,8 @@ HeuristicGeijer::calcMaxMeanErrorGeijer(uint64_t get_stamps_to_use) {
 		(long double)rank_error_sum / (long double)get_stamps_to_use;
 	if (get_stamps_to_use == 0)
 		rank_error_mean = 0.0;
-    if(is_heuristic)
-        return {rank_error_max, rank_error_mean};
+	if (is_heuristic)
+		return {rank_error_max, rank_error_mean};
 
 	// Find variance
 	long double rank_error_variance = 0;
@@ -192,39 +192,32 @@ HeuristicGeijer::calcMaxMeanErrorGeijer(uint64_t get_stamps_to_use) {
 	return {rank_error_max, rank_error_mean};
 }
 
+void HeuristicGeijer::prepare(const InputData &data) {
+	put_stamps_size = data.getPuts()->size();
+	get_stamps_size = data.getGets()->size();
+	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
 
-void HeuristicGeijer::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
 	struct item *item_list =
 		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
-    struct item *heuristics_item_list =
+	struct item *heuristics_item_list =
 		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
+
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
-		item_list[enq_ind].value = (*data.puts)[enq_ind].value;
+		item_list[enq_ind].value = put_stamps->at(enq_ind).value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
-        heuristics_item_list[enq_ind].value = (*data.puts)[enq_ind].value;
-        heuristics_item_list[enq_ind].next = &heuristics_item_list[enq_ind + 1];
+		heuristics_item_list[enq_ind].value = put_stamps->at(enq_ind).value;
+		heuristics_item_list[enq_ind].next = &heuristics_item_list[enq_ind + 1];
 	}
+
 	item_list[put_stamps_size - 1].next = NULL;
-    heuristics_item_list[put_stamps_size - 1].next = NULL;
+	heuristics_item_list[put_stamps_size - 1].next = NULL;
 	put_stamps_head = &item_list[0];
-    put_stamps_head_heuristics = &heuristics_item_list[0];
+	put_stamps_head_heuristics = &heuristics_item_list[0];
 }
 
-long HeuristicGeijer::execute() {
-	std::cout << "Running HeuristicGeijer...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement HeuristicGeijer::execute() {
+	return calcMaxMeanError();
 }
 
 } // namespace bench

@@ -30,7 +30,7 @@ static void createAndSaveData(size_t size, const std::string &filename) {
 	std::unordered_set<uint64_t> values;
 	std::unordered_set<uint64_t> timestamps;
 	while (!done) {
-		uint64_t value = rand() % size/2;
+		uint64_t value = rand() % size / 2;
 		uint64_t start_time = rand() % size;
 		uint64_t end_time = start_time + rand() % size;
 		if (values.find(value) == values.end() &&
@@ -42,15 +42,13 @@ static void createAndSaveData(size_t size, const std::string &filename) {
 			puts.emplace_back(start_time, value);
 			gets.emplace_back(end_time, value);
 		}
-		if (values.size() == size/2) {
+		if (values.size() == size / 2) {
 			done = true;
 		}
-
-		
 	}
 	std::ofstream put_file(filename + "_put_stamps.txt");
 	std::ofstream get_file(filename + "_get_stamps.txt");
-	//sort puts in time order
+	// sort puts in time order
 	std::sort(puts.begin(), puts.end(),
 			  [](const bench::Operation &a, const bench::Operation &b) {
 				  return a.time < b.time;
@@ -58,7 +56,7 @@ static void createAndSaveData(size_t size, const std::string &filename) {
 	for (auto &put : puts) {
 		put_file << put.time << " " << put.value << std::endl;
 	}
-	//sort gets in time order
+	// sort gets in time order
 	std::sort(gets.begin(), gets.end(),
 			  [](const bench::Operation &a, const bench::Operation &b) {
 				  return a.time < b.time;
@@ -72,17 +70,17 @@ static void createAndSaveData(size_t size, const std::string &filename) {
 static int testWithCreatedData() {
 	std::string folder_name = "generated";
 	createAndSaveData(1000, "./data/timestamps/" + folder_name + "/combined");
-	bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{};
-	long geijer_duration = geijerBench.run(
+
+	bench::InputData data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
-	bench::Benchmark<bench::QKParser, bench::SweepingLineImp> sweepingImp{};
-	long sweeping_duration = sweepingImp.run(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
-	
+		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
+
+	bench::Benchmark<bench::GeijerImp> geijerBench{};
+	auto geijer_res = geijerBench.run(data);
+
+	bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
+	auto sweeping_res = sweepingImp.run(data);
+
 	return 0;
 }
 
@@ -95,55 +93,45 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "generated";
 	// std::string folder_name = "2dd-queue-opt-30ms";
 	// std::string folder_name = "2dd-queue-opt-1s";
-	std::string folder_name = "q-k-1s-8t";
+	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
-	// std::string folder_name = "FAKE";
+	std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
 	// std::string folder_name = "2dd-queue-opt-100ms";
 	// std::string folder_name = "2dd-queue-opt-500ms";
-	bench::Benchmark<bench::QKParser, bench::GeijerImp> geijerBench{};
-	long geijer_duration = geijerBench.run(
+
+	bench::InputData data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
+		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
-	bench::Benchmark<bench::QKParser, bench::SweepingLineImp> sweepingImp{};
-	long sweeping_duration = sweepingImp.run(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
-	
-	bench::Benchmark<bench::QKParser, bench::ParallelBatchImp> parBench{};
-	long par_duration = parBench.run(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
+	bench::Benchmark<bench::GeijerImp> geijerBench{};
+	auto geijer_res = geijerBench.run(data);
 
+	bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
+	auto sweeping_res = sweepingImp.run(data);
 
+	bench::Benchmark<bench::ParallelBatchImp> parBench{};
+	auto par_res = parBench.run(data);
 
-	bench::Benchmark<bench::QKParser, bench::GeijerBatchPopImp> geijerBatchPopBench{};
-	long geijerBatchPop_duration = geijerBatchPopBench.run(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
+	bench::Benchmark<bench::GeijerBatchPopImp> geijerBatchPopBench{};
+	auto geijerBatchPop_res = geijerBatchPopBench.run(data);
 
-	bench::Benchmark<bench::QKParser, bench::HeuristicGeijer> heuristicGeijer{};
+	bench::Benchmark<bench::HeuristicGeijer> heuristicGeijer{};
 	heuristicGeijer.executor->setHeuristicSizeAndCutoff(10000, 2000);
 	heuristicGeijer.executor->setBatchSize(10000);
-	long heu_duration = heuristicGeijer.run(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-		"./data/timestamps/" + folder_name + "/output.txt");
-	
+	auto heu_res = heuristicGeijer.run(data);
+
 	printf("\n\n----------------------------------\n");
-	printf("Geijer: %ld\n", geijer_duration);
-	printf("SweepingLine: %ld speedup: %.2f\n", sweeping_duration,
-		   (double)geijer_duration / sweeping_duration);
-	printf("ParallelBatch: %ld speedup: %.2f\n", par_duration,
-		   (double)geijer_duration / par_duration);
-	printf("GeijerBatchPop: %ld speedup: %.2f\n", geijerBatchPop_duration,
-		   (double)geijer_duration / geijerBatchPop_duration);
-	printf("HeuristicGeijer: %ld speedup: %.2f\n", heu_duration
-		   , (double)geijer_duration / heu_duration);
+	printf("Geijer: %ld\n", geijer_res.executeTime);
+	printf("SweepingLine: %ld speedup: %.2f\n", sweeping_res.executeTime,
+		   (double)geijer_res.executeTime / sweeping_res.executeTime);
+	printf("ParallelBatch: %ld speedup: %.2f\n", par_res.executeTime,
+		   (double)geijer_res.executeTime / par_res.executeTime);
+	printf("GeijerBatchPop: %ld speedup: %.2f\n",
+		   geijerBatchPop_res.executeTime,
+		   (double)geijer_res.executeTime /
+			   geijerBatchPop_res.executeTime);
+	printf("HeuristicGeijer: %ld speedup: %.2f\n", heu_res.executeTime,
+		   (double)geijer_res.executeTime / heu_res.executeTime);
 	printf("----------------------------------\n\n");
 
 	// bench::Benchmark<bench::QKParser, bench::HeuristicGeijer>
@@ -160,7 +148,6 @@ int main(int argc, char *argv[]) {
 	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
 	// 	"./data/timestamps/" + folder_name + "/output.txt");
-
 
 	// bench::Benchmark<bench::QKParser, bench::ReplayImp> replayImp{};
 	// replayImp.run(projDir + "/data/timestamps/combined_get_stamps.txt",

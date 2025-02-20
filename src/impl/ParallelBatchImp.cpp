@@ -11,10 +11,8 @@
 #include <cstdlib>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-#include <future>
 #include <iostream>
 #include <iterator>
-#include <numeric>
 #include <omp.h>
 #include <sys/types.h>
 #include <thread>
@@ -53,10 +51,8 @@ ParallelBatchImp::calcMaxSumErrorGeijer(SubProblem problem, size_t tid) {
 				current = current->next;
 				rank_error += 1;
 				if (current->next == NULL) {
-					perror("Out of bounds on finding matching relaxation "
-						   "enqueue\n");
-					printf("%zu\n", deq_ind);
-					exit(-1);
+					throw std::runtime_error("Out of bounds on finding "
+											 "matching relaxation enqueue\n");
 				}
 			}
 			current->next = current->next->next;
@@ -75,10 +71,11 @@ ParallelBatchImp::calcMaxSumErrorGeijer(SubProblem problem, size_t tid) {
 		}
 	}
 
-	// printf("Thread %zu wasted work: %lu actual work: %lu rankMax: %lu\n", tid,
-	// 	   wasted_work, actual_work, rankMax);
-	// printf("percent wasted work: %.2f%%\n\n",
-	// 	   (double)(wasted_work * 100) / (wasted_work + actual_work));
+	// printf("Thread %zu wasted work: %lu actual work: %lu rankMax: %lu\n",
+	// tid, 	   wasted_work, actual_work, rankMax); printf("percent wasted
+	// work:
+	// %.2f%%\n\n", 	   (double)(wasted_work * 100) / (wasted_work +
+	// actual_work));
 
 	return {rankMax, rankSum};
 }
@@ -99,7 +96,6 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 	size_t batches_done = 0;
 
 	size_t total_batches_needed = get_stamps_size / batch_size;
-
 
 	auto head = problem.puts2;
 	while (keep_running) {
@@ -128,11 +124,10 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 			found_pops.insert(pop_order);
 			uint64_t rank_error = found - fi;
 
-			bool isNonCounting =
-				problem.non_counting_puts.find(head->value) !=
-				problem.non_counting_puts.end();
+			bool isNonCounting = problem.non_counting_puts.find(head->value) !=
+								 problem.non_counting_puts.end();
 
-			if(!isNonCounting){
+			if (!isNonCounting) {
 				rank_error += problem.const_error;
 				rank_sum += rank_error;
 				if (rank_error > rank_max)
@@ -140,7 +135,6 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 				if (rank_error < rank_min)
 					rank_min = rank_error;
 			}
-			
 
 			head = head->next;
 			found++;
@@ -184,7 +178,8 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 
 	return {rank_max, rank_sum};
 }
-ErrorCalculator::Result ParallelBatchImp::calcMaxMeanError() {
+
+AbstractExecutor::Measurement ParallelBatchImp::calcMaxMeanError() {
 	auto func = [this](size_t tid,
 					   std::pair<uint64_t, uint64_t> *results) -> void {
 		*results = calcMaxSumErrorBatch(subProblems.at(tid), tid);
@@ -375,21 +370,24 @@ void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 		}
 	}
 }
-void ParallelBatchImp::prepare(InputData data) {
-	intervals.resize(data.puts->size());
+
+void ParallelBatchImp::prepare(const InputData &data) {
+	auto puts = data.getPuts();
+	intervals.resize(puts->size());
 	std::unordered_map<uint64_t, size_t> putMap{};
 	uint64_t max_time = 0;
-	for (size_t i = 0; i < data.puts->size(); ++i) {
-		auto &put = data.puts->at(i);
+	for (size_t i = 0; i < puts->size(); ++i) {
+		auto &put = puts->at(i);
 		auto &intv = intervals.at(i);
 		intv.start = put.time;
 		intv.end = ~0;
 		intv.value = put.value;
 		putMap[put.value] = i;
 	}
-	numGets = data.gets->size();
+	auto gets = data.getGets();
+	numGets = gets->size();
 	for (size_t i = 0; i < numGets; ++i) {
-		auto &get = data.gets->at(i);
+		auto &get = gets->at(i);
 		auto &interval = intervals.at(putMap[get.value]);
 		interval.end = get.time;
 		if (interval.end > max_time && interval.end != ~0) {
@@ -400,16 +398,7 @@ void ParallelBatchImp::prepare(InputData data) {
 	splitOnWork(intervals, max_time);
 }
 
-long ParallelBatchImp::execute() {
-	std::cout << "Running ParallelBatchImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement ParallelBatchImp::execute() {
+	return calcMaxMeanError();
 }
 } // namespace bench

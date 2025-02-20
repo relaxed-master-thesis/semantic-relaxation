@@ -1,9 +1,13 @@
 #pragma once
 
 #include "bench/Operation.h"
-#include "bench/Interval.h"
+
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
 
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -19,6 +23,14 @@ struct InputData {
 			  std::shared_ptr<std::vector<Operation>> puts)
 		: gets(gets), puts(puts) {}
 
+	std::shared_ptr<const std::vector<Operation>> getGets() const {
+		return gets;
+	}
+	std::shared_ptr<const std::vector<Operation>> getPuts() const {
+		return puts;
+	}
+
+  private:
 	std::shared_ptr<std::vector<Operation>> gets;
 	std::shared_ptr<std::vector<Operation>> puts;
 };
@@ -30,41 +42,109 @@ class AbstractParser {
 
 class AbstractExecutor {
   public:
-	virtual void prepare(InputData data) = 0;
-	virtual long execute() = 0;
+	struct Measurement {
+		Measurement() = default;
+		Measurement(uint64_t max, long double mean) : max(max), mean(mean) {}
+		Measurement(Measurement &&) = default;
+		Measurement &operator=(const Measurement &other) {
+			if (this != &other) {
+				max = other.max;
+				mean = other.mean;
+			}
+			return *this;
+		}
+		Measurement(const Measurement &other)
+			: max(other.max), mean(other.mean) {}
+
+		long double mean;
+		uint64_t max;
+	};
+
+	virtual void prepare(const InputData &data) = 0;
+	virtual Measurement execute() = 0;
+	virtual Measurement calcMaxMeanError() = 0;
 };
 
 // TODO: enforce shared data format between parser and executor
 // or create shared format
-template <class T, class V>
-class Benchmark {
+template <class T> class Benchmark {
   public:
 	Benchmark() {
-		static_assert(std::is_base_of<AbstractParser, T>::value,
-					  "parser type does not derive AbstractParser");
-		static_assert(std::is_base_of<AbstractExecutor, V>::value,
-					  "executor type does not derive AbstractExecutor");
+		static_assert(std::is_base_of<AbstractExecutor, T>::value,
+					  "typename does not derive AbstractExecutor");
 
-		parser = std::make_shared<T>();
-		executor = std::make_shared<V>();
+		executor = std::make_shared<T>();
 	}
 
-	long run(const std::string &getOps, const std::string &putOps,
-			 const std::string &output) {
-		std::shared_ptr<AbstractParser> aparser =
-			std::dynamic_pointer_cast<AbstractParser>(this->parser);
+	struct Result {
+	  public:
+		Result() = delete;
+		Result(const std::string &errMsg) : isValid(false), errMsg(errMsg), prepareTime(0), executeTime(0), measurement() {}
+		Result(long prepTime, long execTime,
+			   AbstractExecutor::Measurement measurement)
+			: isValid(true), errMsg(""), prepareTime(prepTime), executeTime(execTime),
+			  measurement(measurement) {}
+
+		const bool isValid;
+		const std::string errMsg;
+		const long prepareTime;
+		const long executeTime;
+		const AbstractExecutor::Measurement measurement;
+	};
+
+  private:
+	std::string getTemplateParamTypeName() {
+#ifdef __GNUC__
+		int status;
+		char *name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+		std::string result(name);
+		free(name);
+		return result;
+#else
+		return typeid(T)
+			.name(); // idk how to do this on compilers other than gcc
+#endif
+	}
+
+  public:
+	Result run(const InputData &data) {
+		using timepoint =
+			std::chrono::time_point<std::chrono::high_resolution_clock>;
+
 		std::shared_ptr<AbstractExecutor> aexecutor =
 			std::dynamic_pointer_cast<AbstractExecutor>(this->executor);
 
-		InputData data = aparser->parse(getOps, putOps);
-		std::cout << "parse successful\n";
-		aexecutor->prepare(data);
-		std::cout << "prepare successful\n";
-		return aexecutor->execute();
+		std::cout << "Running " << getTemplateParamTypeName() << "...\n";
+		timepoint prepStart, prepEnd, execStart, execEnd;
+		AbstractExecutor::Measurement measurement;
+
+		try {
+			prepStart = std::chrono::high_resolution_clock::now();
+			aexecutor->prepare(data);
+			prepEnd = std::chrono::high_resolution_clock::now();
+		} catch (const std::exception &e) {
+			return {std::string(e.what())};
+		}
+
+		try {
+			execStart = std::chrono::high_resolution_clock::now();
+			measurement = aexecutor->execute();
+			execEnd = std::chrono::high_resolution_clock::now();
+		} catch (const std::exception &e) {
+			return {std::string(e.what())};
+		}
+
+		auto prepTime = std::chrono::duration_cast<std::chrono::microseconds>(
+							prepEnd - prepStart)
+							.count();
+		auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(
+							execEnd - execStart)
+							.count();
+
+		return {prepTime, execTime, measurement};
 	}
 
 	//   private:
-	std::shared_ptr<T> parser;
-	std::shared_ptr<V> executor;
+	std::shared_ptr<T> executor;
 };
 } // namespace bench

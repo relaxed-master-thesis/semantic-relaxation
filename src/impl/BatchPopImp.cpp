@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace bench {
-ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
+AbstractExecutor::Measurement BatchPopImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -40,7 +40,7 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 
 		/* Do insertions. */
 		while (ins_ix < put_stamps_size && next_ins_tick <= next_del_tick) {
-			Operation &insert = (*put_stamps)[ins_ix++];
+			const Operation &insert = (*put_stamps)[ins_ix++];
 			q.enq(insert.value);
 
 			if (ins_ix >= put_stamps_size) {
@@ -56,11 +56,13 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 		/* Do deletions. */
 		uint64_t ins = 0;
 		while (next_del_tick < next_ins_tick && del_ix < get_stamps_size) {
-            uint64_t val = (*get_stamps)[del_ix++].value;
-            // if(pops.contains(val)){
-            //     std::cout << "value already in map " << val << ", MAYDAY MAYDAY WE ARE GOING TO CRASH\n";
-			// 	throw std::invalid_argument("We cant have duplicate elements in one continous pop sequence");
-            // }
+			uint64_t val = (*get_stamps)[del_ix++].value;
+			// if(pops.contains(val)){
+			//     std::cout << "value already in map " << val << ", MAYDAY
+			//     MAYDAY WE ARE GOING TO CRASH\n";
+			// 	throw std::invalid_argument("We cant have duplicate elements in
+			// one continous pop sequence");
+			// }
 			pops.insert({val, ins++});
 			if (del_ix >= get_stamps_size) {
 				keep_running = false;
@@ -70,14 +72,13 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 			next_del_tick = (*get_stamps)[del_ix].time;
 		}
 		max_pop_seq = std::max(max_pop_seq, ins);
-		
+
 		std::vector<uint64_t> rs;
 		rs.resize(pops.size());
 		q.batch_deq(pops, &rs);
 		rank_sum += std::reduce(rs.begin(), rs.end());
-		rank_max = std::max(rank_max,
-							*std::max_element(rs.begin(), rs.end()));
-        ranks.insert(ranks.end(), rs.begin(), rs.end());
+		rank_max = std::max(rank_max, *std::max_element(rs.begin(), rs.end()));
+		ranks.insert(ranks.end(), rs.begin(), rs.end());
 	}
 
 	const double rank_mean = (double)rank_sum / ranks.size();
@@ -95,22 +96,14 @@ ErrorCalculator::Result BatchPopImp::calcMaxMeanError() {
 	return {rank_max, rank_mean};
 }
 
-void BatchPopImp::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
+void BatchPopImp::prepare(const InputData &data) {
+	put_stamps_size = data.getPuts()->size();
+	get_stamps_size = data.getGets()->size();
+	put_stamps = data.getPuts();
+	get_stamps = data.getGets();
 }
-long BatchPopImp::execute() {
-	std::cout << "Running BatchPopImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement BatchPopImp::execute() {
+	return calcMaxMeanError();
 }
 } // namespace bench

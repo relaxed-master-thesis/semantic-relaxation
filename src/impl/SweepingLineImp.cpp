@@ -1,5 +1,6 @@
 #include "bench/impl/SweepingLineImp.h"
 #include "bench/Benchmark.h"
+#include "bench/Operation.h"
 
 #include <chrono>
 #include <cstdint>
@@ -11,7 +12,7 @@
 
 namespace bench {
 
-ErrorCalculator::Result SweepingLineImp::calcMaxMeanError() {
+AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
 	for (auto &event : events) {
 		if (event.end_time == ~0) {
@@ -34,16 +35,17 @@ ErrorCalculator::Result SweepingLineImp::calcMaxMeanError() {
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
-void SweepingLineImp::prepare(InputData data) {
-	// events.resize(data.puts->size() + data.gets->size());
-	get_stamps_size = data.gets->size();
+void SweepingLineImp::prepare(const InputData &data) {
+	auto gets = data.getGets();
+	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
 	std::unordered_set<uint64_t> getSet{};
-	for (auto get : *data.gets) {
+	for (const Operation &get : *gets) {
 		getMap[get.value] = get.time;
 		getSet.insert(get.value);
 	}
-	for (auto put : *data.puts) {
+	auto puts = data.getPuts();
+	for (const Operation &put : *puts) {
 		uint64_t end_time = 0;
 		if (getSet.find(put.value) == getSet.end()) {
 			end_time = ~0;
@@ -72,17 +74,8 @@ void SweepingLineImp::prepare(InputData data) {
 			  });
 }
 
-long SweepingLineImp::execute() {
-	std::cout << "Running SweepingLineImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement SweepingLineImp::execute() {
+	return calcMaxMeanError();
 }
 
 } // namespace bench

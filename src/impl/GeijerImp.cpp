@@ -1,12 +1,14 @@
 #include "bench/impl/GeijerImp.h"
 #include "bench/Benchmark.h"
+#include "bench/Operation.h"
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 
 namespace bench {
 
-ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
+AbstractExecutor::Measurement GeijerImp::calcMaxMeanError() {
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
 
@@ -27,10 +29,8 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 				current = current->next;
 				rank_error += 1;
 				if (current->next == NULL) {
-					perror("Out of bounds on finding matching relaxation "
-						   "enqueue\n");
-					printf("%zu\n", deq_ind);
-					exit(-1);
+					throw std::runtime_error("Out of bounds on finding "
+											 "matching relaxation enqueue\n");
 				}
 			}
 			// current->next has the removed item, so just unlink it from the
@@ -64,33 +64,25 @@ ErrorCalculator::Result GeijerImp::calcMaxMeanError() {
 	return {rank_error_max, rank_error_mean};
 }
 
-void GeijerImp::prepare(InputData data) {
+void GeijerImp::prepare(const InputData &data) {
 
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	get_stamps = data.gets;
+	put_stamps_size = data.getPuts()->size();
+	get_stamps_size = data.getGets()->size();
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	auto puts = data.getPuts();
 
 	struct item *item_list =
 		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
-		item_list[enq_ind].value = (*data.puts)[enq_ind].value;
+		item_list[enq_ind].value = puts->at(enq_ind).value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
 	}
 	item_list[put_stamps_size - 1].next = NULL;
 	put_stamps_head = &item_list[0];
 }
 
-long GeijerImp::execute() {
-	std::cout << "Running GeijerImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement GeijerImp::execute() {
+	return calcMaxMeanError();
 }
 
 } // namespace bench

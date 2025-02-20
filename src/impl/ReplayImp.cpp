@@ -11,7 +11,7 @@
 #include <iostream>
 
 namespace bench {
-ErrorCalculator::Result ReplayImp::calcMaxMeanError() {
+AbstractExecutor::Measurement ReplayImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -34,7 +34,7 @@ ErrorCalculator::Result ReplayImp::calcMaxMeanError() {
 
 		/* Do insertions. */
 		while (ins_ix < put_stamps_size && next_ins_tick <= next_del_tick) {
-			Operation &insert = (*put_stamps)[ins_ix++];
+			const Operation &insert = (*put_stamps)[ins_ix++];
 			q.enq(insert.value);
 
 			if (ins_ix >= put_stamps_size) {
@@ -48,7 +48,7 @@ ErrorCalculator::Result ReplayImp::calcMaxMeanError() {
 		/* Do deletions. */
 		while (next_del_tick < next_ins_tick) {
 
-			Operation &deleted_item = (*get_stamps)[del_ix++];
+			const Operation &deleted_item = (*get_stamps)[del_ix++];
 
 			/* Look up the key. */
 			uint64_t rank;
@@ -82,22 +82,14 @@ ErrorCalculator::Result ReplayImp::calcMaxMeanError() {
 	return {rank_max, rank_mean};
 }
 
-void ReplayImp::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
+void ReplayImp::prepare(const InputData &data) {
+	put_stamps = data.getPuts();
+	get_stamps = data.getGets();
+	put_stamps_size = put_stamps->size();
+	get_stamps_size = get_stamps->size();
 }
-long ReplayImp::execute() {
-	std::cout << "Running ReplayImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement ReplayImp::execute() {
+	return calcMaxMeanError();
 }
 } // namespace bench

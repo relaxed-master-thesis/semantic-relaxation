@@ -9,13 +9,14 @@
 #include <omp.h>
 
 namespace bench {
-ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
+AbstractExecutor::Measurement GeijerBatch::calcMaxMeanError() {
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
 
 	item *head = put_stamps_head;
 
-#pragma omp parallel for shared(head, rank_error_sum, rank_error_max, get_stamps, get_stamps_size)
+#pragma omp parallel for shared(head, rank_error_sum, rank_error_max,          \
+									get_stamps, get_stamps_size)
 	for (size_t deq_ind = 0; deq_ind < get_stamps_size; deq_ind++) {
 		if (deq_ind == 0) [[unlikely]] {
 			std::cout << omp_get_num_threads() << " OMP threads\n";
@@ -26,9 +27,7 @@ ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
 		uint64_t rank_error;
 		if (head->value == key) {
 #pragma omp critical
-			{
-				head = head->next;
-			}
+			{ head = head->next; }
 			rank_error = 0;
 		} else {
 			rank_error = 1;
@@ -37,18 +36,14 @@ ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
 				current = current->next;
 				rank_error += 1;
 				if (current->next == NULL) {
-					perror("Out of bounds on finding matching relaxation "
-						   "enqueue\n");
-					printf("deq_ind: %zu\n", deq_ind);
-					exit(-1);
+					throw std::runtime_error("Out of bounds on finding "
+											 "matching relaxation enqueue\n");
 				}
 			}
 // current->next has the removed item, so just unlink it from
 // the data structure
 #pragma omp critical
-			{
-				current->next = current->next->next;
-			}
+			{ current->next = current->next->next; }
 		}
 
 		// Store rank error in get_stamps for variance calculation
@@ -78,32 +73,24 @@ ErrorCalculator::Result GeijerBatch::calcMaxMeanError() {
 	return {rank_error_max, rank_error_mean};
 }
 
-void GeijerBatch::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	get_stamps = data.gets;
+void GeijerBatch::prepare(const InputData &data) {
+	put_stamps_size = data.getPuts()->size();
+	get_stamps_size = data.getGets()->size();
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	auto puts = data.getPuts();
 
 	struct item *item_list =
 		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
-		item_list[enq_ind].value = (*data.puts)[enq_ind].value;
+		item_list[enq_ind].value = puts->at(enq_ind).value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
 	}
 	item_list[put_stamps_size - 1].next = NULL;
 	put_stamps_head = &item_list[0];
 }
 
-long GeijerBatch::execute() {
-	std::cout << "Running GeijerBatch...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement GeijerBatch::execute() {
+	return calcMaxMeanError();
 }
 
 } // namespace bench

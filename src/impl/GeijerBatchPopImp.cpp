@@ -21,7 +21,7 @@ using ordered_set = tree<T, null_type, std::less<T>, rb_tree_tag,
 
 namespace bench {
 
-ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
+AbstractExecutor::Measurement GeijerBatchPopImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -104,32 +104,24 @@ ErrorCalculator::Result GeijerBatchPopImp::calcMaxMeanError() {
 	return {rank_max, rank_mean};
 }
 
-void GeijerBatchPopImp::prepare(InputData data) {
-	put_stamps_size = data.puts->size();
-	get_stamps_size = data.gets->size();
-	put_stamps = data.puts;
-	get_stamps = data.gets;
+void GeijerBatchPopImp::prepare(const InputData &data) {
+	put_stamps_size = data.getPuts()->size();
+	get_stamps_size = data.getGets()->size();
+	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	auto puts = data.getPuts();
 	struct item *item_list =
 		static_cast<struct item *>(malloc(put_stamps_size * (sizeof(item))));
 	for (size_t enq_ind = 0; enq_ind < put_stamps_size; enq_ind += 1) {
-		item_list[enq_ind].value = (*data.puts)[enq_ind].value;
+		item_list[enq_ind].value = puts->at(enq_ind).value;
 		item_list[enq_ind].next = &item_list[enq_ind + 1];
 	}
 	item_list[put_stamps_size - 1].next = NULL;
 	put_stamps_head = &item_list[0];
 }
 
-long GeijerBatchPopImp::execute() {
-	std::cout << "Running GeijerBatchPopImp...\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	auto result = calcMaxMeanError();
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration =
-		std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	std::cout << "Runtime: " << duration.count() << " us\n";
-	std::cout << "Mean: " << result.mean << ", Max: " << result.max << "\n";
-	return duration.count();
+AbstractExecutor::Measurement GeijerBatchPopImp::execute() {
+	return calcMaxMeanError();
 }
 
 } // namespace bench

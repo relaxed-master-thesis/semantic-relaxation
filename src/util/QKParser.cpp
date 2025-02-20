@@ -24,7 +24,7 @@ parseFile(const std::string &file) {
 	return ops;
 }
 
-InputData QKParser::parse(const std::string &getOps,
+InputData TimestampParser::parse(const std::string &getOps,
 						  const std::string &putOps) {
 	return InputData(parseFile(getOps), parseFile(putOps));
 }

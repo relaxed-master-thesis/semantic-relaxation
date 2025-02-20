@@ -1,20 +1,19 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/ErrorCalculator.h"
 #include "bench/Operation.h"
 
 #include <memory>
 #include <vector>
 
 namespace bench {
-class GeijerImp : public ErrorCalculator, public AbstractExecutor {
+class GeijerImp : public AbstractExecutor {
   public:
 	GeijerImp() = default;
 	~GeijerImp() = default;
-	Result calcMaxMeanError() override;
-	void prepare(InputData data) override;
-	long execute() override;
+	AbstractExecutor::Measurement calcMaxMeanError() override;
+	void prepare(const InputData &data) override;
+	AbstractExecutor::Measurement execute() override;
 
   private:
 	struct item {

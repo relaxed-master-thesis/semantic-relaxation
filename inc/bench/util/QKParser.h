@@ -7,12 +7,11 @@
 
 namespace bench {
 
-class QKParser : public AbstractParser {
+class TimestampParser : public AbstractParser {
   public:
-	QKParser() = default;
-	~QKParser() = default;
+	TimestampParser() = default;
+	~TimestampParser() = default;
 
-	// std::shared_ptr<std::vector<Operation>> parseFile(std::string &filename);
 	InputData parse(const std::string &get, const std::string &put);
 };
 } // namespace bench
