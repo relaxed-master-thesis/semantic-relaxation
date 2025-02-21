@@ -16,6 +16,7 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include <vector>
 
 static void createAndSaveData(size_t size, const std::string &filename) {
 	// we need to create a random set of sequences
@@ -84,6 +85,21 @@ static int testWithCreatedData() {
 	return 0;
 }
 
+void prettyPrint(std::string folderName, std::vector<std::string> names, std::vector<bench::Result> results) {
+	printf("\n----------------- Results for %s -------------\n", folderName.c_str());
+	for (size_t i = 0; i < names.size(); i++) {
+		printf("%-30s Mean: %.3Lf, Max: %lu \n", names[i].c_str(), results[i].measurement.mean,
+			   results[i].measurement.max);
+	}
+	printf("\n----------------- Times ------------\n");
+	for (size_t i = 0; i < names.size(); i++) {
+		printf("%-30s %-10ld speedup: %.2f (+prep: %.2f)\n", names[i].c_str(),
+			   results[i].executeTime,
+			   (double)results[0].executeTime / results[i].executeTime, (double)results[0].executeTime / (results[i].executeTime + results[i].prepareTime));
+	}
+	printf("-----------------------------------------------\n\n");
+}
+
 int main(int argc, char *argv[]) {
 
 	// return testWithCreatedData();
@@ -91,71 +107,37 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "queue-k-seg-1s-4t";
 	// std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "generated";
+	// std::string folder_name = "FAKE";
 	// std::string folder_name = "2dd-queue-opt-30ms";
 	// std::string folder_name = "2dd-queue-opt-1s";
 	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
-	std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
-	// std::string folder_name = "2dd-queue-opt-100ms";
+	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
+	std::string folder_name = "2dd-queue-opt-100ms";
 	// std::string folder_name = "2dd-queue-opt-500ms";
+	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
 
 	bench::InputData data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
-
-	bench::Benchmark<bench::GeijerImp> geijerBench{};
-	auto geijer_res = geijerBench.run(data);
-
-	bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
-	auto sweeping_res = sweepingImp.run(data);
-
+	bench::Benchmark<bench::ParallelBatchImp> parBenchParSplit{};
+	parBenchParSplit.executor->setUseParSplit(true);
+	auto par_res_parSplit = parBenchParSplit.run(data);
 	bench::Benchmark<bench::ParallelBatchImp> parBench{};
 	auto par_res = parBench.run(data);
+
 
 	bench::Benchmark<bench::GeijerBatchPopImp> geijerBatchPopBench{};
 	auto geijerBatchPop_res = geijerBatchPopBench.run(data);
 
-	bench::Benchmark<bench::HeuristicGeijer> heuristicGeijer{};
-	heuristicGeijer.executor->setHeuristicSizeAndCutoff(10000, 2000);
-	heuristicGeijer.executor->setBatchSize(10000);
-	auto heu_res = heuristicGeijer.run(data);
 
-	printf("\n\n----------------------------------\n");
-	printf("Geijer: %ld\n", geijer_res.executeTime);
-	printf("SweepingLine: %ld speedup: %.2f\n", sweeping_res.executeTime,
-		   (double)geijer_res.executeTime / sweeping_res.executeTime);
-	printf("ParallelBatch: %ld speedup: %.2f\n", par_res.executeTime,
-		   (double)geijer_res.executeTime / par_res.executeTime);
-	printf("GeijerBatchPop: %ld speedup: %.2f\n",
-		   geijerBatchPop_res.executeTime,
-		   (double)geijer_res.executeTime /
-			   geijerBatchPop_res.executeTime);
-	printf("HeuristicGeijer: %ld speedup: %.2f\n", heu_res.executeTime,
-		   (double)geijer_res.executeTime / heu_res.executeTime);
-	printf("----------------------------------\n\n");
+	bench::Benchmark<bench::GeijerImp> geijerBench{};
+	auto geijer_res = geijerBench.run(data);
 
-	// bench::Benchmark<bench::QKParser, bench::HeuristicGeijer>
-	// heuristicGeijer{};
-	// heuristicGeijer.executor->setHeuristicSizeAndCutoff(10000, 2000);
-	// heuristicGeijer.executor->setBatchSize(10000);
-	// long heu_duration = heuristicGeijer.run(
-	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-	// 	"./data/timestamps/" + folder_name + "/output.txt");
+	std::vector<std::string> names = {"Geijer", "ParallelBatch", "ParallelBatch with par split", "GeijerBatchPop"};
+	std::vector<bench::Result> results = {geijer_res, par_res, par_res_parSplit, geijerBatchPop_res};
+	
 
-	// bench::Benchmark<bench::QKParser, bench::AITImp> AITImp{};
-	// long ait_duration = AITImp.run(
-	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt",
-	// 	"./data/timestamps/" + folder_name + "/output.txt");
-
-	// bench::Benchmark<bench::QKParser, bench::ReplayImp> replayImp{};
-	// replayImp.run(projDir + "/data/timestamps/combined_get_stamps.txt",
-	// 			  projDir + "/data/timestamps/combined_put_stamps.txt",
-	// 			  projDir + "/data/timestamps/output.txt");
-	// bench::Benchmark<bench::QKParser, bench::BatchPopImp> batchImp{};
-	// batchImp.run(projDir + "/data/timestamps/combined_get_stamps.txt",
-	// 			  projDir + "/data/timestamps/combined_put_stamps.txt",
-	// 			  projDir + "/data/timestamps/output.txt");
+	prettyPrint(folder_name, names, results);
 	return 0;
 }

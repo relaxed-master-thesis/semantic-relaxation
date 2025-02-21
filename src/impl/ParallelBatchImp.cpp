@@ -274,6 +274,138 @@ void ParallelBatchImp::splitOnTime(const std::vector<Interval> &intervals,
 		}
 	}
 }
+
+void ParallelBatchImp::splitOnWorkPar(const std::vector<Interval> &intervals,
+									  uint64_t max_time) {
+	subProblems.resize(numThreads);
+	uint64_t intervals_per_thread = numGets / numThreads;
+	uint64_t intervals_for_last_thread =
+		numGets - intervals_per_thread * (numThreads - 1);
+
+	uint unpoped_intervals = intervals.size() - numGets;
+
+	std::vector<int64_t> start_times(numThreads);
+	std::vector<int64_t> end_times(numThreads);
+	std::vector<uint64_t> start_idx(numThreads);
+	std::vector<uint64_t> end_idx(numThreads);
+	uint64_t idx = 0;
+	for (int i = 0; i < numThreads; i++) {
+
+		uint64_t added_intervals = 0;
+		uint64_t intervals_to_add = i != numThreads - 1
+										? intervals_per_thread
+										: intervals_for_last_thread;
+		int64_t curr_start =
+			i == 0 ? intervals.at(0).start : end_times[i - 1] + 1;
+		start_idx[i] = idx;
+		int64_t curr_end = intervals.at(idx).end;
+
+		while (added_intervals < intervals_to_add && idx < intervals.size()) {
+
+			auto &interv = intervals.at(idx);
+			if (interv.end != ~0) {
+				added_intervals++;
+				curr_end = interv.start + 1;
+			}
+			idx++;
+		}
+		start_times[i] = curr_start;
+		end_times[i] = curr_end;
+		if (i == 0) {
+			start_times[i] = curr_start - 1;
+		}
+		if (i == numThreads - 1) {
+			end_times[i] = curr_end + 1;
+		}
+	}
+	idx = 0;
+	// this can be parallelized
+	auto func = [this, intervals, start_times, end_times](
+					size_t tid, uint64_t start_idx,
+					std::vector<std::mutex> &subProblemMutexes) -> void {
+		uint64_t idx = start_idx;
+		int64_t curr_start = start_times[tid];
+		int64_t curr_end = end_times[tid];
+
+		subProblems[tid].start_time = curr_start;
+		subProblems[tid].end_time = curr_end;
+		while (idx < intervals.size() && intervals.at(idx).start < curr_end) {
+			auto &interv = intervals.at(idx);
+			// subProblems[i].puts.push_back(interv.value);
+			{
+				std::lock_guard<std::mutex> lock(subProblemMutexes[tid]);
+				subProblems[tid].intervals.push_back(interv);
+			}
+			if (interv.end >= curr_end && tid != numThreads - 1) {
+				int next_i = tid + 1;
+				int64_t next_start = start_times[next_i];
+				while (next_i < numThreads && next_start < interv.end) {
+
+					if (interv.end == ~0) {
+						std::lock_guard<std::mutex> lock(
+							subProblemMutexes[next_i]);
+						subProblems[next_i].const_error++;
+					} else {
+						std::lock_guard<std::mutex> lock(
+							subProblemMutexes[next_i]);
+						subProblems[next_i].non_counting_puts.insert(
+							interv.value);
+						subProblems[next_i].intervals.push_back(interv);
+						// subProblems[next_i].non_counting_intervals.push_back(interv);
+						// subProblems[next_i].puts.push_back(interv.value);
+					}
+
+					next_i++;
+					next_start = start_times[next_i];
+				}
+			}
+			idx++;
+		}
+	};
+
+	std::vector<std::thread> threads{};
+	std::vector<std::mutex> subProblemMutexes(numThreads);
+	for (size_t i = 0; i < numThreads; ++i) {
+		std::thread thread(func, i, start_idx[i], std::ref(subProblemMutexes));
+		threads.push_back(std::move(thread));
+	}
+	for (size_t i = 0; i < numThreads; ++i) {
+		threads.at(i).join();
+	}
+
+	for (int i = 0; i < numThreads; i++) {
+		// sort on start times to make sure that the puts are in order
+		std::ranges::sort(
+			subProblems[i].intervals,
+			[](const Interval &left, const Interval &right) -> bool {
+				return left.start < right.start;
+			});
+		for (auto &intv : subProblems[i].intervals) {
+			subProblems[i].puts.push_back(intv.value);
+		}
+		std::ranges::sort(
+			subProblems[i].intervals,
+			[](const Interval &left, const Interval &right) -> bool {
+				return left.end < right.end;
+			});
+
+		for (auto &intv : subProblems[i].intervals) {
+			if (intv.end < max_time + 1)
+				subProblems[i].getValues.push_back(intv.value);
+		}
+
+		size_t nItems = subProblems[i].puts.size();
+		subProblems[i].puts2 =
+			static_cast<Item *>(calloc(nItems, sizeof(Item)));
+		auto putsiter = subProblems[i].puts.begin();
+		for (size_t j = 0; j < nItems; ++j) {
+			Item *item = &subProblems[i].puts2[j];
+			item->value = *putsiter;
+			item->next = j < nItems - 1 ? &subProblems[i].puts2[j + 1] : NULL;
+			std::advance(putsiter, 1);
+		}
+	}
+}
 void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 								   uint64_t max_time) {
 	subProblems.resize(numThreads);
@@ -392,7 +524,11 @@ void ParallelBatchImp::prepare(const InputData &data) {
 		}
 	}
 	numThreads = 12;
-	splitOnWork(intervals, max_time);
+	if (useParSplit) {
+		splitOnWorkPar(intervals, max_time);
+	} else {
+		splitOnWork(intervals, max_time);
+	}
 }
 
 AbstractExecutor::Measurement ParallelBatchImp::execute() {

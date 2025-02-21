@@ -19,6 +19,8 @@ class ParallelBatchImp : public AbstractExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void setNumThreads(uint64_t numThreads) { this->numThreads = numThreads; }
+	void setUseParSplit(bool useParSplit) { this->useParSplit = useParSplit; }
 
 
   private:
@@ -41,10 +43,12 @@ class ParallelBatchImp : public AbstractExecutor {
 	std::vector<Interval> intervals{};
 	size_t numGets{0};
 	uint64_t numThreads{2};
+	bool useParSplit{false};
 	std::vector<SubProblem> subProblems{};
 	void splitOnTime(const std::vector<Interval> &intervals, uint64_t max_time);
 
 	void splitOnWork(const std::vector<Interval> &intervals, uint64_t max_time);
+	void splitOnWorkPar(const std::vector<Interval> &intervals, uint64_t max_time);
 
 	
 	std::pair<uint64_t, uint64_t> calcMaxSumErrorBatch(SubProblem problem, size_t tid);

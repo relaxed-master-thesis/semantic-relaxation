@@ -67,6 +67,24 @@ class AbstractExecutor {
 
 // TODO: enforce shared data format between parser and executor
 // or create shared format
+struct Result {
+  public:
+	Result() = delete;
+	Result(const std::string &errMsg)
+		: isValid(false), errMsg(errMsg), prepareTime(0), executeTime(0),
+		  measurement() {}
+	Result(long prepTime, long execTime,
+		   AbstractExecutor::Measurement measurement)
+		: isValid(true), errMsg(""), prepareTime(prepTime),
+		  executeTime(execTime), measurement(measurement) {}
+
+	const bool isValid;
+	const std::string errMsg;
+	const long prepareTime;
+	const long executeTime;
+	const AbstractExecutor::Measurement measurement;
+};
+
 template <class T> class Benchmark {
   public:
 	Benchmark() {
@@ -75,22 +93,6 @@ template <class T> class Benchmark {
 
 		executor = std::make_shared<T>();
 	}
-
-	struct Result {
-	  public:
-		Result() = delete;
-		Result(const std::string &errMsg) : isValid(false), errMsg(errMsg), prepareTime(0), executeTime(0), measurement() {}
-		Result(long prepTime, long execTime,
-			   AbstractExecutor::Measurement measurement)
-			: isValid(true), errMsg(""), prepareTime(prepTime), executeTime(execTime),
-			  measurement(measurement) {}
-
-		const bool isValid;
-		const std::string errMsg;
-		const long prepareTime;
-		const long executeTime;
-		const AbstractExecutor::Measurement measurement;
-	};
 
   private:
 	std::string getTemplateParamTypeName() {

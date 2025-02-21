@@ -14,7 +14,7 @@ def timelines(y, xstart, xstop, color='b'):
 #read start intervals from a file
 # folder = 'data/timestamps/2dd-queue-opt-1ms/'
 # folder = 'data/timestamps/q-k-1ms-8t/'
-folder = 'data/timestamps/2dd-queue-opt-1ms-i1000/'
+folder = 'data/timestamps/2dd-q-opt-w50-l10-i1000-8t-1ms/'
 
 starts = pd.read_csv(
     folder + 'combined_put_stamps.txt',
@@ -41,6 +41,8 @@ intervals = pd.merge(
 
 # intervals = intervals.head(500)
 print(intervals)
+#sort intervals on id   
+intervals = intervals.sort_values(by='id')
 
 cap = range(len(intervals))
 captions = [str(i) for i in cap]
