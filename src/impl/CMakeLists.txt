@@ -2,7 +2,7 @@ project(SemanticRelaxation VERSION 0.1)
 
 target_sources(SemanticRelaxation PRIVATE
     AITImp.cpp
-    GeijerBatchImp.cpp
+    BatchPopImp.cpp
     ParallelGeijer.cpp
     GeijerBatchImp.cpp
     GeijerImp.cpp
