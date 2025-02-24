@@ -1,4 +1,4 @@
-#include "bench/impl/GeijerBatchPopImp.h"
+#include "bench/impl/GeijerBatchImp.h"
 #include "bench/Benchmark.h"
 #include "bench/util/VectorQueue.h"
 
@@ -19,7 +19,7 @@ using ordered_set = tree<T, null_type, std::less<T>, rb_tree_tag,
 
 namespace bench {
 
-AbstractExecutor::Measurement GeijerBatchPopImp::calcMaxMeanError() {
+AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
 		return {0, 0};
@@ -102,7 +102,7 @@ AbstractExecutor::Measurement GeijerBatchPopImp::calcMaxMeanError() {
 	return {rank_max, rank_mean};
 }
 
-void GeijerBatchPopImp::prepare(const InputData &data) {
+void GeijerBatchImp::prepare(const InputData &data) {
 	put_stamps_size = data.getPuts()->size();
 	get_stamps_size = data.getGets()->size();
 	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
@@ -118,7 +118,7 @@ void GeijerBatchPopImp::prepare(const InputData &data) {
 	put_stamps_head = &item_list[0];
 }
 
-AbstractExecutor::Measurement GeijerBatchPopImp::execute() {
+AbstractExecutor::Measurement GeijerBatchImp::execute() {
 	return calcMaxMeanError();
 }
 

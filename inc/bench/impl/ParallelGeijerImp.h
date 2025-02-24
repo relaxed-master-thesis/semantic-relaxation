@@ -3,27 +3,26 @@
 #include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
-#include <memory>
+#include <memory.h>
 #include <vector>
 
 namespace bench {
-class GeijerBatchPopImp : public AbstractExecutor {
+class ParallelGeijerImp : public AbstractExecutor {
   public:
-	GeijerBatchPopImp() = default;
-	~GeijerBatchPopImp() = default;
+	ParallelGeijerImp() = default;
+	~ParallelGeijerImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
 
   private:
-	std::shared_ptr<std::vector<Operation>> put_stamps;
-	std::shared_ptr<std::vector<Operation>> get_stamps;
-	size_t put_stamps_size;
-	size_t get_stamps_size;
 	struct item {
 		uint64_t value;
 		item *next;
 	};
+	std::shared_ptr<std::vector<Operation>> get_stamps;
 	item *put_stamps_head;
+	size_t put_stamps_size;
+	size_t get_stamps_size;
 };
 } // namespace bench

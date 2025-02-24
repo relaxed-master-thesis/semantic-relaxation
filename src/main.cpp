@@ -1,8 +1,8 @@
 #include "bench/Benchmark.h"
 #include "bench/impl/AITImp.h"
 #include "bench/impl/BatchPopImp.h"
-#include "bench/impl/GeijerBatch.h"
-#include "bench/impl/GeijerBatchPopImp.h"
+#include "bench/impl/ParallelGeijerImp.h"
+#include "bench/impl/GeijerBatchImp.h"
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/impl/IVTImp.h"
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 	auto par_res = parBench.run(data);
 
 
-	bench::Benchmark<bench::GeijerBatchPopImp> geijerBatchPopBench{};
+	bench::Benchmark<bench::GeijerBatchImp> geijerBatchPopBench{};
 	auto geijerBatchPop_res = geijerBatchPopBench.run(data);
 
 

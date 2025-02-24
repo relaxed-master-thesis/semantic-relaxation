@@ -3,26 +3,27 @@
 #include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
-#include <memory.h>
+#include <memory>
 #include <vector>
 
 namespace bench {
-class GeijerBatch : public AbstractExecutor {
+class GeijerBatchImp : public AbstractExecutor {
   public:
-	GeijerBatch() = default;
-	~GeijerBatch() = default;
+	GeijerBatchImp() = default;
+	~GeijerBatchImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
 
   private:
+	std::shared_ptr<std::vector<Operation>> put_stamps;
+	std::shared_ptr<std::vector<Operation>> get_stamps;
+	size_t put_stamps_size;
+	size_t get_stamps_size;
 	struct item {
 		uint64_t value;
 		item *next;
 	};
-	std::shared_ptr<std::vector<Operation>> get_stamps;
 	item *put_stamps_head;
-	size_t put_stamps_size;
-	size_t get_stamps_size;
 };
 } // namespace bench

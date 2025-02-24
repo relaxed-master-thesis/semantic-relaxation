@@ -1,5 +1,6 @@
-#include "bench/impl/GeijerBatch.h"
+#include "bench/impl/ParallelGeijerImp.h"
 #include "bench/Benchmark.h"
+#include "bench/impl/ParallelGeijerImp.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -7,7 +8,7 @@
 #include <omp.h>
 
 namespace bench {
-AbstractExecutor::Measurement GeijerBatch::calcMaxMeanError() {
+AbstractExecutor::Measurement ParallelGeijerImp::calcMaxMeanError() {
 	uint64_t rank_error_sum = 0;
 	uint64_t rank_error_max = 0;
 
@@ -71,7 +72,7 @@ AbstractExecutor::Measurement GeijerBatch::calcMaxMeanError() {
 	return {rank_error_max, rank_error_mean};
 }
 
-void GeijerBatch::prepare(const InputData &data) {
+void ParallelGeijerImp::prepare(const InputData &data) {
 	put_stamps_size = data.getPuts()->size();
 	get_stamps_size = data.getGets()->size();
 	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
@@ -87,7 +88,7 @@ void GeijerBatch::prepare(const InputData &data) {
 	put_stamps_head = &item_list[0];
 }
 
-AbstractExecutor::Measurement GeijerBatch::execute() {
+AbstractExecutor::Measurement ParallelGeijerImp::execute() {
 	return calcMaxMeanError();
 }
 
