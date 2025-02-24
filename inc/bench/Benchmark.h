@@ -22,6 +22,14 @@ struct InputData {
 	InputData(std::shared_ptr<std::vector<Operation>> gets,
 			  std::shared_ptr<std::vector<Operation>> puts)
 		: gets(gets), puts(puts) {}
+	InputData() = default;
+	InputData  &operator=(const InputData &other) {
+		if (this != &other) {
+			gets = other.gets;
+			puts = other.puts;
+		}
+		return *this;
+	}
 
 	std::shared_ptr<const std::vector<Operation>> getGets() const {
 		return gets;
@@ -94,7 +102,6 @@ template <class T> class Benchmark {
 		executor = std::make_shared<T>();
 	}
 
-  private:
 	std::string getTemplateParamTypeName() {
 #ifdef __GNUC__
 		int status;
@@ -111,7 +118,6 @@ template <class T> class Benchmark {
 #endif
 	}
 
-  public:
 	Result run(const InputData &data) {
 		using timepoint =
 			std::chrono::time_point<std::chrono::high_resolution_clock>;

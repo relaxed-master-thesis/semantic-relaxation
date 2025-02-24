@@ -1,4 +1,5 @@
 #include "bench/Benchmark.h"
+#include "bench/Interval.h"
 #include "bench/impl/AITImp.h"
 #include "bench/impl/BatchPopImp.h"
 #include "bench/impl/FenwickImp.h"
@@ -99,7 +100,7 @@ void prettyPrint(std::string folderName, std::vector<std::string> names,
 		printf("%-30s %-10ld speedup: %.2f (+prep: %.2f)\n", names[i].c_str(),
 			   results[i].executeTime,
 			   (double)results[0].executeTime / results[i].executeTime,
-			   (double)results[0].executeTime /
+			   (double)(results[0].executeTime + results[0].prepareTime) /
 				   (results[i].executeTime + results[i].prepareTime));
 	}
 	printf("-----------------------------------------------\n\n");
@@ -107,10 +108,10 @@ void prettyPrint(std::string folderName, std::vector<std::string> names,
 
 static std::vector<std::string> names{};
 static std::vector<bench::Result> results{};
+static bench::InputData data{};
 template <class T>
-static void run_bench(std::string name, bench::Benchmark<T> bencher,
-					  bench::InputData data) {
-	names.push_back(name);
+static void run_bench(bench::Benchmark<T> bencher) {
+	names.push_back(bencher.getTemplateParamTypeName());
 	auto res = bencher.run(data);
 	results.push_back(res);
 }
@@ -132,21 +133,21 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "2dd-queue-opt-500ms";
 	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
 
-	bench::InputData data = bench::TimestampParser().parse(
+	data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
 	//ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
-	run_bench("Geijer", bench::Benchmark<bench::GeijerImp>{}, data);
-	run_bench("GeijerBatch", bench::Benchmark<bench::GeijerBatchImp>{}, data);
-	run_bench("ParallelGeijer", bench::Benchmark<bench::ParallelGeijerImp>{}, data);
-	run_bench("ParallelBatch", bench::Benchmark<bench::ParallelBatchImp>{}, data);
-	run_bench("Replay", bench::Benchmark<bench::ReplayImp>{}, data);
-	run_bench("HeuristicGeijer", bench::Benchmark<bench::HeuristicGeijer>{}, data);
-	run_bench("SweepingLine", bench::Benchmark<bench::SweepingLineImp>{}, data);
-	// run_bench("IVT", bench::Benchmark<bench::IVTImp>{}, data);
-	run_bench("BatchPop", bench::Benchmark<bench::BatchPopImp>{}, data);
-	run_bench("Fenwick", bench::Benchmark<bench::FenwickImp>{}, data);
+	run_bench(bench::Benchmark<bench::GeijerImp>{});
+	run_bench(bench::Benchmark<bench::GeijerBatchImp>{});
+	run_bench(bench::Benchmark<bench::ParallelGeijerImp>{});
+	run_bench(bench::Benchmark<bench::ParallelBatchImp>{});
+	run_bench(bench::Benchmark<bench::ReplayImp>{});
+	run_bench(bench::Benchmark<bench::HeuristicGeijer>{});
+	run_bench(bench::Benchmark<bench::SweepingLineImp>{});
+	// run_bench(bench::Benchmark<bench::IVTImp>{});
+	run_bench(bench::Benchmark<bench::BatchPopImp>{});
+	run_bench(bench::Benchmark<bench::FenwickImp>{});
 
 
 
