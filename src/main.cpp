@@ -1,12 +1,13 @@
 #include "bench/Benchmark.h"
 #include "bench/impl/AITImp.h"
 #include "bench/impl/BatchPopImp.h"
-#include "bench/impl/ParallelGeijerImp.h"
+#include "bench/impl/FenwickImp.h"
 #include "bench/impl/GeijerBatchImp.h"
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/impl/IVTImp.h"
 #include "bench/impl/ParallelBatchImp.h"
+#include "bench/impl/ParallelGeijerImp.h"
 #include "bench/impl/ReplayImp.h"
 #include "bench/impl/SweepingLineImp.h"
 #include "bench/util/QKParser.h"
@@ -85,19 +86,33 @@ static int testWithCreatedData() {
 	return 0;
 }
 
-void prettyPrint(std::string folderName, std::vector<std::string> names, std::vector<bench::Result> results) {
-	printf("\n----------------- Results for %s -------------\n", folderName.c_str());
+void prettyPrint(std::string folderName, std::vector<std::string> names,
+				 std::vector<bench::Result> results) {
+	printf("\n----------------- Results for %s -------------\n",
+		   folderName.c_str());
 	for (size_t i = 0; i < names.size(); i++) {
-		printf("%-30s Mean: %.3Lf, Max: %lu \n", names[i].c_str(), results[i].measurement.mean,
-			   results[i].measurement.max);
+		printf("%-30s Mean: %.3Lf, Max: %lu \n", names[i].c_str(),
+			   results[i].measurement.mean, results[i].measurement.max);
 	}
 	printf("\n----------------- Times ------------\n");
 	for (size_t i = 0; i < names.size(); i++) {
 		printf("%-30s %-10ld speedup: %.2f (+prep: %.2f)\n", names[i].c_str(),
 			   results[i].executeTime,
-			   (double)results[0].executeTime / results[i].executeTime, (double)results[0].executeTime / (results[i].executeTime + results[i].prepareTime));
+			   (double)results[0].executeTime / results[i].executeTime,
+			   (double)results[0].executeTime /
+				   (results[i].executeTime + results[i].prepareTime));
 	}
 	printf("-----------------------------------------------\n\n");
+}
+
+static std::vector<std::string> names{};
+static std::vector<bench::Result> results{};
+template <class T>
+static void run_bench(std::string name, bench::Benchmark<T> bencher,
+					  bench::InputData data) {
+	names.push_back(name);
+	auto res = bencher.run(data);
+	results.push_back(res);
 }
 
 int main(int argc, char *argv[]) {
@@ -105,7 +120,7 @@ int main(int argc, char *argv[]) {
 	// return testWithCreatedData();
 
 	// std::string folder_name = "queue-k-seg-1s-4t";
-	// std::string folder_name = "2dd-queue-opt-1ms";
+	std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "generated";
 	// std::string folder_name = "FAKE";
 	// std::string folder_name = "2dd-queue-opt-30ms";
@@ -113,30 +128,28 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
 	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
-	std::string folder_name = "2dd-queue-opt-100ms";
+	// std::string folder_name = "2dd-queue-opt-100ms";
 	// std::string folder_name = "2dd-queue-opt-500ms";
 	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
 
 	bench::InputData data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
-	bench::Benchmark<bench::ParallelBatchImp> parBenchParSplit{};
-	parBenchParSplit.executor->setUseParSplit(true);
-	auto par_res_parSplit = parBenchParSplit.run(data);
-	bench::Benchmark<bench::ParallelBatchImp> parBench{};
-	auto par_res = parBench.run(data);
+
+	//ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
+	run_bench("Geijer", bench::Benchmark<bench::GeijerImp>{}, data);
+	run_bench("GeijerBatch", bench::Benchmark<bench::GeijerBatchImp>{}, data);
+	run_bench("ParallelGeijer", bench::Benchmark<bench::ParallelGeijerImp>{}, data);
+	run_bench("ParallelBatch", bench::Benchmark<bench::ParallelBatchImp>{}, data);
+	run_bench("Replay", bench::Benchmark<bench::ReplayImp>{}, data);
+	run_bench("HeuristicGeijer", bench::Benchmark<bench::HeuristicGeijer>{}, data);
+	run_bench("SweepingLine", bench::Benchmark<bench::SweepingLineImp>{}, data);
+	// run_bench("IVT", bench::Benchmark<bench::IVTImp>{}, data);
+	run_bench("BatchPop", bench::Benchmark<bench::BatchPopImp>{}, data);
+	run_bench("Fenwick", bench::Benchmark<bench::FenwickImp>{}, data);
 
 
-	bench::Benchmark<bench::GeijerBatchImp> geijerBatchPopBench{};
-	auto geijerBatchPop_res = geijerBatchPopBench.run(data);
 
-
-	bench::Benchmark<bench::GeijerImp> geijerBench{};
-	auto geijer_res = geijerBench.run(data);
-
-	std::vector<std::string> names = {"Geijer", "ParallelBatch", "ParallelBatch with par split", "GeijerBatchPop"};
-	std::vector<bench::Result> results = {geijer_res, par_res, par_res_parSplit, geijerBatchPop_res};
-	
 
 	prettyPrint(folder_name, names, results);
 	return 0;
