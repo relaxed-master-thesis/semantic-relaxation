@@ -23,7 +23,7 @@ struct InputData {
 			  std::shared_ptr<std::vector<Operation>> puts)
 		: gets(gets), puts(puts) {}
 	InputData() = default;
-	InputData  &operator=(const InputData &other) {
+	InputData &operator=(const InputData &other) {
 		if (this != &other) {
 			gets = other.gets;
 			puts = other.puts;
@@ -102,6 +102,13 @@ template <class T> class Benchmark {
 		executor = std::make_shared<T>();
 	}
 
+	template <typename... Args> Benchmark(Args &&...args) {
+		static_assert(std::is_base_of<AbstractExecutor, T>::value,
+					  "typename does not derive AbstractExecutor");
+
+		executor = std::make_shared<T>(std::forward<Args>(args)...);
+	}
+
 	std::string getTemplateParamTypeName() {
 #ifdef __GNUC__
 		int status;
@@ -113,8 +120,9 @@ template <class T> class Benchmark {
 		}
 		return tname;
 #else
-		return typeid(T)
-			.name(); // idk how to do this on compilers other than gcc
+		// idk how to do this on compilers other than gcc
+		// this works for MSVC also :)
+		return typeid(T).name(); 
 #endif
 	}
 

@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <list>
 #include <sys/types.h>
 #include <unordered_set>
@@ -14,6 +15,8 @@ namespace bench {
 class ParallelBatchImp : public AbstractExecutor {
   public:
 	ParallelBatchImp() = default;
+	ParallelBatchImp(uint64_t numThreads, bool useParSplit)
+		: numThreads(numThreads), useParSplit(useParSplit) {}
 	~ParallelBatchImp() = default;
 
 	AbstractExecutor::Measurement calcMaxMeanError() override;
@@ -21,7 +24,6 @@ class ParallelBatchImp : public AbstractExecutor {
 	AbstractExecutor::Measurement execute() override;
 	void setNumThreads(uint64_t numThreads) { this->numThreads = numThreads; }
 	void setUseParSplit(bool useParSplit) { this->useParSplit = useParSplit; }
-
 
   private:
 	struct Item {
@@ -48,10 +50,12 @@ class ParallelBatchImp : public AbstractExecutor {
 	void splitOnTime(const std::vector<Interval> &intervals, uint64_t max_time);
 
 	void splitOnWork(const std::vector<Interval> &intervals, uint64_t max_time);
-	void splitOnWorkPar(const std::vector<Interval> &intervals, uint64_t max_time);
+	void splitOnWorkPar(const std::vector<Interval> &intervals,
+						uint64_t max_time);
 
-	
-	std::pair<uint64_t, uint64_t> calcMaxSumErrorBatch(SubProblem problem, size_t tid);
-	std::pair<uint64_t, uint64_t> calcMaxSumErrorGeijer(SubProblem problem, size_t tid);
+	std::pair<uint64_t, uint64_t> calcMaxSumErrorBatch(SubProblem problem,
+													   size_t tid);
+	std::pair<uint64_t, uint64_t> calcMaxSumErrorGeijer(SubProblem problem,
+														size_t tid);
 };
 } // namespace bench
