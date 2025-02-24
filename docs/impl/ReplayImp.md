@@ -1,0 +1,2 @@
+# [ReplayImp](../../src/impl/ReplayImp.cpp)
+replayImp is the simplest algorithm we could think of, it basically just replays all pops and pushes. We do this by creating a queue datastructure that can pop elements based on their value and return the rank error of that pop. We implemnented this queue as a vector that linearly searches for the requested item and removes it. 
