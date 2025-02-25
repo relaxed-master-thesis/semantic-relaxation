@@ -14,7 +14,8 @@ def timelines(y, xstart, xstop, color='b'):
 #read start intervals from a file
 # folder = 'data/timestamps/2dd-queue-opt-1ms/'
 # folder = 'data/timestamps/q-k-1ms-8t/'
-folder = 'data/timestamps/2dd-q-opt-w50-l10-i1000-8t-1ms/'
+# folder = 'data/timestamps/2dd-q-opt-w50-l10-i1000-8t-1ms/'
+folder = 'data/timestamps/FAKE/'
 
 starts = pd.read_csv(
     folder + 'combined_put_stamps.txt',
@@ -45,7 +46,7 @@ print(intervals)
 intervals = intervals.sort_values(by='id')
 
 cap = range(len(intervals))
-captions = [str(i) for i in cap]
+captions = [str(i + 1) for i in cap]
 unique_idx = len(cap) - 1
 
 # start = np.array([i[0] for i in intervals])
@@ -63,11 +64,11 @@ intervals = [(x,y) for x,y in zip(start, stop)]
 
 print(start)
 print(stop)
-y = np.array([i for i in range(len(intervals))])
+y = np.array([i + 1 for i in range(len(intervals))])
 print(y)
 
 for i, (xstart, xstop) in enumerate(intervals):
-    timelines(i, xstart, xstop, 'b')
+    timelines(i + 1, xstart, xstop, 'b')
 
 
 
@@ -84,7 +85,7 @@ ax = plt.gca()
 delta = (stop.max() - start.min())/10
 
 plt.yticks(y, captions)
-plt.ylim(0, len(intervals) + 100)
+plt.ylim(0, len(intervals) + 1)
 plt.xlim(start.min()-delta, stop.max()+delta)
 plt.xlabel('Time')
 #make the window bigger

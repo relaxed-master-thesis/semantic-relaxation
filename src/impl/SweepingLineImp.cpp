@@ -15,9 +15,7 @@ AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
 	for (auto &event : events) {
 		if (event.end_time == ~0) {
 			const_error++;
-			continue;
-		}
-		if (event.type == EventType::START) {
+		} else if (event.type == EventType::START) {
 			uint64_t rank = end_tree.order_of_key(event.end_time);
 			rank += const_error;
 			rank_sum += rank;

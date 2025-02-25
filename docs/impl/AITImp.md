@@ -3,4 +3,4 @@ Following [this](https://www.davismol.net/2016/02/07/data-structures-augmented-i
 We can query the tree on how many overlaps an interval has by traversing it and counting all intervals we find that start before us and end after us. We can use the max-end time of a node to possibly exclude searching its right children. 
 We did a small change to the original blog post, where we just changed the criteria from an overlap into a containment.  
 
-The algorithm itself works by insering all intervals into the tree, then for each interval we query the tree for the ammount of containing intervals. However we insert all intervals in start time order, this means we essentially create a slow to navigate linked list, which is not good at all. 
+The algorithm itself works by insering all intervals into the tree, then for each interval we query the tree for the ammount of containing intervals. However we insert all intervals in start time order, this means we essentially create a slow to navigate linked list, which is not good at all. The possible upside of this approach would be that all queries could be done in parallel. 
