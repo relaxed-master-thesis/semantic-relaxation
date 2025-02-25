@@ -35,7 +35,7 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 	for (size_t i = 0; i < n; ++i) {
 		sortedEnds[i] = intervals[i].end;
 	}
-
+	
 	std::ranges::sort(sortedEnds);
 	std::unordered_map<int64_t, int64_t> endIndices{};
 	for (int64_t i = 0; i < n; ++i) {
@@ -80,6 +80,7 @@ void FenwickImp::prepare(const InputData &data) {
 		auto &put = puts->at(i);
 		auto &interval = intervals.at(i);
 		interval.start = time;
+		// this is a potential bug, multiple intvs have same end
 		interval.end = std::numeric_limits<int64_t>::max();
 		interval.value = static_cast<int64_t>(put.value);
 		putMap[put.value] = i;

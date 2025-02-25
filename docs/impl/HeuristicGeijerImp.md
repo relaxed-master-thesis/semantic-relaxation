@@ -1,0 +1,4 @@
+# [HeuristicGeijerImp](../../src/impl/HeuristicGeijer.cpp)
+The HeuristicGeijerImp was born as a result of [GeijerImp](GeijerImp.md) being very fast for low errors and very slow for high relaxation errors while [GeijerBatchImp](GeijerBatchImp.md) was very fast for high errors and much slower for low errors. The idea is to run the GeijerImp on the beginning of the pops to find an estimnate of the mean rank error, and with this information pick if we want to run GeijerImp or GeijerBatch on the entire input. 
+
+At the time of writing we dont know the best cutoff value to select Geijer or Batch, we also dont know how big the set should be that we run the test on. This will be investigated furter in the future. 

@@ -1,0 +1,2 @@
+# [BatchPopImp](../../src/impl/BatchPopImp.cpp)
+BatchPopImp build on the replay implementation but makes one improvement. It batches all directly following pops together. So instead of removing an element for each pop, it collects all pops that are not separated by a push. Once we have that set of pops in the order that they were popped we can walk throug the queue, and when we find one of the elements to pop, we can calculate the error by knowing its position in the queue $p$ how many elements were popped in front of us before us $f$ then the rank error $r = p - f$ 
