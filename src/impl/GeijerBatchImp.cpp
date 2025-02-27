@@ -5,20 +5,10 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <set>
 #include <unordered_map>
 
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-
-using namespace __gnu_pbds;
-
-// Ordered set that supports order statistics
-template <typename T>
-using ordered_set = tree<T, null_type, std::less<T>, rb_tree_tag,
-						 tree_order_statistics_node_update>;
-
 namespace bench {
-
 AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 
 	if (get_stamps_size == 0)
@@ -56,12 +46,18 @@ AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 
 		int dels = pops.size();
 		// map of all pops and where they were found
-		ordered_set<int> found_pops;
+		// ordered_set<int> found_pops;
+		std::set<uint64_t> found_pops;
+
+		auto order_of_key = [&found_pops](uint64_t key) {
+			auto it = found_pops.lower_bound(key);
+			return std::distance(found_pops.cbegin(), it);
+		};
 
 		uint64_t found = 0;
 		while (found < dels && pops.contains(head->value)) {
 			uint64_t pop_order = pops.at(head->value);
-			uint64_t fi = found_pops.order_of_key(pop_order);
+			uint64_t fi = order_of_key(pop_order);
 			found_pops.insert(pop_order);
 			uint64_t rank_error = found - fi;
 			rank_sum += rank_error;
@@ -81,7 +77,7 @@ AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 				uint64_t rank = idx;
 				// fi is the ammount of pops that are in fron of me in the q and
 				// in time.
-				uint64_t fi = found_pops.order_of_key(pop_order);
+				uint64_t fi = order_of_key(pop_order);
 				found_pops.insert(pop_order);
 				assert(rank >= fi);
 				uint64_t rank_error = rank - fi;
