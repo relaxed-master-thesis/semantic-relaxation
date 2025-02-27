@@ -88,8 +88,7 @@ int index = 0;
 int found = 0;
 //search untill we find all added pops
 while(found < added_pops){
-    if(pops.contains(all_pops[index]))
-    {
+    if(pops.contains(all_pops[index])){
         int pop_order = pops.at(all_pops[index])
         int f = found_pops.order_of_key(pop_order);
         int r = index - f;
@@ -103,8 +102,6 @@ while(found < added_pops){
     }
     index++;
 }
-
-
 ```
 
 
