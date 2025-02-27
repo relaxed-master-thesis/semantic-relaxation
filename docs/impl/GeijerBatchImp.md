@@ -1,5 +1,5 @@
 # [GeijerBatchImp](../../src/impl/GeijerBatch.cpp)
-GeijerBatchImp builds on [GeijerImp](GeijerImp.md) but makes an effort to reduce the amount of list traversals. Starting with an example to explain the idea, lets say we have pushed 1, 2, 3, 4, 5, 6 and 7 to the queue, making it look like this: 
+GeijerBatchImp builds on [GeijerImp](GeijerImp.md) but makes an effort to reduce the amount of list traversals. Starting with an example to explain the idea, lets say we have pushed 1, 2, 3, 4, 5, 6 and 7 to the all_pops, making it look like this: 
 ```cpp
 {1, 2, 3, 4, 5, 6, 7}
 ```
@@ -19,9 +19,13 @@ The example above can be split up into three steps, one for each pop.
 
 $i$ is the index of the found element.
 
-$f$ is the number of pops found that will happen before the current element.
+$f$ is the number of pops found that with a lower pop-order value than the current element.
 
-$r$ is the rank error.
+$r$ is the rank error and can be calculated by taking $i - f$.
+
+`found_pops` is our `orderd_set` containing the `pop-orders` of untill now found elements in the batch.
+
+
 #### Before list traversal
 ```cpp
 pops = {{2, 0}, {7, 1}, {5, 2}}
@@ -60,4 +64,47 @@ Giving us the rank errors:
 5: 3
 ```
 
-Finding the element in the unordered map can be done in $O(1)$ time. Finding the ammount of pops before an element in the ordered set can be done in $O(log(b))$ where $b$ is the batch size. This gives us a total time complexity of $O(n*log(b))$
+Finding the element in the unordered map can be done in $O(1)$ time. Finding the amount of pops before an element in the ordered set can be done in $O(log(b))$ where $b$ is the batch size. This gives us a total time complexity of $O(n*log(b))$
+
+### Simple pseudo code for one batch
+`all_pops` is a list of all pops, in the order they happened in the monitored execution. 
+
+`batch_size` is the size of one batch.
+
+`all_gets` is a list of all gets, in the order they happened in the monitored execution.
+
+`get_index` is the index used to traverse `all_gets` in order.
+```cpp
+//first we create the batch
+std::unordered_map<uint64_t, uint64_t> pops;
+int added_pops = 0;
+
+while(added_pops < batch_size){
+    //map next get value to the pop-order
+    pops.insert(all_gets[get_index], added_pops++);
+}
+ordered_set<int> found_pops;
+int index = 0;
+int found = 0;
+//search untill we find all added pops
+while(found < added_pops){
+    if(pops.contains(all_pops[index]))
+    {
+        int pop_order = pops.at(all_pops[index])
+        int f = found_pops.order_of_key(pop_order);
+        int r = index - f;
+        //use r to update rank_sum and rank_max
+        rank_sum += r;
+        rank_max = max(r, rank_max)
+        //update found_pops and 
+        found_pops.insert(pop_order);
+        all_pops.remove_index(index);
+        found++;
+    }
+    index++;
+}
+
+
+```
+
+
