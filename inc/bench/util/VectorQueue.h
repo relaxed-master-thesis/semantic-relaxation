@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <set>
 #include <vector>
+#include <unordered_map>
 
 namespace bench {
 template <class T> class VectorQueue {

@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <set>
 
 namespace bench {
 std::pair<uint64_t, uint64_t>
