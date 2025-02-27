@@ -119,10 +119,10 @@ template <class T> class Benchmark {
 			std::free(demangledName);
 		}
 		return tname;
+#elif defined(_MSC_VER)
+		return typeid(T).name();
 #else
-		// idk how to do this on compilers other than gcc
-		// this works for MSVC also :)
-		return typeid(T).name(); 
+		return typeid(T).name();
 #endif
 	}
 
