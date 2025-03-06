@@ -2,12 +2,12 @@
 #include "bench/Benchmark.h"
 
 #include <cassert>
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
+#include <limits>
 #include <memory>
 #include <omp.h>
+#include <queue>
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>
@@ -19,9 +19,47 @@ AbstractExecutor::Measurement AITImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
 
-#pragma omp parallel for
-	for (auto i : segments) {
-		uint64_t rank = ait.getRank(ait.root, i, 0);
+	auto getRank = [this](const Interval &intv) -> uint64_t {
+		uint64_t errs = 0;
+
+		std::queue<size_t> toVisit{};
+		toVisit.push(0);
+		while (!toVisit.empty()) {
+			size_t idx = toVisit.front();
+			toVisit.pop();
+
+			if (idx >= intervals.size() || idx < 0)
+				continue;
+
+			const Interval &curr = ivt.getNode(idx);
+
+			if (curr.start < intv.start && intv.end < curr.end) {
+				errs += 1;
+			}
+
+			if (ivt.hasLeftChild(idx)) {
+				size_t lc = ivt.leftChild(idx);
+				const auto &currc = ivt.getNode(lc);
+				if (currc.max >= intv.end) {
+					toVisit.push(lc);
+				}
+			}
+
+			if (ivt.hasRightChild(idx)) {
+				size_t rc = ivt.rightChild(idx);
+				const auto &currc = ivt.getNode(rc);
+				if (currc.min <= intv.start) {
+					toVisit.push(rc);
+				}
+			}
+		}
+
+		return errs;
+	};
+
+#pragma omp parallel for reduction(+ : rank_sum) reduction(max: rank_max)
+	for (auto &intv : intervals) {
+		uint64_t rank = getRank(intv);
 		if (rank > rank_max)
 			rank_max = rank;
 		rank_sum += rank;
@@ -58,20 +96,42 @@ void AITImp::fix_dup_timestamps() {
 }
 
 void AITImp::prepare(const InputData &data) {
-	get_stamps_size = data.getGets()->size();
-	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
-	put_stamps_size = data.getPuts()->size();
 	put_stamps = std::make_shared<std::vector<Operation>>(*data.getPuts());
-	fix_dup_timestamps();
-	for (auto put : *put_stamps) {
-		put_map[put.value] = put.time;
+	get_stamps = std::make_shared<std::vector<Operation>>(*data.getGets());
+	put_stamps_size = put_stamps->size();
+	get_stamps_size = get_stamps->size();
+	intervals.resize(data.getPuts()->size(), Interval{0, 0, 0, 0});
+	for (size_t i = 0; i < put_stamps_size; ++i) {
+		auto &intv = intervals.at(i);
+		auto &put = put_stamps->at(i);
+		intv.start = i + 1;
+		intv.end = std::numeric_limits<uint64_t>::max();
+		intv.max = std::numeric_limits<uint64_t>::max();
+		intv.min = i + 1;
+		put_map[put.value] = i;
 	}
-	for (auto get : *get_stamps) {
-		uint64_t put_time = put_map[get.value];
-		segments.emplace_back(std::make_shared<Interval>(put_time, get.time));
+	uint64_t time = put_stamps_size + 1;
+	for (size_t i = 0; i < get_stamps_size; ++i) {
+		auto &get = get_stamps->at(i);
+		auto &intv = intervals.at(put_map[get.value]);
+		intv.end = time + i;
+		intv.max = time + i;
 	}
-	for (auto i : segments) {
-		ait.root = ait.insertNode(ait.root, i);
+	ivt.cbuild(intervals);
+
+	// fix max vals
+	/*
+		0
+		1 2
+		3 4 5 6
+		...
+	*/
+	auto &tree = ivt.getArr();
+	for (size_t i = tree.size() - 1; i > 0; --i) {
+		auto &intv = tree.at(i);
+		auto &parent = tree.at(ivt.getParent(i));
+		parent.max = std::max(parent.max, intv.max);
+		parent.min = std::min(parent.min, intv.min);
 	}
 }
 
