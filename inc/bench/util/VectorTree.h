@@ -17,8 +17,7 @@ template <typename T> class VectorTree {
 	VectorTree() = default;
 	~VectorTree() = default;
 
-	// This will move elements into the tree and render the nodes vector in an
-	// undefined state
+	// Uses move semantics which leaves `nodes` in an undefined state
 	void build(std::vector<T> &nodes) {
 		size_t n = nodes.size();
 		size = n;
@@ -40,6 +39,34 @@ template <typename T> class VectorTree {
 						 std::min(num_elements_last_level,
 								  static_cast<size_t>(std::pow(2, h - 1)));
 			arr[r.index] = std::move(nodes[mid]);
+			q.push({r.start, mid - 1, 2 * r.index + 1});
+			q.push({mid + 1, r.end, 2 * r.index + 2});
+			q.pop();
+		}
+	}
+
+	// Copies every element which leaves `nodes` in the same state
+	void cbuild(const std::vector<T> &nodes) {
+		size_t n = nodes.size();
+		size = n;
+		arr.clear();
+		arr.resize(n, T{});
+		std::queue<Reorder> q{};
+		q.push({0, n - 1, 0});
+		while (!q.empty()) {
+			Reorder &r = q.front();
+			if (r.start > r.end || r.index >= n) {
+				q.pop();
+				continue;
+			}
+			size_t num_elements = r.end - r.start + 1;
+			size_t h = static_cast<size_t>(std::floor(std::log2(num_elements)));
+			size_t num_elements_last_level = static_cast<size_t>(
+				std::min(std::pow(2, h), num_elements - std::pow(2, h) + 1));
+			size_t mid = r.start + static_cast<size_t>(std::pow(2, h - 1) - 1) +
+						 std::min(num_elements_last_level,
+								  static_cast<size_t>(std::pow(2, h - 1)));
+			arr[r.index] = nodes[mid];
 			q.push({r.start, mid - 1, 2 * r.index + 1});
 			q.push({mid + 1, r.end, 2 * r.index + 2});
 			q.pop();
