@@ -27,7 +27,8 @@ class AITImp : public AbstractExecutor {
 		Interval(uint64_t start, uint64_t end, uint64_t max, uint64_t min)
 			: start(start), end(end), max(max), min(min) {}
 		Interval(const Interval &other)
-			: start(other.start), end(other.end), max(other.max), min(other.min) {}
+			: start(other.start), end(other.end), max(other.max),
+			  min(other.min) {}
 
 		uint64_t start{0}, end{0}, max{0}, min{0};
 
@@ -65,5 +66,8 @@ class AITImp : public AbstractExecutor {
 	VectorTree<Interval> ivt;
 
 	void fix_dup_timestamps();
+	uint64_t getRank(const Interval &intv);
+	void calcErrThread(size_t start, size_t end,
+					   std::pair<uint64_t, uint64_t> *result);
 };
 } // namespace bench

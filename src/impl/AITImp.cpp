@@ -9,60 +9,99 @@
 #include <omp.h>
 #include <queue>
 #include <sys/types.h>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 namespace bench {
+
+uint64_t AITImp::getRank(const Interval &intv) {
+	uint64_t errs = 0;
+
+	std::queue<size_t> toVisit{};
+	toVisit.push(0);
+	while (!toVisit.empty()) {
+		size_t idx = toVisit.front();
+		toVisit.pop();
+
+		if (idx >= intervals.size() || idx < 0)
+			continue;
+
+		const Interval &curr = ivt.getNode(idx);
+
+		if (curr.start < intv.start && intv.end < curr.end) {
+			errs += 1;
+		}
+
+		if (ivt.hasLeftChild(idx)) {
+			size_t lc = ivt.leftChild(idx);
+			const auto &currc = ivt.getNode(lc);
+			if (currc.max >= intv.end) {
+				toVisit.push(lc);
+			}
+		}
+
+		if (ivt.hasRightChild(idx)) {
+			size_t rc = ivt.rightChild(idx);
+			const auto &currc = ivt.getNode(rc);
+			if (currc.min <= intv.start) {
+				toVisit.push(rc);
+			}
+		}
+	}
+
+	return errs;
+}
+
+void AITImp::calcErrThread(size_t start, size_t end,
+						   std::pair<uint64_t, uint64_t> *result) {
+	uint64_t rank_sum = 0;
+	uint64_t rank_max = 0;
+
+	for (size_t i = start; i < end; ++i) {
+		const Interval &intv = ivt.getNode(i);
+		uint64_t rank = getRank(intv);
+		if (rank > rank_max)
+			rank_max = rank;
+		rank_sum += rank;
+	}
+
+	result->first = 0;
+	result->second = 0;
+}
 
 AbstractExecutor::Measurement AITImp::calcMaxMeanError() {
 
 	uint64_t rank_sum = 0;
 	uint64_t rank_max = 0;
 
-	auto getRank = [this](const Interval &intv) -> uint64_t {
-		uint64_t errs = 0;
+	const size_t num_threads = 16;
+	const size_t elems_per_thread = get_stamps_size / num_threads;
 
-		std::queue<size_t> toVisit{};
-		toVisit.push(0);
-		while (!toVisit.empty()) {
-			size_t idx = toVisit.front();
-			toVisit.pop();
-
-			if (idx >= intervals.size() || idx < 0)
-				continue;
-
-			const Interval &curr = ivt.getNode(idx);
-
-			if (curr.start < intv.start && intv.end < curr.end) {
-				errs += 1;
-			}
-
-			if (ivt.hasLeftChild(idx)) {
-				size_t lc = ivt.leftChild(idx);
-				const auto &currc = ivt.getNode(lc);
-				if (currc.max >= intv.end) {
-					toVisit.push(lc);
-				}
-			}
-
-			if (ivt.hasRightChild(idx)) {
-				size_t rc = ivt.rightChild(idx);
-				const auto &currc = ivt.getNode(rc);
-				if (currc.min <= intv.start) {
-					toVisit.push(rc);
-				}
-			}
-		}
-
-		return errs;
+	auto func = [this](size_t start, size_t end,
+					   std::pair<uint64_t, uint64_t> *result) -> void {
+		calcErrThread(start, end, result);
 	};
 
-#pragma omp parallel for reduction(+ : rank_sum) reduction(max: rank_max)
-	for (auto &intv : intervals) {
-		uint64_t rank = getRank(intv);
-		if (rank > rank_max)
-			rank_max = rank;
-		rank_sum += rank;
+	std::vector<std::thread> threads{};
+	std::vector<std::pair<uint64_t, uint64_t>> results(num_threads, {0, 0});
+	for (size_t i = 0; i < num_threads; ++i) {
+		size_t thread_start = i * elems_per_thread;
+		size_t thread_end =
+			std::min((i + 1) * elems_per_thread, get_stamps_size);
+		std::thread thread(func, thread_start, thread_end, &results[i]);
+		threads.push_back(std::move(thread));
+	}
+
+	for (size_t i = 0; i < num_threads; ++i) {
+		threads.at(i).join();
+	}
+
+	for (auto [max, sum] : results) {
+		rank_sum += sum;
+		if (max > rank_max) {
+			rank_max = max;
+		}
 	}
 
 	const double rank_mean = (double)rank_sum / get_stamps_size;
