@@ -1,20 +1,11 @@
 #include "bench/impl/GeijerBatchImp.h"
 #include "bench/Benchmark.h"
-#include "bench/util/VectorQueue.h"
+#include "bench/util/GNUOrderedSet.h"
 
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 #include <unordered_map>
-
-using namespace __gnu_pbds;
-
-// Ordered set that supports order statistics
-template <typename T>
-using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
-						 tree_order_statistics_node_update>;
 
 namespace bench {
 AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
