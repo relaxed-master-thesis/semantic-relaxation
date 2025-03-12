@@ -2,9 +2,18 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <set>
 #include <vector>
 #include <unordered_map>
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace __gnu_pbds;
+
+// Ordered set that supports order statistics
+template <typename T>
+using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
+						 tree_order_statistics_node_update>;
 
 namespace bench {
 template <class T> class VectorQueue {
@@ -30,7 +39,7 @@ template <class T> class VectorQueue {
 	void batch_deq(std::unordered_map<T, uint64_t> m,
 				   std::vector<uint64_t> *ranks) {
 		// map of all pops and where they were found
-		std::set<int> found_pops;
+		ordered_set<int> found_pops;
 
 		int dels = m.size();
 		std::set<int> erase_idxs;
@@ -46,8 +55,9 @@ template <class T> class VectorQueue {
 				// fi is the ammount of pops that are in fron of me in the q and
 				// in time.
 				// uint64_t fi = found_pops.order_of_key(pop_order);
-				auto it = found_pops.lower_bound(pop_order);
-				uint64_t fi = std::distance(found_pops.cbegin(), it);
+				// auto it = found_pops.lower_bound(pop_order);
+				// uint64_t fi = std::distance(found_pops.cbegin(), it);
+				uint64_t fi = found_pops.order_of_key(pop_order);
 				found_pops.insert(pop_order);
 
 				// the ranks is the found rank minus the ammount of pops in

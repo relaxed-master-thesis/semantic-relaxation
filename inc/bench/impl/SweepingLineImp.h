@@ -4,9 +4,21 @@
 #include "bench/Operation.h"
 
 #include <cstdint>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 #include <memory.h>
-#include <set>
 #include <vector>
+
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace __gnu_pbds;
+
+// Ordered set that supports order statistics
+template <typename T>
+using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
+						 tree_order_statistics_node_update>;
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
@@ -33,7 +45,8 @@ class SweepingLineImp : public AbstractExecutor {
 	std::vector<Event> events;
 	std::shared_ptr<std::vector<Operation>> get_stamps;
 	std::shared_ptr<std::vector<Operation>> put_stamps;
-	std::set<uint64_t> end_tree;
+	// std::set<uint64_t> end_tree;
+	ordered_set<uint64_t> end_tree;
 	uint64_t get_stamps_size;
 };
 } // namespace bench
