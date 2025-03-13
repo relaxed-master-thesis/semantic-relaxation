@@ -47,6 +47,7 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 	int64_t constError = 0;
 	int64_t countedElems = 0;
 	int64_t sum = 0;
+	int64_t max = 0;
 
 	for (int64_t i = 0; i < n; ++i) {
 		int64_t endVal = intervals[i].end;
@@ -58,13 +59,13 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 		++countedElems;
 		int64_t comprEnd = endIndices[endVal];
 
-		sum += BIT.query(n) - BIT.query(comprEnd) + constError;
+		int64_t res = BIT.query(n) - BIT.query(comprEnd) + constError;
+		sum += res;
+		max = max < res ? res : max;
 		BIT.update(comprEnd, 1);
 	}
 
-	uint64_t max =
-		static_cast<uint64_t>(*std::max_element(result.begin(), result.end()));
-	return {max, (double)sum / countedElems};
+	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
 void FenwickImp::prepare(const InputData &data) {
