@@ -12,4 +12,7 @@ target_sources(SemanticRelaxation PRIVATE
     ParallelBatchImp.cpp
     SweepingLineImp.cpp
     FenwickImp.cpp
+    FAAImp.cpp
+    FenwickAImp.cpp
+    SweepingLineAImp.cpp
 )

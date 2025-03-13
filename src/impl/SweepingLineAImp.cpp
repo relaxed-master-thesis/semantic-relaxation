@@ -1,4 +1,4 @@
-#include "bench/impl/SweepingLineImp.h"
+#include "bench/impl/SweepingLineAImp.h"
 #include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
@@ -10,9 +10,8 @@
 
 namespace bench {
 
-AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
+AbstractExecutor::Measurement SweepingLineAImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
-	// int pops_to_calc = events.size() *0.01;
 
 	for (auto &event : events) {
 		if (event.end_time == ~0) {
@@ -29,29 +28,35 @@ AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
 		} else {
 			end_tree.erase(event.end_time);
 		}
-		// if(counted_rank >= pops_to_calc) {
-		// 	break;
-		// }
 	}
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
-void SweepingLineImp::prepare(const InputData &data) {
+void SweepingLineAImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
 	std::unordered_set<uint64_t> getSet{};
+	// get n% of gets
+	int gets_to_count = gets->size() * counting_share;
+	int counted_gets = 0;
 	for (const Operation &get : *gets) {
 		getMap[get.value] = get.time;
 		getSet.insert(get.value);
+		counted_gets++;
+		if(counted_gets >= gets_to_count) {
+			break;
+		}
 	}
 	auto puts = data.getPuts();
+	int counted_puts = 0;
 	for (const Operation &put : *puts) {
 		uint64_t end_time = 0;
 		if (getSet.find(put.value) == getSet.end()) {
 			end_time = ~0;
 		} else {
 			end_time = getMap[put.value];
+			counted_puts++;
 		}
 		Event start_event;
 		start_event.type = EventType::START;
@@ -67,6 +72,9 @@ void SweepingLineImp::prepare(const InputData &data) {
 		end_event.start_time = put.time;
 		end_event.end_time = end_time;
 		events.push_back(end_event);
+		if(counted_puts >= gets_to_count) {
+			break;
+		}
 	}
 	// sort events by time, if equals, end comes first
 	std::sort(events.begin(), events.end(),
@@ -75,7 +83,7 @@ void SweepingLineImp::prepare(const InputData &data) {
 			  });
 }
 
-AbstractExecutor::Measurement SweepingLineImp::execute() {
+AbstractExecutor::Measurement SweepingLineAImp::execute() {
 	return calcMaxMeanError();
 }
 
