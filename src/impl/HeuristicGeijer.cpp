@@ -8,16 +8,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-
-using namespace __gnu_pbds;
-
-// Ordered set that supports order statistics
-template <typename T>
-using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
-						 tree_order_statistics_node_update>;
+#include "bench/util/GNUOrderedSet.h"
 
 namespace bench {
 
