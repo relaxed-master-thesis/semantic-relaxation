@@ -2,6 +2,7 @@
 #include "bench/Benchmark.h"
 #include "bench/Interval.h"
 
+#include "bench/util/GNUOrderedSet.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -14,16 +15,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-
-using namespace __gnu_pbds;
-
-// Ordered set that supports order statistics
-template <typename T>
-using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
-						 tree_order_statistics_node_update>;
-
 namespace bench {
 std::pair<uint64_t, uint64_t>
 ParallelBatchImp::calcMaxSumErrorGeijer(SubProblem problem, size_t tid) {
@@ -110,7 +101,6 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 		int dels = pops.size();
 		// map of all pops and where they were found
 		ordered_set<int> found_pops;
-		
 
 		uint64_t found = 0;
 		while (found < dels && pops.contains(head->value)) {
