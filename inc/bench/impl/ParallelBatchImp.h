@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/Interval.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -29,6 +28,16 @@ class ParallelBatchImp : public AbstractExecutor {
 	struct Item {
 		uint64_t value;
 		Item *next;
+	};
+
+	struct Interval {
+		Interval() = default;
+		Interval(uint64_t start, uint64_t end) : start(start), end(end) {}
+		~Interval() = default;
+
+		uint64_t start;
+		uint64_t end;
+		uint64_t value;
 	};
 
 	struct SubProblem {

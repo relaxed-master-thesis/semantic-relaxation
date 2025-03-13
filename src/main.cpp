@@ -1,5 +1,4 @@
 #include "bench/Benchmark.h"
-#include "bench/Interval.h"
 #include "bench/impl/AITImp.h"
 #include "bench/impl/BatchPopImp.h"
 #include "bench/impl/FenwickImp.h"
@@ -130,7 +129,7 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "q-k-1ms-8t";
 	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
 	// std::string folder_name = "2dd-queue-opt-100ms";
-	std::string folder_name = "2dd-queue-opt-500ms";
+	std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
 	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
 
 	data = bench::TimestampParser().parse(
@@ -138,10 +137,11 @@ int main(int argc, char *argv[]) {
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
 	//ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
-	// run_bench(bench::Benchmark<bench::GeijerImp>{});
+	run_bench(bench::Benchmark<bench::GeijerImp>{});
+	// run_bench(bench::Benchmark<bench::AITImp>{});
 	// run_bench(bench::Benchmark<bench::GeijerBatchImp>{});
 	// run_bench(bench::Benchmark<bench::ParallelGeijerImp>{});
-	run_bench(bench::Benchmark<bench::ParallelBatchImp>{12, false});
+	run_bench(bench::Benchmark<bench::ParallelBatchImp>{16, false});
 	// run_bench(bench::Benchmark<bench::ReplayImp>{});
 	// run_bench(bench::Benchmark<bench::HeuristicGeijer>{});
 	// run_bench(bench::Benchmark<bench::SweepingLineImp>{});

@@ -14,7 +14,6 @@ add_subdirectory(
 
 target_sources(SemanticRelaxation PRIVATE
     main.cpp
-    Interval.cpp
 )
 
 target_include_directories(SemanticRelaxation PUBLIC "../inc")

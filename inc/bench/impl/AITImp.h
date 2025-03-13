@@ -2,9 +2,8 @@
 
 #include "bench/Benchmark.h"
 // #include "bench/Interval.h"
-#include "bench/Interval.h"
 #include "bench/Operation.h"
-#include "bench/util/AugmentedIntervalTree.h"
+// #include "bench/util/AugmentedIntervalTree.h"
 #include "bench/util/VectorTree.h"
 
 #include <cstdint>

@@ -1,6 +1,6 @@
 #include "bench/impl/IVTImp.h"
 #include "bench/Benchmark.h"
-#include "bench/Interval.h"
+// #include "bench/Interval.h"
 #include "bench/Operation.h"
 
 #include <cstddef>
@@ -55,7 +55,7 @@ void IVTImp::printTree() {
 			  << ", max=" << e.max << "}]\n";
 }
 
-uint64_t IVTImp::inheritRank(Entry &entry) {
+uint64_t IVTImp::inheritRank(Interval &entry) {
 	size_t i = 0;
 
 	auto &iintv = tree.getNode(i);
@@ -70,7 +70,7 @@ uint64_t IVTImp::inheritRank(Entry &entry) {
 	toVisit.push(1); // start evaluating the left half of the tree
 	while (!toVisit.empty()) {
 		size_t i = toVisit.top();
-		Entry &data = tree.getNode(i);
+		Interval &data = tree.getNode(i);
 		if (data.start < entry.start && entry.end < data.end) {
 			if (!data.evaluated) {
 				std::cout << "Evaluation order error at " << i << "!\n";
@@ -99,7 +99,7 @@ uint64_t IVTImp::inheritRank(Entry &entry) {
 	return 0;
 }
 
-uint64_t IVTImp::evalSubtree(size_t root, Entry &entry) {
+uint64_t IVTImp::evalSubtree(size_t root, Interval &entry) {
 	std::queue<size_t> toVisit{};
 	uint64_t rank = 0;
 
@@ -127,7 +127,7 @@ uint64_t IVTImp::evalSubtree(size_t root, Entry &entry) {
 	return rank;
 }
 
-uint64_t IVTImp::getRank2(size_t root, Entry &entry) {
+uint64_t IVTImp::getRank2(size_t root, Interval &entry) {
 	std::queue<size_t> toVisit{};
 
 	// Evaluate left subtree

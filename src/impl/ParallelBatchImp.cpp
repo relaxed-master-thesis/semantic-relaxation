@@ -1,6 +1,5 @@
 #include "bench/impl/ParallelBatchImp.h"
 #include "bench/Benchmark.h"
-#include "bench/Interval.h"
 
 #include "bench/util/GNUOrderedSet.h"
 #include <algorithm>

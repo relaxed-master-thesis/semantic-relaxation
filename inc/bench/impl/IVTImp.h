@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bench/Benchmark.h"
-#include "bench/Interval.h"
 #include "bench/util/VectorTree.h"
 
 #include <cmath>
@@ -18,20 +17,21 @@ class IVTImp : public AbstractExecutor {
 	AbstractExecutor::Measurement execute() override;
 
   private:
-	class Entry : public Interval {
+	struct Interval {
 	  public:
-		Entry() = default;
-		Entry(uint64_t start, uint64_t end) : Interval(start, end) {}
-		~Entry() = default;
+		Interval() = default;
+		Interval(uint64_t start, uint64_t end)
+			: start(start), end(end), min(start), max(end), rank(0) {}
+		~Interval() = default;
 
-		uint64_t rank;
+		uint64_t start, end, min, max, rank;
 		bool evaluated;
 	};
 
-	uint64_t inheritRank(Entry &interval);
-	uint64_t evalSubtree(size_t root, Entry &interval);
+	uint64_t inheritRank(Interval &interval);
+	uint64_t evalSubtree(size_t root, Interval &interval);
 	uint64_t getRank(size_t root, Interval &interval);
-	uint64_t getRank2(size_t root, Entry &interval);
+	uint64_t getRank2(size_t root, Interval &interval);
 	void updateMinMax();
 
 	std::shared_ptr<std::vector<Operation>> put_stamps;
@@ -40,11 +40,11 @@ class IVTImp : public AbstractExecutor {
 	size_t get_stamps_size;
 
 	std::unordered_map<uint64_t, uint64_t> put_map;
-	std::vector<Entry> segments;
+	std::vector<Interval> segments;
 
 	void printTreePretty();
 	void printTree();
 	void fix_dup_timestamps();
-	VectorTree<Entry> tree;
+	VectorTree<Interval> tree;
 };
 } // namespace bench
