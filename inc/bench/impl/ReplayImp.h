@@ -3,7 +3,7 @@
 #include "bench/Benchmark.h"
 
 namespace bench {
-class ReplayImp : public AbstractExecutor {
+class ReplayImp : public AccurateExecutor {
   public:
 	ReplayImp() = default;
 	~ReplayImp(){};

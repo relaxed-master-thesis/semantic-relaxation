@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace bench {
-class AITImp : public AbstractExecutor {
+class AITImp : public AccurateExecutor {
   public:
 	AITImp() = default;
 	~AITImp() = default;

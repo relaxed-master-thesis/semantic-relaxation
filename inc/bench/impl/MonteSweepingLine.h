@@ -36,7 +36,7 @@ inline unsigned long xorshf96(void) { // period 2^96-1
 
 	return z;
 }
-class MonteSweepingLine : public AbstractExecutor {
+class MonteSweepingLine : public ApproximateExecutor {
   public:
 	MonteSweepingLine() = default;
 	MonteSweepingLine(float counting_share) : counting_share(counting_share) {};

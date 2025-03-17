@@ -3,7 +3,7 @@
 #include "bench/Benchmark.h"
 
 namespace bench {
-class BatchPopImp : public AbstractExecutor {
+class BatchPopImp : public AccurateExecutor {
   public:
 	BatchPopImp() = default;
 	~BatchPopImp(){};

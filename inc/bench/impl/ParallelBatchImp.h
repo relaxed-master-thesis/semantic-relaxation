@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace bench {
-class ParallelBatchImp : public AbstractExecutor {
+class ParallelBatchImp : public AccurateExecutor {
   public:
 	ParallelBatchImp() = default;
 	ParallelBatchImp(uint64_t numThreads, bool useParSplit)

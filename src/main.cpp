@@ -2,8 +2,8 @@
 #include "bench/impl/AITImp.h"
 #include "bench/impl/BatchPopImp.h"
 #include "bench/impl/FAAImp.h"
-#include "bench/impl/FenwickImp.h"
 #include "bench/impl/FenwickAImp.h"
+#include "bench/impl/FenwickImp.h"
 #include "bench/impl/GeijerBatchImp.h"
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <endian.h>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -74,51 +75,21 @@ static void createAndSaveData(size_t size, const std::string &filename) {
 	get_file.close();
 }
 static int testWithCreatedData() {
-	std::string folder_name = "generated";
-	createAndSaveData(1000, "./data/timestamps/" + folder_name + "/combined");
+	// std::string folder_name = "generated";
+	// createAndSaveData(1000, "./data/timestamps/" + folder_name +
+	// "/combined");
 
-	bench::InputData data = bench::TimestampParser().parse(
-		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
+	// bench::InputData data = bench::TimestampParser().parse(
+	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
+	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
-	bench::Benchmark<bench::GeijerImp> geijerBench{};
-	auto geijer_res = geijerBench.run(data);
+	// bench::Benchmark<bench::GeijerImp> geijerBench{};
+	// auto geijer_res = geijerBench.run(data);
 
-	bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
-	auto sweeping_res = sweepingImp.run(data);
+	// bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
+	// auto sweeping_res = sweepingImp.run(data);
 
 	return 0;
-}
-
-void prettyPrint(std::string folderName, std::vector<std::string> names,
-				 std::vector<bench::Result> results) {
-	printf("\n----------------- Results for %s -------------\n",
-		   folderName.c_str());
-	for (size_t i = 0; i < names.size(); i++) {
-		printf("%-30s Mean: %.3Lf, Max: %lu \n", names[i].c_str(),
-			   results[i].measurement.mean, results[i].measurement.max);
-	}
-	printf("\n----------------- Times ------------\n");
-	for (size_t i = 0; i < names.size(); i++) {
-		printf("%-30s %-10ld speedup: %.2f (+prep: %.2f)\n", names[i].c_str(),
-			   results[i].executeTime,
-			   (double)results[0].executeTime / results[i].executeTime,
-			   (double)(results[0].executeTime + results[0].prepareTime) /
-				   (results[i].executeTime + results[i].prepareTime));
-	}
-	printf("-----------------------------------------------\n\n");
-}
-
-static std::vector<std::string> names{};
-static std::vector<bench::Result> results{};
-static bench::InputData data{};
-template <class T> static void run_bench(bench::Benchmark<T> bencher) {
-	names.push_back(bencher.getTemplateParamTypeName());
-	auto res = bencher.run(data);
-	if(!res.isValid){
-		printf("Bench %s failed with error %s\n", bencher.getTemplateParamTypeName().c_str(), res.errMsg.c_str());
-	}
-	results.push_back(res);
 }
 
 int main(int argc, char *argv[]) {
@@ -129,44 +100,34 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "generated";
 	// std::string folder_name = "FAKE";
-	// std::string folder_name = "2dd-queue-opt-30ms";
+	std::string folder_name = "2ddqopt-4t-i10k";
 	// std::string folder_name = "2dd-queue-opt-1s";
 	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
 	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
-	std::string folder_name = "2dd-queue-opt-100ms";
+	// std::string folder_name = "2dd-queue-opt-100ms";
 
 	// std::string folder_name = "2ddqopt-4t-i10k";
 	// std::string folder_name = "2ddqopt-8t-i1M-10ms";
 	// std::string folder_name = "2ddqopt-8t-i10k";
 	// std::string folder_name = "qkseg-4t-10ms";
 	// std::string folder_name = "dcbo-4t-i1M-1ms";
-	
+
 	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
 
-	data = bench::TimestampParser().parse(
+	bench::InputData data = bench::TimestampParser().parse(
 		"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
 		"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
-	// ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
-	run_bench(bench::Benchmark<bench::GeijerImp>{});
+	bench::Benchmark<bench::GeijerImp> myBench{};
 
-	// run_bench(bench::Benchmark<bench::FAAImp>{});
-	// run_bench(bench::Benchmark<bench::IMEImp>{});
-	// run_bench(bench::Benchmark<bench::AITImp>{});
-	// run_bench(bench::Benchmark<bench::GeijerBatchImp>{});
-	// run_bench(bench::Benchmark<bench::ParallelGeijerImp>{});
-	// run_bench(bench::Benchmark<bench::ParallelBatchImp>{16, false});
-	// run_bench(bench::Benchmark<bench::ReplayImp>{});
-	// run_bench(bench::Benchmark<bench::HeuristicGeijer>{});
-	// run_bench(bench::Benchmark<bench::FenwickImp>{});
-	// run_bench(bench::Benchmark<bench::SweepingLineImp>{});
-	run_bench(bench::Benchmark<bench::FenwickAImp>{0.1});
-	run_bench(bench::Benchmark<bench::SweepingLineAImp>{0.1});
-	run_bench(bench::Benchmark<bench::MonteSweepingLine>{.001});
-	// run_bench(bench::Benchmark<bench::IVTImp>{});
-	// run_bench(bench::Benchmark<bench::BatchPopImp>{});
+	myBench.addConfig<bench::FenwickImp>()
+		.addConfig<bench::SweepingLineImp>()
+		.addConfig<bench::ParallelBatchImp>(16, false)
+		.addConfig<bench::SweepingLineAImp>(0.1)
+		.addConfig<bench::MonteSweepingLine>(0.001)
+		.addConfig<bench::FenwickAImp>(0.1);
 
-	prettyPrint(folder_name, names, results);
-	return 0;
+	myBench.run(data);
+	myBench.printResults();
 }

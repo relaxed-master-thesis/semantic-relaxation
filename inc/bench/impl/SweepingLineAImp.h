@@ -22,7 +22,7 @@ using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineAImp : public AbstractExecutor {
+class SweepingLineAImp : public ApproximateExecutor {
   public:
 	SweepingLineAImp() = default;
 	SweepingLineAImp(float counting_share) : counting_share(counting_share) {};

@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace bench {
-class FenwickImp : public AbstractExecutor {
+class FenwickImp : public AccurateExecutor {
   public:
 	class FenwickTree {
 	  private:

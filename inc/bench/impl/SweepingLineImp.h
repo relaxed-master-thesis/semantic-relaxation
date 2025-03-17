@@ -22,7 +22,7 @@ using ordered_set = tree<T, null_type, std::greater<T>, rb_tree_tag,
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineImp : public AbstractExecutor {
+class SweepingLineImp : public AccurateExecutor {
   public:
 	SweepingLineImp() = default;
 	~SweepingLineImp() = default;
