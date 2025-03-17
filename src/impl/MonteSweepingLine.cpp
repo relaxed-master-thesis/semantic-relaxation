@@ -6,9 +6,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <sys/types.h>
-#include <thread>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace bench {
@@ -40,8 +38,6 @@ void MonteSweepingLine::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
-	// for (const Operation &get : *gets) {
-	size_t num_gets = gets->size() * counting_share * 100;
 	for (size_t i = 0; i < gets->size(); ++i) {
 		const Operation &get = gets->at(i);
 		getMap[get.value] = get.time;
@@ -53,29 +49,12 @@ void MonteSweepingLine::prepare(const InputData &data) {
 		size_t idx = xorshf96() % (puts->size() - i);
 		const Operation &put = puts->at(idx);
 		uint64_t end_time = 0;
-		if (getMap.find(put.value) == getMap.end()) {
-			end_time = ~0;
-		} else {
-			end_time = getMap[put.value];
-		}
-		Event start_event;
-		start_event.type = EventType::START;
-		start_event.time = put.time;
-		start_event.start_time = put.time;
-		start_event.end_time = end_time;
-		events.at(+i * 2) = start_event;
+		end_time = getMap.find(put.value) == getMap.end() ? ~0 : getMap[put.value];
 
-		Event end_event;
-
-		end_event.type = EventType::END;
-		end_event.time = end_time;
-		end_event.start_time = put.time;
-		end_event.end_time = end_time;
-		// events.push_back(end_event);
-		events.at(i * 2 + 1) = end_event;
+		events[i * 2] = {EventType::START, put.time, put.time, end_time};
+		events[i * 2 + 1] = {EventType::END, end_time, put.time, end_time};
 	}
 
-	// sort events by time, if equals, end comes first
 	std::sort(events.begin(), events.end(),
 			  [](const Event &left, const Event &right) -> bool {
 				  return left.time < right.time;

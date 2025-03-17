@@ -129,12 +129,12 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "generated";
 	// std::string folder_name = "FAKE";
-	std::string folder_name = "2dd-queue-opt-30ms";
+	// std::string folder_name = "2dd-queue-opt-30ms";
 	// std::string folder_name = "2dd-queue-opt-1s";
 	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
 	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
-	// std::string folder_name = "2dd-queue-opt-100ms";
+	std::string folder_name = "2dd-queue-opt-100ms";
 
 	// std::string folder_name = "2ddqopt-4t-i10k";
 	// std::string folder_name = "2ddqopt-8t-i1M-10ms";
@@ -150,6 +150,7 @@ int main(int argc, char *argv[]) {
 
 	// ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
 	run_bench(bench::Benchmark<bench::GeijerImp>{});
+
 	// run_bench(bench::Benchmark<bench::FAAImp>{});
 	// run_bench(bench::Benchmark<bench::IMEImp>{});
 	// run_bench(bench::Benchmark<bench::AITImp>{});
@@ -162,7 +163,7 @@ int main(int argc, char *argv[]) {
 	// run_bench(bench::Benchmark<bench::SweepingLineImp>{});
 	run_bench(bench::Benchmark<bench::FenwickAImp>{0.1});
 	run_bench(bench::Benchmark<bench::SweepingLineAImp>{0.1});
-	run_bench(bench::Benchmark<bench::MonteSweepingLine>{.01});
+	run_bench(bench::Benchmark<bench::MonteSweepingLine>{.001});
 	// run_bench(bench::Benchmark<bench::IVTImp>{});
 	// run_bench(bench::Benchmark<bench::BatchPopImp>{});
 
