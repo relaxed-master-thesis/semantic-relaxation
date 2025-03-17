@@ -12,10 +12,10 @@ def timelines(y, xstart, xstop, color='b'):
 
 
 #read start intervals from a file
-# folder = 'data/timestamps/2dd-queue-opt-1ms/'
+folder = 'data/timestamps/2dd-queue-opt-1ms/'
 # folder = 'data/timestamps/q-k-1ms-8t/'
 # folder = 'data/timestamps/2dd-q-opt-w50-l10-i1000-8t-1ms/'
-folder = 'data/timestamps/FAKE/'
+# folder = 'data/timestamps/FAKE/'
 
 starts = pd.read_csv(
     folder + 'combined_put_stamps.txt',
