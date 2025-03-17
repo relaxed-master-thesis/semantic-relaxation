@@ -14,5 +14,6 @@ target_sources(SemanticRelaxation PRIVATE
     FenwickImp.cpp
     FAAImp.cpp
     FenwickAImp.cpp
+    MonteSweepingLine.cpp
     SweepingLineAImp.cpp
 )

@@ -8,6 +8,7 @@
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/impl/IVTImp.h"
+#include "bench/impl/MonteSweepingLine.h"
 #include "bench/impl/ParallelBatchImp.h"
 #include "bench/impl/ParallelGeijerImp.h"
 #include "bench/impl/ReplayImp.h"
@@ -114,6 +115,9 @@ static bench::InputData data{};
 template <class T> static void run_bench(bench::Benchmark<T> bencher) {
 	names.push_back(bencher.getTemplateParamTypeName());
 	auto res = bencher.run(data);
+	if(!res.isValid){
+		printf("Bench %s failed with error %s\n", bencher.getTemplateParamTypeName().c_str(), res.errMsg.c_str());
+	}
 	results.push_back(res);
 }
 
@@ -125,7 +129,7 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "2dd-queue-opt-1ms";
 	// std::string folder_name = "generated";
 	// std::string folder_name = "FAKE";
-	// std::string folder_name = "2dd-queue-opt-30ms";
+	std::string folder_name = "2dd-queue-opt-30ms";
 	// std::string folder_name = "2dd-queue-opt-1s";
 	// std::string folder_name = "q-k-1s-8t";
 	// std::string folder_name = "q-k-1ms-8t";
@@ -133,7 +137,7 @@ int main(int argc, char *argv[]) {
 	// std::string folder_name = "2dd-queue-opt-100ms";
 
 	// std::string folder_name = "2ddqopt-4t-i10k";
-	std::string folder_name = "2ddqopt-8t-i1M-10ms";
+	// std::string folder_name = "2ddqopt-8t-i1M-10ms";
 	// std::string folder_name = "2ddqopt-8t-i10k";
 	// std::string folder_name = "qkseg-4t-10ms";
 	// std::string folder_name = "dcbo-4t-i1M-1ms";
@@ -146,21 +150,21 @@ int main(int argc, char *argv[]) {
 
 	// ALLWAYS RUN GEIJER FIRST, IT IS THE BASELINE
 	run_bench(bench::Benchmark<bench::GeijerImp>{});
-	run_bench(bench::Benchmark<bench::FAAImp>{});
-	run_bench(bench::Benchmark<bench::IMEImp>{});
+	// run_bench(bench::Benchmark<bench::FAAImp>{});
+	// run_bench(bench::Benchmark<bench::IMEImp>{});
 	// run_bench(bench::Benchmark<bench::AITImp>{});
-	run_bench(bench::Benchmark<bench::GeijerBatchImp>{});
+	// run_bench(bench::Benchmark<bench::GeijerBatchImp>{});
 	// run_bench(bench::Benchmark<bench::ParallelGeijerImp>{});
 	// run_bench(bench::Benchmark<bench::ParallelBatchImp>{16, false});
 	// run_bench(bench::Benchmark<bench::ReplayImp>{});
 	// run_bench(bench::Benchmark<bench::HeuristicGeijer>{});
+	// run_bench(bench::Benchmark<bench::FenwickImp>{});
 	// run_bench(bench::Benchmark<bench::SweepingLineImp>{});
-	// ye vill testa att de e rätt
 	run_bench(bench::Benchmark<bench::FenwickAImp>{0.1});
 	run_bench(bench::Benchmark<bench::SweepingLineAImp>{0.1});
+	run_bench(bench::Benchmark<bench::MonteSweepingLine>{.01});
 	// run_bench(bench::Benchmark<bench::IVTImp>{});
 	// run_bench(bench::Benchmark<bench::BatchPopImp>{});
-	// run_bench(bench::Benchmark<bench::FenwickImp>{});
 
 	prettyPrint(folder_name, names, results);
 	return 0;
