@@ -77,6 +77,7 @@ class AbstractExecutor {
 	virtual void prepare(const InputData &data) = 0;
 	virtual Measurement execute() = 0;
 	virtual Measurement calcMaxMeanError() = 0;
+	virtual void reset() = 0;
 };
 
 class AccurateExecutor : public AbstractExecutor {};

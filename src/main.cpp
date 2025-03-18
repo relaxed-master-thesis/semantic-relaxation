@@ -92,7 +92,42 @@ static int testWithCreatedData() {
 	return 0;
 }
 
+struct run_config {
+	run_config() : numAvailableThreads(0), inputDataDir("") {}
+	run_config(size_t threads, std::string dir) : numAvailableThreads(threads), inputDataDir(dir) {}
+
+	size_t numAvailableThreads{1}; // -n 16 e.g.
+	std::string inputDataDir{""};
+	size_t numRuns{1};
+	
+	bool isValid() {
+		return !inputDataDir.empty();
+	}
+};
+
+run_config parseArguments(int argc, char *argv[]) {
+	if (argc <= 1) {
+		return {};
+	}
+
+	// ./build/src/SemanticRelaxation -t 16 -i data/timestamps/2ddqopt-4t-i10k/ -r 3
+
+	std::cout << "argc: " << argc << "\nargv:\n";
+	for (int i = 0; i < argc; ++i) {
+		std::cout << "argv[" << i << "] = " << argv[i] << "\n"; 
+	}
+	return {1, ""};
+}
+
 int main(int argc, char *argv[]) {
+
+	auto cfg = parseArguments(argc, argv);
+
+	if (!cfg.isValid()) {
+		std::cout << "invalid arguments\n";
+		return -1;
+	}
+	return 0;
 
 	// return testWithCreatedData();
 
@@ -123,11 +158,10 @@ int main(int argc, char *argv[]) {
 
 	myBench.addConfig<bench::FenwickImp>()
 		.addConfig<bench::SweepingLineImp>()
-		.addConfig<bench::ParallelBatchImp>(16, false)
-		.addConfig<bench::SweepingLineAImp>(0.1)
-		.addConfig<bench::MonteSweepingLine>(0.001)
-		.addConfig<bench::FenwickAImp>(0.1);
-
-	myBench.run(data);
+		.addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
+		// .addConfig<bench::SweepingLineAImp>(0.1)
+		// .addConfig<bench::MonteSweepingLine>(0.001)
+		// .addConfig<bench::FenwickAImp>(0.1)
+		.run(data);
 	myBench.printResults();
 }
