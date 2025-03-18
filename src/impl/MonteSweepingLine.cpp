@@ -44,6 +44,11 @@ void MonteSweepingLine::prepare(const InputData &data) {
 	}
 	auto puts = data.getPuts();
 	size_t num_puts = puts->size() * counting_share;
+	if(num_puts < 1000){
+		num_puts = 1000;
+		counting_share = (float)1000 / puts->size();
+	}
+
 	events.resize(num_puts * 2);
 	for (size_t i = 0; i < num_puts; ++i) {
 		size_t idx = xorshf96() % (puts->size() - i);
@@ -70,6 +75,7 @@ void MonteSweepingLine::reset(){
 	get_stamps = nullptr;
 	get_stamps_size = 0;
 	put_stamps = nullptr;
+	reset_random();
 }
 
 } // namespace bench

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "bench/Benchmark.h"
+#include "bench/util/AbstractParser.h"
 
 #include <memory.h>
 #include <stdint.h>
 
 namespace bench {
-
 class TimestampParser : public AbstractParser {
   public:
 	TimestampParser() = default;

@@ -25,7 +25,8 @@ namespace bench {
 class SweepingLineAImp : public ApproximateExecutor {
   public:
 	SweepingLineAImp() = default;
-	SweepingLineAImp(float counting_share) : counting_share(counting_share) {};
+	SweepingLineAImp(float counting_share) : counting_share(counting_share), counting_type(CountingType::SHARE) {};
+	SweepingLineAImp(uint64_t counting_ammount) : counting_amount(counting_ammount), counting_type(CountingType::AMOUNT) {};
 	~SweepingLineAImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
@@ -51,5 +52,7 @@ class SweepingLineAImp : public ApproximateExecutor {
 	ordered_set<uint64_t> end_tree;
 	uint64_t get_stamps_size;
 	float counting_share{1.f};
+	CountingType counting_type;
+	uint64_t counting_amount{0};
 };
 } // namespace bench

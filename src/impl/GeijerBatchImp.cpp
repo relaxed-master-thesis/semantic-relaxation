@@ -24,8 +24,8 @@ AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 	// add heuristic?
 	uint64_t batch_size = 10000;
 	size_t total_batches_needed = get_stamps_size / batch_size;
-	printf("Batches of size %lu needed: %lu\n", batch_size,
-		   total_batches_needed);
+	// printf("Batches of size %lu needed: %lu\n", batch_size,
+	//    total_batches_needed);
 
 	item *head = put_stamps_head;
 	while (keep_running) {
@@ -109,7 +109,7 @@ void GeijerBatchImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement GeijerBatchImp::execute() {
 	return calcMaxMeanError();
 }
-void GeijerBatchImp::reset(){
+void GeijerBatchImp::reset() {
 	free(put_stamps_head);
 	put_stamps_head = NULL;
 	put_stamps_size = 0;

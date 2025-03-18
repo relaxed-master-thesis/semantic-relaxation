@@ -19,12 +19,12 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        "8 4"
-        "16 8"
-        "32 16"
-        "64 32"
-        "128 64"
-        "256 128"
+        # "8 4"
+        # "16 8"
+        # "32 16"
+        # "64 32"
+        # "128 64"
+        # "256 128"
         "512 256"
     )
 
@@ -37,7 +37,8 @@ Benchmark()
     cd ../semantic-relaxation-dcbo
 
     echo "Compiling 2Dd-queue_optimized..."
-    make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0
+    buildArg="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$buildArg" > /dev/null 2>&1
     
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
@@ -47,13 +48,27 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=1
+        testDurMs=30
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000
         startSize=10000
-        
+
         echo "Running: ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+
+        ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
+
+        dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
+
+        # mkdir ../semantic-relaxation/data/benchData
+        rm -rf $dataPath
+        mkdir $dataPath
+        mv results/timestamps/* $dataPath
+
+        if [ $? -eq 0 ]; then
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r 2" 
+            eval "$runArg" # >> outLog.txt
+        fi
     done
 
     echo "Leaving ../semantic-relaxation-dcbo"
@@ -62,7 +77,16 @@ Benchmark()
 
 Compile()
 {
-    cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./build
+    cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+    cmake --build ./build
+
+    if [ ! $? -eq 0 ]; then
+        echo "Build failed"
+        exit
+    fi
+
+    # solve directory problems SIGMA
+    # mv ./build/src/SemanticRelaxation .
 }
 
 Run()

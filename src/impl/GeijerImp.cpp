@@ -57,7 +57,7 @@ AbstractExecutor::Measurement GeijerImp::calcMaxMeanError() {
 	}
 	rank_error_variance /= get_stamps_size - 1;
 
-	printf("variance_relaxation , %.4Lf\n", rank_error_variance);
+	// printf("variance_relaxation , %.4Lf\n", rank_error_variance);
 
 	return {rank_error_max, rank_error_mean};
 }

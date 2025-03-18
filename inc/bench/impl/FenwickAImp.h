@@ -29,7 +29,8 @@ class FenwickAImp : public ApproximateExecutor {
 		int64_t value;
 	};
 
-	FenwickAImp(float sampling_share) : counting_share(sampling_share) {}
+	FenwickAImp(float counting_share) : counting_share(counting_share), counting_type(CountingType::SHARE) {};
+	FenwickAImp(uint64_t counting_ammount) : counting_amount(counting_ammount), counting_type(CountingType::AMOUNT) {};
 	~FenwickAImp() = default;
 
 	AbstractExecutor::Measurement calcMaxMeanError() override;
@@ -40,5 +41,7 @@ class FenwickAImp : public ApproximateExecutor {
   private:
 	std::vector<SInterval> intervals{};
     float counting_share;
+	CountingType counting_type;
+	uint64_t counting_amount{0};
 };
 } // namespace bench

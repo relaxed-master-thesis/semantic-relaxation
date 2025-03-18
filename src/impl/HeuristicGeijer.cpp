@@ -50,8 +50,8 @@ AbstractExecutor::Measurement HeuristicGeijer::calcMaxMeanErrorBatch() {
 	size_t batches_done = 0;
 
 	size_t total_batches_needed = get_stamps_size / batch_size;
-	printf("Batches of size %lu needed: %lu\n", batch_size,
-		   total_batches_needed);
+	// printf("Batches of size %lu needed: %lu\n", batch_size,
+	// 	   total_batches_needed);
 
 	item *head = put_stamps_head;
 	while (keep_running) {

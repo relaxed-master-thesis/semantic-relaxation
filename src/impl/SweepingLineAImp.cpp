@@ -39,6 +39,11 @@ void SweepingLineAImp::prepare(const InputData &data) {
 	std::unordered_set<uint64_t> getSet{};
 	// get n% of gets
 	int gets_to_count = gets->size() * counting_share;
+	if(counting_type == CountingType::AMOUNT){
+		gets_to_count = counting_amount;
+		gets_to_count = std::min(gets_to_count, (int)gets->size());
+	}
+
 	int counted_gets = 0;
 	for (const Operation &get : *gets) {
 		getMap[get.value] = get.time;

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "bench/Operation.h"
+#include "bench/util/QKParser.h"
 #include <cstdint>
 #include <format>
-#include <initializer_list>
 #include <string>
+#include <sys/types.h>
 #include <utility>
 
 #ifdef __GNUC__
@@ -18,41 +18,11 @@
 #include <iomanip> // Include this for std::setw
 #include <iostream>
 #include <memory>
-#include <type_traits>
 #include <vector>
 
 namespace bench {
 
-struct InputData {
-  public:
-	InputData(std::shared_ptr<std::vector<Operation>> gets,
-			  std::shared_ptr<std::vector<Operation>> puts)
-		: gets(gets), puts(puts) {}
-	InputData() = default;
-	InputData &operator=(const InputData &other) {
-		if (this != &other) {
-			gets = other.gets;
-			puts = other.puts;
-		}
-		return *this;
-	}
-
-	std::shared_ptr<const std::vector<Operation>> getGets() const {
-		return gets;
-	}
-	std::shared_ptr<const std::vector<Operation>> getPuts() const {
-		return puts;
-	}
-
-  private:
-	std::shared_ptr<std::vector<Operation>> gets;
-	std::shared_ptr<std::vector<Operation>> puts;
-};
-
-class AbstractParser {
-  public:
-	virtual InputData parse(const std::string &get, const std::string &put) = 0;
-};
+enum BenchmarkType { Accurate = 0, Approximate };
 
 class AbstractExecutor {
   public:
@@ -70,6 +40,13 @@ class AbstractExecutor {
 		Measurement(const Measurement &other)
 			: max(other.max), mean(other.mean) {}
 
+		bool operator==(const Measurement &other) {
+			return std::abs(mean - other.mean) < eps && max == other.max;
+		}
+
+		bool operator!=(const Measurement &other) { return !(*this == other); }
+
+		const double eps = 0.0001;
 		long double mean;
 		uint64_t max;
 	};
@@ -78,10 +55,18 @@ class AbstractExecutor {
 	virtual Measurement execute() = 0;
 	virtual Measurement calcMaxMeanError() = 0;
 	virtual void reset() = 0;
+	virtual BenchmarkType type() = 0;
 };
 
-class AccurateExecutor : public AbstractExecutor {};
-class ApproximateExecutor : public AbstractExecutor {};
+class AccurateExecutor : public AbstractExecutor {
+  public:
+	BenchmarkType type() { return BenchmarkType::Accurate; }
+};
+class ApproximateExecutor : public AbstractExecutor {
+  public:
+	BenchmarkType type() { return BenchmarkType::Approximate; }
+	enum class CountingType { SHARE, AMOUNT };
+};
 
 // TODO: enforce shared data format between parser and executor
 // or create shared format
@@ -96,22 +81,52 @@ struct Result {
 		: isValid(true), errMsg(""), prepareTime(prepTime),
 		  executeTime(execTime), measurement(measurement) {}
 
-	const bool isValid;
-	const std::string errMsg;
-	const long prepareTime;
-	const long executeTime;
-	const AbstractExecutor::Measurement measurement;
+	Result &operator=(const Result &other) {
+		if (this != &other) {
+			isValid = other.isValid;
+			errMsg = other.errMsg;
+			prepareTime = other.prepareTime;
+			executeTime = other.executeTime;
+			measurement = other.measurement;
+		}
+		return *this;
+	}
+
+	bool isValid;
+	std::string errMsg;
+	long prepareTime;
+	long executeTime;
+	AbstractExecutor::Measurement measurement;
 };
 
-enum BenchmarkType { Accurate = 0, Approximate };
+struct BenchCfg {
+	BenchCfg() : numAvailableThreads(0), inputDataDir("") {}
+	BenchCfg(size_t threads, std::string dir, size_t runs)
+		: numAvailableThreads(threads), inputDataDir(dir), numRuns(runs) {}
+
+	size_t numAvailableThreads{1}; // -n 16 e.g.
+	std::string inputDataDir{""};
+	size_t numRuns{1};
+};
 
 template <class Baseline> class Benchmark {
   public:
-	Benchmark() { executors.push_back(std::make_shared<Baseline>()); }
+	Benchmark() = delete;
+
+	Benchmark(const BenchCfg &cfg) : cfg(cfg) {
+		executors.push_back(std::make_shared<Baseline>());
+	}
 
 	template <class U, typename... Args> Benchmark &addConfig(Args &&...args) {
 		executors.push_back(std::make_shared<U>(std::forward<Args>(args)...));
 
+		return *this;
+	}
+
+	Benchmark &loadData() {
+		data = bench::TimestampParser().parse(
+			cfg.inputDataDir + "/combined_get_stamps.txt",
+			cfg.inputDataDir + "/combined_put_stamps.txt");
 		return *this;
 	}
 
@@ -133,42 +148,85 @@ template <class Baseline> class Benchmark {
 #endif
 	}
 
-	void run(const InputData &data) {
+  private:
+	Result runSingle(std::shared_ptr<AbstractExecutor> &executor,
+					 const InputData &data) {
 		using timepoint =
 			std::chrono::time_point<std::chrono::high_resolution_clock>;
 
+		timepoint prepStart, prepEnd, execStart, execEnd;
+		AbstractExecutor::Measurement measurement;
+
+		try {
+			prepStart = std::chrono::high_resolution_clock::now();
+			executor->prepare(data);
+			prepEnd = std::chrono::high_resolution_clock::now();
+		} catch (const std::exception &e) {
+			results.emplace_back(std::string(e.what()));
+		}
+
+		try {
+			execStart = std::chrono::high_resolution_clock::now();
+			measurement = executor->execute();
+			execEnd = std::chrono::high_resolution_clock::now();
+		} catch (const std::exception &e) {
+			results.emplace_back(std::string(e.what()));
+		}
+
+		auto prepTime = std::chrono::duration_cast<std::chrono::microseconds>(
+							prepEnd - prepStart)
+							.count();
+		auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(
+							execEnd - execStart)
+							.count();
+
+		return {prepTime, execTime, measurement};
+	}
+
+  public:
+	void run() {
 		for (auto &executor : executors) {
-			std::cout << "Running " << getTemplateParamTypeName(executor)
-					  << "...\n";
-			timepoint prepStart, prepEnd, execStart, execEnd;
-			AbstractExecutor::Measurement measurement;
+			std::string execName = getTemplateParamTypeName(executor);
+			std::cout << "Running " << execName << "...\n";
 
-			try {
-				prepStart = std::chrono::high_resolution_clock::now();
-				executor->prepare(data);
-				prepEnd = std::chrono::high_resolution_clock::now();
-			} catch (const std::exception &e) {
-				results.emplace_back(std::string(e.what()));
+			auto cumRes = runSingle(executor, data);
+			for (size_t i = 0; i < 3 && !cumRes.isValid; ++i) {
+				cumRes = runSingle(executor, data);
 			}
 
-			try {
-				execStart = std::chrono::high_resolution_clock::now();
-				measurement = executor->execute();
-				execEnd = std::chrono::high_resolution_clock::now();
-			} catch (const std::exception &e) {
-				results.emplace_back(std::string(e.what()));
+			if (!cumRes.isValid) {
+				std::cerr << execName
+						  << " failed to produce result, skipping...\n";
+				results.push_back(cumRes);
+				continue;
 			}
 
-			auto prepTime =
-				std::chrono::duration_cast<std::chrono::microseconds>(prepEnd -
-																	  prepStart)
-					.count();
-			auto execTime =
-				std::chrono::duration_cast<std::chrono::microseconds>(execEnd -
-																	  execStart)
-					.count();
+			size_t succ_runs = 1;
+			for (size_t i = 1; i < cfg.numRuns; ++i) {
+				executor->reset();
+				auto ires = runSingle(executor, data);
 
-			results.emplace_back(prepTime, execTime, measurement);
+				if (!ires.isValid) {
+					std::cerr << "New result for " << execName
+							  << " is invalid, skipping\n";
+					continue;
+				}
+
+				if (cumRes.measurement != ires.measurement) {
+					std::cerr << "Different runs of same executor do not yield "
+								 "same measurements, skipping...\n";
+					continue;
+				}
+
+				cumRes.executeTime += ires.executeTime;
+				cumRes.prepareTime += ires.prepareTime;
+				succ_runs++;
+			}
+
+			cumRes.executeTime /= succ_runs;
+			cumRes.prepareTime /= succ_runs;
+
+			results.push_back(cumRes);
 		}
 	}
 
@@ -176,15 +234,29 @@ template <class Baseline> class Benchmark {
 		// dont look at this too close...
 		struct StrResults {
 			StrResults(std::string &name, long double mean, uint64_t max,
-					   uint64_t tot, float tot_speedup, uint64_t calc,
-					   float calc_speedup, uint64_t prep, float prep_speedup,
+					   long tot, float tot_speedup, long calc,
+					   float calc_speedup, long prep, float prep_speedup,
 					   BenchmarkType type)
-				: name(name), mean(std::to_string(mean)),
+				: name(name), mean(std::format("{:.2f}", mean)),
 				  max(std::to_string(max)),
-				  tot(std::format("{} ({:.2f})", tot, tot_speedup)),
-				  calc(std::format("{} ({:.2f})", calc, calc_speedup)),
-				  prep(std::format("{} ({:.2f})", prep, prep_speedup)),
+				  tot(std::format("{} ({:.2f})", timeToNiceStr(tot), tot_speedup)),
+				  calc(std::format("{} ({:.2f})", timeToNiceStr(calc), calc_speedup)),
+				  prep(std::format("{} ({:.2f})", timeToNiceStr(prep), prep_speedup)),
 				  type(type){};
+
+			static std::string timeToNiceStr(long time) {
+				if (time < 1'000)
+					return std::format("{}us", time);
+				if (time < 1'000'000)
+					return std::format("{}ms", time / 1000);
+				if (time < 1'000'000'000)
+					return std::format("{}s", time / 1'000'000);
+
+				auto timeInSeconds = time / 1'000'000;
+				auto minutes = timeInSeconds / 60;
+				auto remSeconds = timeInSeconds % 60;
+				return std::format("{}m{}s", minutes, remSeconds);
+			}
 
 			std::string name;
 			std::string mean, max, tot, calc, prep;
@@ -195,6 +267,7 @@ template <class Baseline> class Benchmark {
 		const Result &baseRes = results.at(0);
 		for (size_t i = 0; i < executors.size(); ++i) {
 			const auto &res = results.at(i);
+			const auto &exec = executors.at(i);
 			auto mean = res.measurement.mean;
 			auto max = res.measurement.max;
 			auto tot = res.prepareTime + res.executeTime;
@@ -204,20 +277,21 @@ template <class Baseline> class Benchmark {
 			auto calc_speedup = (float)(baseRes.executeTime) / float(calc);
 			auto prep = res.prepareTime;
 			auto prep_speedup = float(baseRes.prepareTime) / float(prep);
-			std::string name = getTemplateParamTypeName(executors.at(i));
+			std::string name = getTemplateParamTypeName(exec);
 
-			BenchmarkType type = BenchmarkType::Accurate;
-			if (auto appexecptr =
-					std::dynamic_pointer_cast<ApproximateExecutor>(
-						executors.at(i))) {
-				type = BenchmarkType::Approximate;
-			}
+			// BenchmarkType type = BenchmarkType::Accurate;
+			// if (auto appexecptr =
+			// 		std::dynamic_pointer_cast<ApproximateExecutor>(
+			// 			executors.at(i))) {
+			// 	type = BenchmarkType::Approximate;
+			// }
 			sresults.emplace_back(name, mean, max, tot, tot_spedup, calc,
-								  calc_speedup, prep, prep_speedup, type);
+								  calc_speedup, prep, prep_speedup,
+								  exec->type());
 		}
 
-		size_t nameLen{4}, meanLen{4}, maxLen{3}, totLen{14}, calcLen{13},
-			prepLen{14};
+		size_t nameLen{4}, meanLen{4}, maxLen{3}, totLen{16}, calcLen{15},
+			prepLen{16};
 		for (auto &res : sresults) {
 
 			nameLen = std::max(nameLen, std::strlen(res.name.c_str()));
@@ -239,28 +313,38 @@ template <class Baseline> class Benchmark {
 
 		size_t totWidth =
 			nameLen + meanLen + maxLen + totLen + calcLen + prepLen;
-		std::cout << std::string(totWidth, '-') << "\n";
+
+		size_t titleLen = std::strlen(cfg.inputDataDir.c_str());
+		size_t padding = (totWidth - titleLen - 2) / 2;
+
+		std::cout << std::string(padding, '-') << ' ' << cfg.inputDataDir << ' '
+				  << std::string(padding, '-') << "\n";
 
 		std::cout << std::left << std::setw(nameLen) << "Name"
 				  << std::setw(meanLen) << "Mean" << std::setw(maxLen) << "Max"
-				  << std::setw(totLen) << "Total speedup" << std::setw(calcLen)
-				  << "Calc speedup" << std::setw(prepLen) << "Prep speedup"
-				  << "\n";
+				  << std::setw(totLen) << "Total (speedup)"
+				  << std::setw(calcLen) << "Calc (speedup)"
+				  << std::setw(prepLen) << "Prep (speedup)" << "\n";
 
-		float correct_mean = results.at(0).measurement.mean;
-		float correct_max = results.at(0).measurement.max;
-		for (auto &res : sresults) {
+		long double correct_mean = results.at(0).measurement.mean;
+		uint64_t correct_max = results.at(0).measurement.max;
+		for (size_t i = 0; i < results.size(); ++i) {
 			// Green: 	"\033[92m"
 			// Yellow: 	"\033[93m"
 			// Red: 	"\033[91m"
 			// White: 	"\033[37m"
+			const auto &res = sresults.at(i);
+			const auto &ares = results.at(i);
 			std::string meanCol = "\033[92m";
 			std::string maxCol = "\033[92m";
 			if (res.type == BenchmarkType::Approximate) {
 				float mean_diff =
-					std::abs(correct_mean - std::stof(res.mean)) / correct_mean;
+					std::abs(correct_mean - ares.measurement.mean) /
+					correct_mean;
 				float max_diff =
-					std::abs(correct_max - std::stof(res.max)) / correct_max;
+					(long double)std::abs((int64_t)correct_max -
+										  (int64_t)ares.measurement.max) /
+					correct_max;
 				if (mean_diff > 0.1) {
 					meanCol = "\033[91m";
 				} else if (mean_diff > 0.0001) {
@@ -272,10 +356,13 @@ template <class Baseline> class Benchmark {
 					maxCol = "\033[93m";
 				}
 			} else {
-				if (std::abs(std::stof(res.mean) - correct_mean) > 0.0001) {
+				if (std::abs(ares.measurement.mean - correct_mean) > 0.0001) {
+					std::cout << "mean diff: "
+							  << std::abs(ares.measurement.mean - correct_mean)
+							  << " correct mean: " << correct_mean << "\n";
 					meanCol = "\033[91m";
 				}
-				if (std::abs(std::stof(res.max) - correct_max) > 0.0001) {
+				if (correct_max != ares.measurement.max) {
 					maxCol = "\033[91m";
 				}
 			}
@@ -295,5 +382,7 @@ template <class Baseline> class Benchmark {
   private:
 	std::vector<std::shared_ptr<AbstractExecutor>> executors{};
 	std::vector<Result> results{};
+	const BenchCfg &cfg;
+	bench::InputData data;
 };
 } // namespace bench

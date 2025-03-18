@@ -81,6 +81,10 @@ void FenwickAImp::prepare(const InputData &data) {
 	int64_t time = 0;
 
     size_t numGets = gets->size() * counting_share;
+	if(counting_type == CountingType::AMOUNT) {
+		numGets = counting_amount;
+		numGets = std::min(numGets, gets->size());
+	}
     for (size_t i = 0; i < numGets; ++i) {
         const auto &get = gets->at(i);
         getMap[get.value] = time++;

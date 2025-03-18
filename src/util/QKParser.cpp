@@ -1,5 +1,4 @@
 #include "bench/util/QKParser.h"
-#include "bench/Benchmark.h"
 #include "bench/Operation.h"
 
 #include <cstdint>
@@ -13,10 +12,14 @@ namespace bench {
 
 static std::shared_ptr<std::vector<Operation>>
 parseFile(const std::string &file) {
-	auto ops = std::make_shared<std::vector<Operation>>();
-
 	uint64_t time, value;
 	std::ifstream infile(file);
+	auto ops = std::make_shared<std::vector<Operation>>();
+	if (!infile.good()) {
+		std::cerr << "File \"" << file << "\" not found\n";
+		return ops;
+	}
+
 	while (infile >> time >> value) {
 		ops->emplace_back(time, value);
 	}
