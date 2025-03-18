@@ -21,6 +21,7 @@ class ParallelBatchImp : public AccurateExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void reset() override;
 	void setNumThreads(uint64_t numThreads) { this->numThreads = numThreads; }
 	void setUseParSplit(bool useParSplit) { this->useParSplit = useParSplit; }
 

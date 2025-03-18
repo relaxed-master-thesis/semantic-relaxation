@@ -16,6 +16,7 @@ class HeuristicGeijer : public AccurateExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void reset() override;
 	void setHeuristicSizeAndCutoff(uint64_t size, uint64_t cutoff) {
 		heuristicSize = size;
 		mean_cutoff = cutoff;

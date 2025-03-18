@@ -19,6 +19,7 @@ class AITImp : public AccurateExecutor {
 	Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	Measurement execute() override;
+	void reset() override;
 
   private:
 	struct Interval {

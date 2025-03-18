@@ -176,4 +176,13 @@ void AITImp::prepare(const InputData &data) {
 
 AbstractExecutor::Measurement AITImp::execute() { return calcMaxMeanError(); }
 
+void AITImp::reset() {
+	put_stamps->clear();
+	get_stamps->clear();
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+	intervals.clear();
+	ivt.getArr().clear();
+}
+
 } // namespace bench

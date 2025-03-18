@@ -109,5 +109,13 @@ void GeijerBatchImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement GeijerBatchImp::execute() {
 	return calcMaxMeanError();
 }
+void GeijerBatchImp::reset(){
+	free(put_stamps_head);
+	put_stamps_head = NULL;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+	get_stamps = nullptr;
+	put_stamps = nullptr;
+}
 
 } // namespace bench

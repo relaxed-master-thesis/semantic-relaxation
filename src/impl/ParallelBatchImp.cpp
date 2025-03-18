@@ -521,4 +521,9 @@ void ParallelBatchImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ParallelBatchImp::execute() {
 	return calcMaxMeanError();
 }
+void ParallelBatchImp::reset(){
+	intervals.clear();
+	numGets = 0;
+	subProblems.clear();
+}
 } // namespace bench

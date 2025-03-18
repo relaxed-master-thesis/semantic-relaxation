@@ -43,6 +43,10 @@ namespace bench {
 	AbstractExecutor::Measurement FAAImp::calcMaxMeanError() {
         return {0,0};
     }
+    void FAAImp::reset() {
+        puts = nullptr;
+        gets = nullptr;
+    }
     
 
     void IMEImp::prepare(const InputData &data) {
@@ -102,5 +106,14 @@ namespace bench {
 	AbstractExecutor::Measurement IMEImp::calcMaxMeanError() {
         return {0,0};
     }
+    void IMEImp::reset() {
+        intervals.clear();
+        intv_avg_size = 0;
+        put_count = 0;
+        get_count = 0;
+        exec_start = 0;
+        exec_end = 0;
+    }
+
 
 }

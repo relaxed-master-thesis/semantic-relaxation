@@ -64,5 +64,12 @@ void MonteSweepingLine::prepare(const InputData &data) {
 AbstractExecutor::Measurement MonteSweepingLine::execute() {
 	return calcMaxMeanError();
 }
+void MonteSweepingLine::reset(){
+	events.clear();
+	end_tree.clear();
+	get_stamps = nullptr;
+	get_stamps_size = 0;
+	put_stamps = nullptr;
+}
 
 } // namespace bench

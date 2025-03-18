@@ -289,4 +289,13 @@ void IVTImp::prepare(const InputData &data) {
 }
 
 AbstractExecutor::Measurement IVTImp::execute() { return calcMaxMeanError(); }
+void IVTImp::reset(){
+	tree.getArr().clear();
+	put_stamps = nullptr;
+	get_stamps = nullptr;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+	put_map.clear();
+	segments.clear();
+}
 } // namespace bench

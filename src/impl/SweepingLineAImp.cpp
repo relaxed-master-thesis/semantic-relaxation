@@ -86,5 +86,11 @@ void SweepingLineAImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement SweepingLineAImp::execute() {
 	return calcMaxMeanError();
 }
-
+void SweepingLineAImp::reset(){
+	events.clear();
+	get_stamps = nullptr;
+	get_stamps_size = 0;
+	put_stamps = nullptr;
+	end_tree.clear();
+}
 } // namespace bench

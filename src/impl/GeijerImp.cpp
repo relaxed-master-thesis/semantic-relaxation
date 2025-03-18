@@ -82,5 +82,12 @@ void GeijerImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement GeijerImp::execute() {
 	return calcMaxMeanError();
 }
+void GeijerImp::reset(){
+	get_stamps = nullptr;
+	free(put_stamps_head);
+	put_stamps_head = nullptr;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+}
 
 } // namespace bench

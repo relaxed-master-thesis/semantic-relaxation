@@ -10,9 +10,10 @@ class FAAImp : public ApproximateExecutor {
   public:
 	FAAImp() = default;
 
-	void prepare(const InputData &data);
-	Measurement execute();
-	Measurement calcMaxMeanError();
+	void prepare(const InputData &data) override;
+	Measurement execute() override;
+	Measurement calcMaxMeanError() override;
+	void reset() override;
 
   private:
 	std::shared_ptr<const std::vector<Operation>> puts;
@@ -23,9 +24,10 @@ class IMEImp : public ApproximateExecutor {
   public:
 	IMEImp() = default;
 
-	void prepare(const InputData &data);
-	Measurement execute();
-	Measurement calcMaxMeanError();
+	void prepare(const InputData &data) override;
+	Measurement execute() override;
+	Measurement calcMaxMeanError() override;
+	void reset() override;
 private:
     struct Interval {
         Interval() = default;

@@ -91,5 +91,11 @@ void ParallelGeijerImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ParallelGeijerImp::execute() {
 	return calcMaxMeanError();
 }
-
+void ParallelGeijerImp::reset(){
+	free(put_stamps_head);
+	put_stamps_head = nullptr;
+	get_stamps = nullptr;
+	put_stamps_size	= 0;
+	get_stamps_size	= 0;
+}
 } // namespace bench

@@ -10,6 +10,7 @@ class ReplayImp : public AccurateExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void reset() override;
 
   private:
 	std::shared_ptr<const std::vector<Operation>> put_stamps;

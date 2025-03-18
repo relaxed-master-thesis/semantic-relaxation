@@ -44,6 +44,7 @@ class MonteSweepingLine : public ApproximateExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void reset() override;
 
   private:
 void par(size_t start_idx, size_t num_puts,

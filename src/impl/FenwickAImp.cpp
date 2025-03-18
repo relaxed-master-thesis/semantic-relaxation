@@ -152,4 +152,7 @@ void FenwickAImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement FenwickAImp::execute() {
 	return calcMaxMeanError();
 }
+void FenwickAImp::reset() {
+	intervals.clear();
+}
 } // namespace bench

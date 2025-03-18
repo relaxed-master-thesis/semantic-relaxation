@@ -14,6 +14,7 @@ class GeijerImp : public AccurateExecutor {
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
+	void reset() override;
 
   private:
 	struct item {

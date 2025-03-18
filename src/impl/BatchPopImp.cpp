@@ -106,4 +106,10 @@ void BatchPopImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement BatchPopImp::execute() {
 	return calcMaxMeanError();
 }
+void BatchPopImp::reset() {
+	put_stamps = nullptr;
+	get_stamps = nullptr;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+}
 } // namespace bench

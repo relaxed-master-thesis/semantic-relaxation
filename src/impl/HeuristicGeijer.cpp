@@ -211,5 +211,15 @@ void HeuristicGeijer::prepare(const InputData &data) {
 AbstractExecutor::Measurement HeuristicGeijer::execute() {
 	return calcMaxMeanError();
 }
+void HeuristicGeijer::reset(){
+	put_stamps = nullptr;
+	get_stamps = nullptr;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+	free(put_stamps_head);
+	free(put_stamps_head_heuristics);
+	put_stamps_head = nullptr;
+	put_stamps_head_heuristics = nullptr;
+}
 
 } // namespace bench

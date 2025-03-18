@@ -90,4 +90,10 @@ void ReplayImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ReplayImp::execute() {
 	return calcMaxMeanError();
 }
+void ReplayImp::reset(){
+	put_stamps = nullptr;
+	get_stamps = nullptr;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
+}
 } // namespace bench
