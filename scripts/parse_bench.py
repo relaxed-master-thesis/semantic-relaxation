@@ -32,9 +32,9 @@ class Implementation:
             self.mean_error[bench.mean] = abs(bench.data[name]["mean"] - bench.mean)
             self.maxs[bench.max] = bench.data[name]["max"]
             self.max_error[bench.max] = abs(bench.data[name]["max"] - bench.max)
-            self.tots[bench.mean] = {"time" : bench.data[name]["tot"], "unit": bench.data[name]["tot_unit"]}
-            self.calc[bench.mean] = {"time" : bench.data[name]["calc"], "unit": bench.data[name]["tot_unit"]}
-            self.prep[bench.mean] = {"time" : bench.data[name]["prep"], "unit": bench.data[name]["tot_unit"]}
+            self.tots[bench.mean] = bench.data[name]["tot"] 
+            self.calc[bench.mean] = bench.data[name]["calc"]
+            self.prep[bench.mean] = bench.data[name]["prep"]
             self.tot_speedup[bench.mean] = bench.data[name]["tot_speedup"]
             self.calc_speedup[bench.mean] = bench.data[name]["calc_speedup"]
             self.prep_speedup[bench.mean] = bench.data[name]["prep_speedup"]
@@ -43,9 +43,9 @@ class Implementation:
         ret = f"Implementation: {self.name}\n"
         for mean in self.means:
             ret += f"\tMean: {mean}\n"
-            ret += f"\t\t Total: {self.tots[mean]['time']} {self.tots[mean]['unit']} Speedup: {self.tot_speedup[mean]}\n"
-            ret += f"\t\t Calc: {self.calc[mean]['time']} {self.calc[mean]['unit']} Speedup: {self.calc_speedup[mean]}\n"
-            ret += f"\t\t Prep: {self.prep[mean]['time']} {self.prep[mean]['unit']} Speedup: {self.prep_speedup[mean]}\n"
+            ret += f"\t\t Total: {self.tots[mean]} Speedup: {self.tot_speedup[mean]}\n"
+            ret += f"\t\t Calc: {self.calc[mean]} Speedup: {self.calc_speedup[mean]}\n"
+            ret += f"\t\t Prep: {self.prep[mean]} Speedup: {self.prep_speedup[mean]}\n"
         return ret
 
 file = open("bench.txt", "r")
@@ -73,9 +73,12 @@ float_pattern = r"([\d]+\.[\d]+)"
 int_pattern = r"([\d]+)"
 mean_max_pattern = f"{col_pattern}{float_pattern}{space_pattern}{col_pattern}{int_pattern}"
 
-data_pattern = f"{col_pattern}{int_pattern}(\w+) \({float_pattern}\){space_pattern}{int_pattern}(\w+) \({float_pattern}\){space_pattern}{int_pattern}(\w+) \({float_pattern}\)" 
+time_pattern = r"(\w+)"
+
+data_pattern = f"{col_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\)" 
 line_pattern = re.compile(f"{name_pattern}{space_pattern}{mean_max_pattern}{space_pattern}{data_pattern}")
-bench_name_pattern = re.compile(r"--------------------- ([\S]+) ---------------------")
+bench_name_pattern = re.compile(r"-+ ([\S]+) -+")
+
 
 benches = []
 i = 0
@@ -93,26 +96,20 @@ while i < len(lines):
                 imp = match.group(1)
                 mean = float(match.group(3))
                 max_val = float(match.group(5))
-                tot = float(match.group(7))
-                tot_unit = match.group(8)
-                tot_speedup = float(match.group(9))
-                calc = float(match.group(10))
-                calc_unit = match.group(11)
-                calc_speedup = float(match.group(12))
-                prep = float(match.group(13))
-                prep_unit = match.group(14)
-                prep_speedup = float(match.group(15))
+                tot = match.group(7)
+                tot_speedup = float(match.group(8))
+                calc = match.group(9)
+                calc_speedup = float(match.group(10))
+                prep = match.group(11)
+                prep_speedup = float(match.group(12))
                 data[imp] = {"imp": imp,
                         "mean": mean, 
                         "max": max_val, 
                         "tot": tot, 
-                        "tot_unit": tot_unit, 
                         "tot_speedup": tot_speedup, 
                         "calc": calc, 
-                        "calc_unit": calc_unit, 
                         "calc_speedup": calc_speedup, 
                         "prep": prep, 
-                        "prep_unit": prep_unit, 
                         "prep_speedup": prep_speedup
                         }
             i = j
@@ -124,8 +121,9 @@ while i < len(lines):
 parsed_imps = []
 for imp in imps:
     parsed_imp = Implementation(imp, benches)
-    print(parsed_imp)
+    # print(parsed_imp)
     parsed_imps.append(parsed_imp)
+
 
 #plot all benches, with mean on x axix and speedup on y axis
 import matplotlib.pyplot as plt

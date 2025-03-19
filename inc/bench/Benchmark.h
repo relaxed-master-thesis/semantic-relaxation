@@ -357,9 +357,6 @@ template <class Baseline> class Benchmark {
 				}
 			} else {
 				if (std::abs(ares.measurement.mean - correct_mean) > 0.0001) {
-					std::cout << "mean diff: "
-							  << std::abs(ares.measurement.mean - correct_mean)
-							  << " correct mean: " << correct_mean << "\n";
 					meanCol = "\033[91m";
 				}
 				if (correct_max != ares.measurement.max) {
