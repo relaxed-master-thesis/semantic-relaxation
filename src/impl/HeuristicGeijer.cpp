@@ -71,7 +71,7 @@ AbstractExecutor::Measurement HeuristicGeijer::calcMaxMeanErrorBatch() {
 
 		int dels = pops.size();
 		// map of all pops and where they were found
-		ordered_set<int> found_pops;
+		ordered_set<int, std::less<int>> found_pops;
 
 		
 

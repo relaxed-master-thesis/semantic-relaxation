@@ -99,7 +99,7 @@ ParallelBatchImp::calcMaxSumErrorBatch(SubProblem problem, size_t tid) {
 
 		int dels = pops.size();
 		// map of all pops and where they were found
-		ordered_set<int> found_pops;
+		ordered_set<int, std::less<int>> found_pops;
 
 		uint64_t found = 0;
 		while (found < dels && pops.contains(head->value)) {

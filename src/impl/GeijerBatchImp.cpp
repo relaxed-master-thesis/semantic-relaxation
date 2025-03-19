@@ -45,7 +45,7 @@ AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 
 		int dels = pops.size();
 		// map of all pops and where they were found
-		ordered_set<uint64_t> found_pops;
+		ordered_set<uint64_t, std::less<uint64_t>> found_pops;
 		uint64_t found = 0;
 		while (found < dels && pops.contains(head->value)) {
 			uint64_t pop_order = pops.at(head->value);

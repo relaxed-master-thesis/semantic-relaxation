@@ -31,7 +31,7 @@ template <class T> class VectorQueue {
 	void batch_deq(std::unordered_map<T, uint64_t> m,
 				   std::vector<uint64_t> *ranks) {
 		// map of all pops and where they were found
-		ordered_set<int> found_pops;
+		ordered_set<int, std::less<int>> found_pops;
 
 		int dels = m.size();
 		std::set<int> erase_idxs;

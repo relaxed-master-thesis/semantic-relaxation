@@ -6,6 +6,6 @@
 using namespace __gnu_pbds;
 
 // Ordered set that supports order statistics
-template <typename T>
-using ordered_set = tree<T, null_type, std::less<T>, rb_tree_tag,
+template <typename T, typename Compare>
+using ordered_set = tree<T, null_type, Compare, rb_tree_tag,
 						 tree_order_statistics_node_update>;
