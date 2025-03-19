@@ -40,15 +40,13 @@ void SweepingLineImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
-	std::unordered_set<uint64_t> getSet{};
 	for (const Operation &get : *gets) {
 		getMap[get.value] = get.time;
-		getSet.insert(get.value);
 	}
 	auto puts = data.getPuts();
 	for (const Operation &put : *puts) {
 		uint64_t end_time = 0;
-		if (getSet.find(put.value) == getSet.end()) {
+		if (getMap.find(put.value) == getMap.end()) {
 			end_time = ~0;
 		} else {
 			end_time = getMap[put.value];
