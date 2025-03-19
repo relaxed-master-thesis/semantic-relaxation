@@ -153,10 +153,9 @@ int main(int argc, char *argv[]) {
 	bench::BenchCfg cfg = optCfg.value();
 	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
 	bench::Benchmark<bench::FenwickImp> myBench{cfg};
-	myBench.loadData();
-	return 0;
 
 	myBench.loadData()
+		.verifyData()
 		// .addConfig<bench::FenwickImp>()
 		.addConfig<bench::SweepingLineImp>()
 		.addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)

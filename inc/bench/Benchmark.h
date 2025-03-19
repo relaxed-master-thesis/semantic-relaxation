@@ -131,7 +131,7 @@ template <class Baseline> class Benchmark {
 
 		return *this;
 	}
-	Benchmark verifyData() {
+	Benchmark &verifyData() {
 		// verify that no puts are after gets
 		std::unordered_map<uint64_t, uint64_t> getMap{};
 		for (const auto &get : *data.getGets()) {
@@ -154,9 +154,9 @@ template <class Baseline> class Benchmark {
 		}
 
 		if (error) {
-			std::cerr << "Error in data, " << fails
-					  << " puts after gets in file " << cfg.inputDataDir
-					  << "\n";
+			std::cerr << "\033[91mError in data: " << fails
+					  << " put(s) after gets in file " << cfg.inputDataDir
+					  << "\n\033[0m";
 			exit(1);
 		}
 		return *this;
