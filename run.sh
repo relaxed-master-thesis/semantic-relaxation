@@ -19,12 +19,12 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        # "8 4"
-        # "16 8"
-        # "32 16"
-        # "64 32"
-        # "128 64"
-        # "256 128"
+        "8 4"
+        "16 8"
+        "32 16"
+        "64 32"
+        "128 64"
+        "256 128"
         "512 256"
     )
 
@@ -35,6 +35,7 @@ Benchmark()
 
     echo "Entering ../semantic-relaxation-dcbo"
     cd ../semantic-relaxation-dcbo
+    rm ./../semantic-relaxation/bench.txt
 
     echo "Compiling 2Dd-queue_optimized..."
     buildArg="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
@@ -48,7 +49,7 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=30
+        testDurMs=300
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000
@@ -64,10 +65,11 @@ Benchmark()
         rm -rf $dataPath
         mkdir $dataPath
         mv results/timestamps/* $dataPath
+        rm -rf results/timestamps
 
         if [ $? -eq 0 ]; then
             runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r 2" 
-            eval "$runArg" # >> outLog.txt
+            eval "$runArg" #>> ./../semantic-relaxation/bench.txt
         fi
     done
 
@@ -91,7 +93,13 @@ Compile()
 
 Run()
 {
-    ./build/src/SemanticRelaxation
+    dataPath="./data/benchData/2ddqopt-w256-l128-i10000-n2-d200"
+    # dataPath="./data/timestamps/2dd-q-opt-w50-l10-i1000-8t-30ms"
+
+    t=12
+    r=1
+    runArg="./build/src/SemanticRelaxation -t ${t} -i ${dataPath} -r ${r}"
+    eval "$runArg"
 }
 
 optBench=false

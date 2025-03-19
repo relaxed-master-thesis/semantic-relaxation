@@ -5,6 +5,7 @@
 #include <format>
 #include <string>
 #include <sys/types.h>
+#include <unordered_map>
 #include <utility>
 
 #ifdef __GNUC__
@@ -127,6 +128,31 @@ template <class Baseline> class Benchmark {
 		data = bench::TimestampParser().parse(
 			cfg.inputDataDir + "/combined_get_stamps.txt",
 			cfg.inputDataDir + "/combined_put_stamps.txt");
+		//verify that no puts are after gets
+		std::unordered_map<uint64_t, uint64_t> getMap{};
+		for (const auto &get : *data.getGets()) {
+			getMap[get.value] = get.time;
+		}
+		bool error = false;
+		int fails = 0;
+		for(const auto &put : *data.getPuts()) {
+			if(getMap.find(put.value) == getMap.end()) {
+				continue;
+			}
+			if(put.time > getMap[put.value]) {
+				if(!error) {
+					std::cerr << "Put after get detected for value " << put.value << "\n";
+				}
+				fails++;
+				error = true;
+			}
+		}
+
+		if(error) {
+			std::cerr << "Error in data, " << fails << " puts after gets in file "
+					  << cfg.inputDataDir << "\n";
+			exit(1);
+		}
 		return *this;
 	}
 

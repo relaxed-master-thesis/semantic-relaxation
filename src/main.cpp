@@ -151,16 +151,19 @@ int main(int argc, char *argv[]) {
 	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
 	bench::BenchCfg cfg = optCfg.value();
-	bench::Benchmark<bench::GeijerImp> myBench{cfg};
+	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
+	bench::Benchmark<bench::FenwickImp> myBench{cfg};
+	myBench.loadData();
+	return 0;
 
 	myBench.loadData()
-		.addConfig<bench::FenwickImp>()
+		// .addConfig<bench::FenwickImp>()
 		.addConfig<bench::SweepingLineImp>()
 		.addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
 		.addConfig<bench::GeijerBatchImp>()
-		.addConfig<bench::SweepingLineAImp>(40'000UL)
-		.addConfig<bench::FenwickAImp>(40'000UL)
-		.addConfig<bench::MonteSweepingLine>(0.001)
+		// .addConfig<bench::SweepingLineAImp>(0.1f)
+		// .addConfig<bench::FenwickAImp>(0.1f)
+		// .addConfig<bench::MonteSweepingLine>(0.1)
 		.run();
 	myBench.printResults();
 }
