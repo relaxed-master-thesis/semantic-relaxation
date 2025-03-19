@@ -127,7 +127,8 @@ for imp in imps:
 
 #plot all benches, with mean on x axix and speedup on y axis
 import matplotlib.pyplot as plt
-fig, axs = plt.subplots(2, 3, figsize=(15, 5))  # 2 row, 3 columns
+speed_fig, speed_axs = plt.subplots(1, 3, figsize=(15, 5))  # 2 row, 3 columns
+error_fig, error_axs = plt.subplots(1, 2, figsize=(15, 5))  # 2 row, 3 columns
 markers = ["o", "x", "s", "D", "^", "v", "<", ">", "p", "P", "*", "h", "H", "+", "X"]
 line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":", "-", "--", "-.", ":", "-", "--", "-.", ":"]
 for imp in parsed_imps:
@@ -140,35 +141,39 @@ for imp in parsed_imps:
         y[2].append(bench.data[imp.name]["prep_speedup"])
         y[3].append(imp.mean_error[bench.mean])
         y[4].append(imp.max_error[bench.max])
-    axs[0, 0].plot(x, y[0], label=imp.name, linestyle = line_styles[0], marker = markers[0])
-    axs[0, 1].plot(x, y[1], label=imp.name, linestyle = line_styles[0], marker = markers[0])
-    axs[0, 2].plot(x, y[2], label=imp.name, linestyle = line_styles[0], marker = markers[0])
-    axs[1, 0].plot(x, y[3], label=imp.name, linestyle = line_styles[0], marker = markers[0])
-    axs[1, 1].plot(x, y[4], label=imp.name, linestyle = line_styles[0], marker = markers[0])
+    speed_axs[0].plot(x, y[0], label=imp.name, linestyle = line_styles[0], marker = markers[0])
+    speed_axs[1].plot(x, y[1], label=imp.name, linestyle = line_styles[0], marker = markers[0])
+    speed_axs[2].plot(x, y[2], label=imp.name, linestyle = line_styles[0], marker = markers[0])
+    error_axs[0].plot(x, y[3], label=imp.name, linestyle = line_styles[0], marker = markers[0])
+    error_axs[1].plot(x, y[4], label=imp.name, linestyle = line_styles[0], marker = markers[0])
     markers = markers[1:]
     line_styles = line_styles[1:]
 #log x axis
-for i in range(3):
-    axs[0, i].set_xscale("log")
-    axs[0, i].set_yscale("log")
-    axs[0, i].set_ylabel("Speedup")
-    axs[0, i].set_xlabel("Mean relaxation error")
-axs[0, 0].set_ylabel("Mean calculation error")
-axs[0, 0].set_xlabel("Mean relaxation error ")
-axs[0, 1].set_ylabel("Max calculation error")
-axs[0, 1].set_xlabel("Mean relaxation error")
 
-fig.legend(
-    labels=imps,
-    loc="center",               # Aligns the legend in the figure
-    bbox_to_anchor=(0.87, 0.3), # Adjust this to position it exactly where the empty space is
-    fontsize="large"
-)
-axs[0, 0].set_title("Total Speedup")
-axs[0, 1].set_title("Calc Speedup")
-axs[0, 2].set_title("Prep Speedup")
-axs[1, 0].set_title("Mean Calculation Error (%)")
-axs[1, 1].set_title("Max Calculation Error (%)")
-plt.tight_layout()
-fig.delaxes(axs[1, 2])
+for i in range(3):
+    speed_axs[i].set_xscale("log")
+    speed_axs[i].set_yscale("log")
+    speed_axs[i].set_ylabel("Speedup")
+    speed_axs[i].set_xlabel("Mean relaxation error")
+
+speed_axs[0].set_title("Total Speedup")
+speed_axs[0].legend()
+speed_axs[1].set_title("Calc Speedup")
+speed_axs[2].set_title("Prep Speedup")
+error_axs[0].set_title("Mean Calculation Error (%)")
+error_axs[1].set_title("Max Calculation Error (%)")
+error_axs[1].legend()
+error_axs[0].set_ylabel("Error %")
+error_axs[0].set_xlabel("Mean relaxation error")
+error_axs[0].set_xscale("log")
+error_axs[1].set_ylabel("Error %")
+error_axs[1].set_xlabel("Mean relaxation error")
+error_axs[1].set_xscale("log")
+ticks = [b.mean for b in benches]
+rounded_labels = [f"{int(tick)}" if tick.is_integer() else f"{tick:.2f}" for tick in ticks]
+for ax in [*speed_axs.flat, *error_axs.flat]:
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(rounded_labels, rotation=45, fontsize=10)
+error_fig.subplots_adjust(bottom=0.2)
+speed_fig.subplots_adjust(bottom=0.2)
 plt.show()
