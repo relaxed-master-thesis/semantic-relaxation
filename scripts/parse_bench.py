@@ -29,9 +29,9 @@ class Implementation:
         
         for bench in benches:
             self.means[bench.mean] = bench.data[name]["mean"]
-            self.mean_error[bench.mean] = abs(bench.data[name]["mean"] - bench.mean)
+            self.mean_error[bench.mean] = (abs(bench.data[name]["mean"] - bench.mean) / bench.mean) * 100
             self.maxs[bench.max] = bench.data[name]["max"]
-            self.max_error[bench.max] = abs(bench.data[name]["max"] - bench.max)
+            self.max_error[bench.max] = (abs(bench.data[name]["max"] - bench.max) / bench.max) * 100
             self.tots[bench.mean] = bench.data[name]["tot"] 
             self.calc[bench.mean] = bench.data[name]["calc"]
             self.prep[bench.mean] = bench.data[name]["prep"]
@@ -154,7 +154,7 @@ for i in range(3):
     axs[0, i].set_ylabel("Speedup")
     axs[0, i].set_xlabel("Mean relaxation error")
 axs[0, 0].set_ylabel("Mean calculation error")
-axs[0, 0].set_xlabel("Mean relaxation error")
+axs[0, 0].set_xlabel("Mean relaxation error ")
 axs[0, 1].set_ylabel("Max calculation error")
 axs[0, 1].set_xlabel("Mean relaxation error")
 
@@ -167,8 +167,8 @@ fig.legend(
 axs[0, 0].set_title("Total Speedup")
 axs[0, 1].set_title("Calc Speedup")
 axs[0, 2].set_title("Prep Speedup")
-axs[1, 0].set_title("Mean Calculation Error")
-axs[1, 1].set_title("Max Calculation Error")
+axs[1, 0].set_title("Mean Calculation Error (%)")
+axs[1, 1].set_title("Max Calculation Error (%)")
 plt.tight_layout()
 fig.delaxes(axs[1, 2])
 plt.show()
