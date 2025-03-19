@@ -128,29 +128,35 @@ template <class Baseline> class Benchmark {
 		data = bench::TimestampParser().parse(
 			cfg.inputDataDir + "/combined_get_stamps.txt",
 			cfg.inputDataDir + "/combined_put_stamps.txt");
-		//verify that no puts are after gets
+
+		return *this;
+	}
+	Benchmark verifyData() {
+		// verify that no puts are after gets
 		std::unordered_map<uint64_t, uint64_t> getMap{};
 		for (const auto &get : *data.getGets()) {
 			getMap[get.value] = get.time;
 		}
 		bool error = false;
 		int fails = 0;
-		for(const auto &put : *data.getPuts()) {
-			if(getMap.find(put.value) == getMap.end()) {
+		for (const auto &put : *data.getPuts()) {
+			if (getMap.find(put.value) == getMap.end()) {
 				continue;
 			}
-			if(put.time > getMap[put.value]) {
-				if(!error) {
-					std::cerr << "Put after get detected for value " << put.value << "\n";
+			if (put.time > getMap[put.value]) {
+				if (!error) {
+					std::cerr << "Put after get detected for value "
+							  << put.value << "\n";
 				}
 				fails++;
 				error = true;
 			}
 		}
 
-		if(error) {
-			std::cerr << "Error in data, " << fails << " puts after gets in file "
-					  << cfg.inputDataDir << "\n";
+		if (error) {
+			std::cerr << "Error in data, " << fails
+					  << " puts after gets in file " << cfg.inputDataDir
+					  << "\n";
 			exit(1);
 		}
 		return *this;
@@ -265,10 +271,13 @@ template <class Baseline> class Benchmark {
 					   BenchmarkType type)
 				: name(name), mean(std::format("{:.2f}", mean)),
 				  max(std::to_string(max)),
-				  tot(std::format("{} ({:.2f})", timeToNiceStr(tot), tot_speedup)),
-				  calc(std::format("{} ({:.2f})", timeToNiceStr(calc), calc_speedup)),
-				  prep(std::format("{} ({:.2f})", timeToNiceStr(prep), prep_speedup)),
-				  type(type){};
+				  tot(std::format("{} ({:.2f})", timeToNiceStr(tot),
+								  tot_speedup)),
+				  calc(std::format("{} ({:.2f})", timeToNiceStr(calc),
+								   calc_speedup)),
+				  prep(std::format("{} ({:.2f})", timeToNiceStr(prep),
+								   prep_speedup)),
+				  type(type) {};
 
 			static std::string timeToNiceStr(long time) {
 				if (time < 1'000)
