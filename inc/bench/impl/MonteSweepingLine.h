@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-#include <functional>
 #include <memory.h>
 #include <vector>
 
