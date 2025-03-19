@@ -49,7 +49,7 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=300
+        testDurMs=3
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000
@@ -69,7 +69,7 @@ Benchmark()
 
         if [ $? -eq 0 ]; then
             runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r 2" 
-            eval "$runArg" #>> ./../semantic-relaxation/bench.txt
+            eval "$runArg" >> ./../semantic-relaxation/bench.txt
         fi
     done
 
@@ -101,12 +101,19 @@ Run()
     runArg="./build/src/SemanticRelaxation -t ${t} -i ${dataPath} -r ${r}"
     eval "$runArg"
 }
+Plot()
+{
+    # plot data
+    echo "Plotting..."
+    python3 scripts/parse_bench.py
+}
 
 optBench=false
 optCompile=false
 optRun=false
+optPlot=false
 
-while getopts ":hcrb" option; do
+while getopts ":hcrbp" option; do
     case $option in
         h) # display help
             Help
@@ -117,6 +124,8 @@ while getopts ":hcrb" option; do
             optRun=true;;
         b)  # bench
             optBench=true;;
+        p) # plot
+            optPlot=true;;
         \?) # compile first
             echo "Error: Invalid argument"
             exit;;
@@ -130,6 +139,9 @@ fi
 if [ "$optBench" = true ]; then
     # Compile
     Benchmark
+    if [ "$optPlot" = true ]; then
+        Plot
+    fi
     exit
 fi
 
