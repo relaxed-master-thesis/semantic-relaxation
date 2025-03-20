@@ -1,11 +1,11 @@
 import re
 
 class Benchmark:
-    def __init__(self, name, data):
+    def __init__(self, name, data, baseline="GeijerImp"):
         self.name = name
         self.data = data
-        self.mean = data["GeijerImp"]["mean"]
-        self.max = data["GeijerImp"]["max"]
+        self.mean = data[baseline]["mean"]
+        self.max = data[baseline]["max"]
 class BenchRun:
     def __init__(self, name, benches):
         self.name = name
@@ -53,13 +53,13 @@ lines = file.readlines()
 file.close()
 #figure out how many implementations were run
 imp_pattern = re.compile(r"Running bench::(.*)...")
+bench_name_pattern = re.compile(r"-+ ([\S]+) -+")
 imps = []
 for line in lines:
     if imp_pattern.match(line):
         imps.append(imp_pattern.match(line).group(1))
-    else:
-        break
-
+    elif bench_name_pattern.match(line):
+        break 
 #parse all the benchmarks
 # Define ANSI color codes
 red_pattern = r"\033\[91m"
@@ -73,11 +73,10 @@ float_pattern = r"([\d]+\.[\d]+)"
 int_pattern = r"([\d]+)"
 mean_max_pattern = f"{col_pattern}{float_pattern}{space_pattern}{col_pattern}{int_pattern}"
 
-time_pattern = r"(\w+)"
+time_pattern = fr"([\w.]+)"
 
 data_pattern = f"{col_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\)" 
 line_pattern = re.compile(f"{name_pattern}{space_pattern}{mean_max_pattern}{space_pattern}{data_pattern}")
-bench_name_pattern = re.compile(r"-+ ([\S]+) -+")
 
 
 benches = []
@@ -113,8 +112,7 @@ while i < len(lines):
                         "prep_speedup": prep_speedup
                         }
             i = j
-
-        bench = Benchmark(name, data)
+        bench = Benchmark(name, data, imps[0])
         benches.append(bench)
     i += 1
 

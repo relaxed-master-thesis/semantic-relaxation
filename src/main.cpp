@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 	bench::Benchmark<bench::FenwickImp> myBench{cfg};
 
 	myBench.loadData()
-		.verifyData()
+		.verifyData(true)
 		// .addConfig<bench::FenwickImp>()
 		.addConfig<bench::SweepingLineImp>()
 		.addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)

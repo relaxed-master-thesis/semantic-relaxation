@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bench/Operation.h"
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -25,6 +26,11 @@ struct InputData {
 	std::shared_ptr<const std::vector<Operation>> getPuts() const {
 		return puts;
 	}
+	void removeItem(size_t get_idx, size_t put_idx) {
+		gets->erase(gets->begin() + get_idx);
+		puts->erase(puts->begin() + put_idx);
+	}
+	
 
   private:
 	std::shared_ptr<std::vector<Operation>> gets;

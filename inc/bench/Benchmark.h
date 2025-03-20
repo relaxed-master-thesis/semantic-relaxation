@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bench/util/QKParser.h"
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <string>
@@ -131,33 +132,50 @@ template <class Baseline> class Benchmark {
 
 		return *this;
 	}
-	Benchmark &verifyData() {
+	Benchmark &verifyData(bool cleanup = false) {
 		// verify that no puts are after gets
-		std::unordered_map<uint64_t, uint64_t> getMap{};
-		for (const auto &get : *data.getGets()) {
-			getMap[get.value] = get.time;
+		std::unordered_map<uint64_t, uint64_t> get_val_to_time{};
+		std::unordered_map<uint64_t, uint64_t> get_val_to_idx{};
+		for (size_t i = 0; i < data.getGets()->size(); ++i) {
+			const auto &get = data.getGets()->at(i);
+			get_val_to_time[get.value] = get.time;
+			get_val_to_idx[get.value] = i;
 		}
 		bool error = false;
 		int fails = 0;
-		for (const auto &put : *data.getPuts()) {
-			if (getMap.find(put.value) == getMap.end()) {
+		std::vector<std::pair<size_t, size_t>> to_remove{};
+		for (size_t i = 0; i < data.getPuts()->size(); ++i) {
+			const auto &put = data.getPuts()->at(i);
+			if (get_val_to_time.find(put.value) == get_val_to_time.end()) {
 				continue;
 			}
-			if (put.time > getMap[put.value]) {
-				if (!error) {
+			if (put.time > get_val_to_time[put.value]) {
+				if (!error && !cleanup) {
 					std::cerr << "Put after get detected for value "
-							  << put.value << "\n";
+							  << put.value << " with time diff: " << put.time - get_val_to_time[put.value] << "\n";
 				}
 				fails++;
+				if(cleanup) {
+					
+					size_t get_idx = get_val_to_idx[put.value];
+					to_remove.emplace_back(get_idx, i);
+				}
 				error = true;
 			}
 		}
 
-		if (error) {
+		if (error && !cleanup) {
 			std::cerr << "\033[91mError in data: " << fails
-					  << " put(s) after gets in file " << cfg.inputDataDir
+					  << " put(s) after get(s) in file " << cfg.inputDataDir
 					  << "\n\033[0m";
 			exit(1);
+		}
+		if(error && cleanup) {
+			std::cout << "Removing " << to_remove.size() << " put(s) after get(s)\n";
+			for(size_t i = to_remove.size(); i > 0; --i) {
+				auto [get_idx, put_idx] = to_remove.at(i-1);
+				data.removeItem(get_idx, put_idx);
+			}
 		}
 		return *this;
 	}
@@ -283,9 +301,9 @@ template <class Baseline> class Benchmark {
 				if (time < 1'000)
 					return std::format("{}us", time);
 				if (time < 1'000'000)
-					return std::format("{}ms", time / 1000);
+					return std::format("{:.2f}ms", (float)time / 1000.0);
 				if (time < 1'000'000'000)
-					return std::format("{}s", time / 1'000'000);
+					return std::format("{:.2f}s", (float)time / 1'000'000.0);
 
 				auto timeInSeconds = time / 1'000'000;
 				auto minutes = timeInSeconds / 60;
