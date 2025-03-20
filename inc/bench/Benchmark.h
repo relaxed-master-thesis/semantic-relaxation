@@ -152,11 +152,12 @@ template <class Baseline> class Benchmark {
 			if (put.time > get_val_to_time[put.value]) {
 				if (!error && !cleanup) {
 					std::cerr << "Put after get detected for value "
-							  << put.value << " with time diff: " << put.time - get_val_to_time[put.value] << "\n";
+							  << put.value << " with time diff: "
+							  << put.time - get_val_to_time[put.value] << "\n";
 				}
 				fails++;
-				if(cleanup) {
-					
+				if (cleanup) {
+
 					size_t get_idx = get_val_to_idx[put.value];
 					to_remove.emplace_back(get_idx, i);
 				}
@@ -170,10 +171,11 @@ template <class Baseline> class Benchmark {
 					  << "\n\033[0m";
 			exit(1);
 		}
-		if(error && cleanup) {
-			std::cout << "Removing " << to_remove.size() << " put(s) after get(s)\n";
-			for(size_t i = to_remove.size(); i > 0; --i) {
-				auto [get_idx, put_idx] = to_remove.at(i-1);
+		if (error && cleanup) {
+			std::cout << "Removing " << to_remove.size()
+					  << " put(s) after get(s)\n";
+			for (size_t i = to_remove.size(); i > 0; --i) {
+				auto [get_idx, put_idx] = to_remove.at(i - 1);
 				data.removeItem(get_idx, put_idx);
 			}
 		}
@@ -199,6 +201,9 @@ template <class Baseline> class Benchmark {
 	}
 
   private:
+	template <class T> inline void PreventReordering(const T &value) {
+		asm volatile("" : : "m"(value) : "memory");
+	}
 	Result runSingle(std::shared_ptr<AbstractExecutor> &executor,
 					 const InputData &data) {
 		using timepoint =
@@ -209,16 +214,29 @@ template <class Baseline> class Benchmark {
 
 		try {
 			prepStart = std::chrono::high_resolution_clock::now();
+			PreventReordering(prepStart);
 			executor->prepare(data);
 			prepEnd = std::chrono::high_resolution_clock::now();
+			PreventReordering(prepEnd);
+			if (prepStart > prepEnd) {
+				std::cerr << "(prep)Start > End: " << prepStart << " > "
+						  << prepEnd << "\n";
+			}
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}
 
 		try {
 			execStart = std::chrono::high_resolution_clock::now();
+			PreventReordering(execStart);
 			measurement = executor->execute();
+			// Insert a memory barrier to enforce order
 			execEnd = std::chrono::high_resolution_clock::now();
+			PreventReordering(execEnd);
+			if (execStart > execEnd) {
+				std::cerr << "(exec)Start > End: " << execStart << " > "
+						  << execEnd << "\n";
+			}
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}
