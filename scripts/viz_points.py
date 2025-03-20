@@ -10,7 +10,9 @@ from sklearn.preprocessing import StandardScaler
 
 
 # folder = 'data/timestamps/FAKE/'
-folder = 'data/timestamps/2dd-queue-opt-1ms/'
+# folder = 'data/timestamps/2dd-queue-opt-1ms/'
+folder = 'data/benchData/2ddqopt-w512-l256-i10000-n2-d30/'
+
 # folder = 'data/timestamps/2dd-queue-opt-500ms/'
 xs = pd.read_csv(
     folder + 'combined_put_stamps.txt',
@@ -42,9 +44,16 @@ plt.figure(figsize=(8, 6))  # Set the figure size
 plt.scatter(points['timestamp_start'], points['timestamp_end'], c='blue', alpha=0.6, edgecolors='w', s=50, label='Points')
 
 # Customize plot
-plt.title('Scatter Plot of Random Points', fontsize=14)
-plt.xlabel('X-axis', fontsize=12)
-plt.ylabel('Y-axis', fontsize=12)
+splits = folder.split('/')
+name_split = splits[2].split('-')
+w = name_split[1][1:]
+l = name_split[2][1:]
+i = name_split[3][1:]
+n = name_split[4][1:]
+d = name_split[5][1:]
+plt.title(f'2Dd-queue with params:\nwidth={w}, length={l}, initial size={i}, threads={n}, duration={d}', fontsize=14)
+plt.xlabel('Push time', fontsize=12)
+plt.ylabel('Pop time', fontsize=12)
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.7)
 
