@@ -2,7 +2,7 @@ project(SemanticRelaxation VERSION 0.1)
 
 add_executable(SemanticRelaxation)
 
-target_compile_options(SemanticRelaxation PRIVATE -fpie -fpic -O3)
+target_compile_options(SemanticRelaxation PRIVATE -fpie -fpic -Og)
 
 add_subdirectory(
     impl

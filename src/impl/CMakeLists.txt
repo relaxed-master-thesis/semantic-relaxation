@@ -16,4 +16,5 @@ target_sources(SemanticRelaxation PRIVATE
     FenwickAImp.cpp
     MonteSweepingLine.cpp
     SweepingLineAImp.cpp
+    MinMax2DDAImp.cpp
 )

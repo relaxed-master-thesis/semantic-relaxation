@@ -1,5 +1,6 @@
-#include "bench/util/QKParser.h"
+#include "bench/util/TimestampParser.h"
 #include "bench/Operation.h"
+#include "bench/util/InputData.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -28,8 +29,9 @@ parseFile(const std::string &file) {
 }
 
 InputData TimestampParser::parse(const std::string &getOps,
-						  const std::string &putOps) {
-	return InputData(parseFile(getOps), parseFile(putOps));
+								 const std::string &putOps) {
+	const auto gets = parseFile(getOps);
+	const auto puts = parseFile(putOps);
+	return InputData(gets, puts);
 }
-
 } // namespace bench

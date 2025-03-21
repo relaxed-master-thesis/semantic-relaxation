@@ -49,7 +49,7 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=3
+        testDurMs=100
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000
@@ -79,16 +79,13 @@ Benchmark()
 
 Compile()
 {
-    cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+    cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=OFF
     cmake --build ./build
 
     if [ ! $? -eq 0 ]; then
         echo "Build failed"
         exit
     fi
-
-    # solve directory problems SIGMA
-    # mv ./build/src/SemanticRelaxation .
 }
 
 Run()
@@ -101,6 +98,7 @@ Run()
     runArg="./build/src/SemanticRelaxation -t ${t} -i ${dataPath} -r ${r}"
     eval "$runArg"
 }
+
 Plot()
 {
     # plot data
@@ -112,8 +110,9 @@ optBench=false
 optCompile=false
 optRun=false
 optPlot=false
+optSingle=false
 
-while getopts ":hcrbp" option; do
+while getopts ":hcrbps" option; do
     case $option in
         h) # display help
             Help

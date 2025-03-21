@@ -8,13 +8,14 @@
 #include "bench/impl/GeijerImp.h"
 #include "bench/impl/HeuristicGeijer.h"
 #include "bench/impl/IVTImp.h"
+#include "bench/impl/MinMax2DDAImp.h"
 #include "bench/impl/MonteSweepingLine.h"
 #include "bench/impl/ParallelBatchImp.h"
 #include "bench/impl/ParallelGeijerImp.h"
 #include "bench/impl/ReplayImp.h"
 #include "bench/impl/SweepingLineAImp.h"
 #include "bench/impl/SweepingLineImp.h"
-#include "bench/util/QKParser.h"
+#include "bench/util/TimestampParser.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -157,12 +158,13 @@ int main(int argc, char *argv[]) {
 	myBench.loadData()
 		.verifyData(true)
 		// .addConfig<bench::FenwickImp>()
-		.addConfig<bench::SweepingLineImp>()
-		.addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
-		.addConfig<bench::GeijerBatchImp>()
-		// .addConfig<bench::SweepingLineAImp>(0.1f)
-		// .addConfig<bench::FenwickAImp>(0.1f)
-		// .addConfig<bench::MonteSweepingLine>(0.1)
+		// .addConfig<bench::SweepingLineImp>()
+		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
+		// .addConfig<bench::GeijerBatchImp>()
+		.addConfig<bench::SweepingLineAImp>(0.1f)
+		.addConfig<bench::FenwickAImp>(0.1f)
+		.addConfig<bench::MonteSweepingLine>(0.1)
+		.addConfig<bench::MinMax2DDAImp>(0.1f, 512, 256)
 		.run();
 	myBench.printResults();
 }

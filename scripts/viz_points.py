@@ -1,17 +1,10 @@
-from statsmodels.nonparametric.kernel_density import KDEMultivariate
-import torch
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from sklearn.neighbors import KernelDensity
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-
-
 
 # folder = 'data/timestamps/FAKE/'
 # folder = 'data/timestamps/2dd-queue-opt-1ms/'
-folder = 'data/benchData/2ddqopt-w512-l256-i10000-n2-d30/'
+folder = 'data/benchData/2ddqopt-w256-l128-i1000000-n16-d10/'
 
 # folder = 'data/timestamps/2dd-queue-opt-500ms/'
 xs = pd.read_csv(
@@ -41,7 +34,7 @@ points = pd.merge(
 
 # Create scatter plot
 plt.figure(figsize=(8, 6))  # Set the figure size
-plt.scatter(points['timestamp_start'], points['timestamp_end'], c='blue', alpha=0.6, edgecolors='w', s=50, label='Points')
+plt.scatter(points['timestamp_start'], points['timestamp_end'], c='blue', alpha=0.6, edgecolors='black', s=50, label='Points')
 
 # Customize plot
 splits = folder.split('/')

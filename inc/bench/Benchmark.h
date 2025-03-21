@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/util/QKParser.h"
+#include "bench/util/TimestampParser.h"
 #include <cstddef>
 #include <cstdint>
 #include <format>
@@ -62,11 +62,11 @@ class AbstractExecutor {
 
 class AccurateExecutor : public AbstractExecutor {
   public:
-	BenchmarkType type() { return BenchmarkType::Accurate; }
+	BenchmarkType type() final { return BenchmarkType::Accurate; }
 };
 class ApproximateExecutor : public AbstractExecutor {
   public:
-	BenchmarkType type() { return BenchmarkType::Approximate; }
+	BenchmarkType type() final { return BenchmarkType::Approximate; }
 	enum class CountingType { SHARE, AMOUNT };
 };
 
@@ -132,6 +132,7 @@ template <class Baseline> class Benchmark {
 
 		return *this;
 	}
+	
 	Benchmark &verifyData(bool cleanup = false) {
 		// verify that no puts are after gets
 		std::unordered_map<uint64_t, uint64_t> get_val_to_time{};
@@ -219,7 +220,9 @@ template <class Baseline> class Benchmark {
 			const auto prepStart = clock_type::now();
 			executor->prepare(data);
 			const auto prepEnd = clock_type::now();
-			prepTime = std::chrono::duration_cast<std::chrono::microseconds>(prepEnd - prepStart).count();
+			prepTime = std::chrono::duration_cast<std::chrono::microseconds>(
+						   prepEnd - prepStart)
+						   .count();
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}
@@ -228,7 +231,9 @@ template <class Baseline> class Benchmark {
 			const auto execStart = clock_type::now();
 			measurement = executor->execute();
 			const auto execEnd = clock_type::now();
-			execTime = std::chrono::duration_cast<std::chrono::microseconds>(execEnd - execStart).count();
+			execTime = std::chrono::duration_cast<std::chrono::microseconds>(
+						   execEnd - execStart)
+						   .count();
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}

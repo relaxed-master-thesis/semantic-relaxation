@@ -30,7 +30,6 @@ struct InputData {
 		gets->erase(gets->begin() + get_idx);
 		puts->erase(puts->begin() + put_idx);
 	}
-	
 
   private:
 	std::shared_ptr<std::vector<Operation>> gets;

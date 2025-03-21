@@ -73,11 +73,7 @@ void FenwickAImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	auto puts = data.getPuts();
 
-    // bara spara minne, exakt, just in case
-	intervals.resize(puts->size());
-
 	std::unordered_map<int64_t, size_t> getMap{};
-    std::unordered_set<int64_t> getSet{};
 	int64_t time = 0;
 
     size_t numGets = gets->size() * counting_share;
@@ -101,7 +97,7 @@ void FenwickAImp::prepare(const InputData &data) {
 	int64_t min_get_time = puts->size() + 1;
     while (gets_found <= numGets && i < puts->size()) {
         const auto &put = puts->at(i);
-        auto &interval = intervals.at(i);
+		SInterval interval{};
         interval.start = put.time;
         interval.value = put.value;
         if (getMap.contains(put.value)) {
@@ -111,8 +107,11 @@ void FenwickAImp::prepare(const InputData &data) {
         } else {
             interval.end = std::numeric_limits<int64_t>::max();
         }
+		intervals.push_back(interval);
         ++i;
     }
+
+	std::cout << "intervals: " << intervals.size() << "\n";
     // yep
     // vet du vad jag kan göra såhär istället
 
