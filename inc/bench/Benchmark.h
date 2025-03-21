@@ -201,52 +201,45 @@ template <class Baseline> class Benchmark {
 	}
 
   private:
-	template <class T> inline void PreventReordering(const T &value) {
-		asm volatile("" : : "m"(value) : "memory");
-	}
+	// template <class T> inline void PreventReordering(const T &value) {
+	// 	asm volatile("" : : "m"(value) : "memory");
+	// }
 	Result runSingle(std::shared_ptr<AbstractExecutor> &executor,
 					 const InputData &data) {
-		using timepoint =
-			std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-		timepoint prepStart, prepEnd, execStart, execEnd;
+		using clock_type = typename std::conditional<
+			std::chrono::high_resolution_clock::is_steady,
+			std::chrono::high_resolution_clock,
+			std::chrono::steady_clock>::type;
+
 		AbstractExecutor::Measurement measurement;
+		long prepTime{0}, execTime{0};
 
 		try {
-			prepStart = std::chrono::high_resolution_clock::now();
-			PreventReordering(prepStart);
+			const auto prepStart = clock_type::now();
 			executor->prepare(data);
-			prepEnd = std::chrono::high_resolution_clock::now();
-			PreventReordering(prepEnd);
-			if (prepStart > prepEnd) {
-				std::cerr << "(prep)Start > End: " << prepStart << " > "
-						  << prepEnd << "\n";
-			}
+			const auto prepEnd = clock_type::now();
+			prepTime = std::chrono::duration_cast<std::chrono::microseconds>(prepEnd - prepStart).count();
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}
 
 		try {
-			execStart = std::chrono::high_resolution_clock::now();
-			PreventReordering(execStart);
+			const auto execStart = clock_type::now();
 			measurement = executor->execute();
-			// Insert a memory barrier to enforce order
-			execEnd = std::chrono::high_resolution_clock::now();
-			PreventReordering(execEnd);
-			if (execStart > execEnd) {
-				std::cerr << "(exec)Start > End: " << execStart << " > "
-						  << execEnd << "\n";
-			}
+			const auto execEnd = clock_type::now();
+			execTime = std::chrono::duration_cast<std::chrono::microseconds>(execEnd - execStart).count();
 		} catch (const std::exception &e) {
 			results.emplace_back(std::string(e.what()));
 		}
 
-		auto prepTime = std::chrono::duration_cast<std::chrono::microseconds>(
-							prepEnd - prepStart)
-							.count();
-		auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(
-							execEnd - execStart)
-							.count();
+		if (prepTime < 0 || prepTime > 1'000'000'000) {
+			std::cerr << "(prep) Start > End: " << prepTime << "\n";
+		}
+
+		if (execTime < 0 || execTime > 1'000'000'000) {
+			std::cerr << "(prep) Start > End: " << prepTime << "\n";
+		}
 
 		return {prepTime, execTime, measurement};
 	}
@@ -313,7 +306,7 @@ template <class Baseline> class Benchmark {
 								   calc_speedup)),
 				  prep(std::format("{} ({:.2f})", timeToNiceStr(prep),
 								   prep_speedup)),
-				  type(type) {};
+				  type(type){};
 
 			static std::string timeToNiceStr(long time) {
 				if (time < 1'000)
