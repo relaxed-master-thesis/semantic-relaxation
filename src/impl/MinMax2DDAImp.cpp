@@ -62,35 +62,6 @@ void MinMax2DDAImp::reset() {
 }
 
 void MinMax2DDAImp::prepare(const InputData &data) {
-	/*
-	std::unordered_map<uint64_t, uint64_t> getMap{};
-	for (const auto &get : *data.getGets()) {
-		getMap[get.value] = get.time;
-	}
-
-	for (const auto &put : *data.getPuts()) {
-		if (getMap.find(put.value) != getMap.end()) {
-			points.emplace_back(put.time, getMap[put.value]);
-		}
-	}
-
-	if (expectedHeight == 0 || expectedWidth == 0) {
-		throw std::runtime_error("Expected height and width must be set");
-	}
-
-	size_t maxIdx = points.size() * countingShare;
-	size_t offset = expectedWidth * expectedHeight;
-	for (size_t i = 0; i < maxIdx; i += offset) {
-		ranges.emplace_back(i, i + offset);
-	}
-
-	auto comp = [](const point &a, const point &b) {
-		return a.first < b.first;
-	};
-	if (!std::is_sorted(points.begin(), points.end(), comp)) {
-		throw std::runtime_error("Points must be sorted");
-	}
-	*/
 	const auto gets = data.getGets();
 	const auto puts = data.getPuts();
 	size_t nElems = puts->size() * countingShare;

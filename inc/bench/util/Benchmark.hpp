@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bench/util/Executor.hpp"
+#include "bench/util/InputData.hpp"
 #include "bench/util/TimestampParser.hpp"
 
 #include <cassert>
@@ -26,8 +27,6 @@
 
 namespace bench {
 
-// TODO: enforce shared data format between parser and executor
-// or create shared format
 struct Result {
   public:
 	Result() = delete;
@@ -71,7 +70,7 @@ class Benchmark {
   public:
 	Benchmark() = delete;
 
-	Benchmark(const BenchCfg &cfg) : cfg(cfg) {}
+	Benchmark(const BenchCfg &cfg);
 
 	template <class Base, typename... Args>
 	Benchmark &setBaseline(Args &&...args) {
@@ -98,12 +97,14 @@ class Benchmark {
 	void printResults();
 
   private:
-	Result runSingle(std::shared_ptr<AbstractExecutor> executor,
-					 const InputData &data);
+
+	Result runSingle(std::shared_ptr<AbstractExecutor> executor);
+	Result runCumulative(std::shared_ptr<AbstractExecutor> executor,
+						 Result &initialResult);
 
 	std::vector<std::shared_ptr<AbstractExecutor>> executors{};
 	std::vector<Result> results{};
-	const BenchCfg &cfg;
-	bench::InputData data;
+	const BenchCfg cfg;
+	InputData data;
 };
 } // namespace bench

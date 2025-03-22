@@ -29,7 +29,9 @@ class AbstractExecutor {
 			return std::abs(mean - other.mean) < eps && max == other.max;
 		}
 
-		bool operator!=(const Measurement &other) { return !(*this == other); }
+		bool operator!=(const Measurement &other) { 
+			return std::abs(mean - other.mean) > eps || max != other.max; 
+		}
 
 		const double eps = 0.0001;
 		long double mean;

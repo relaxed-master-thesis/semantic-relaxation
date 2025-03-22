@@ -91,6 +91,7 @@ void SweepingLineAImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement SweepingLineAImp::execute() {
 	return calcMaxMeanError();
 }
+
 void SweepingLineAImp::reset() {
 	events.clear();
 	get_stamps = nullptr;
