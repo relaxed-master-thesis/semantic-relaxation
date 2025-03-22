@@ -1,5 +1,5 @@
 #include "bench/impl/SweepingLineImp.hpp"
-#include "bench/Operation.hpp"
+#include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
 
 #include <cstdint>

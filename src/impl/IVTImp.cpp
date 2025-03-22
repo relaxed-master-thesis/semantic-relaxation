@@ -1,7 +1,7 @@
 #include "bench/impl/IVTImp.hpp"
 #include "bench/util/Executor.hpp"
 // #include "bench/Interval.h"
-#include "bench/Operation.hpp"
+#include "bench/util/Operation.hpp"
 
 #include <cstddef>
 #include <cstdint>

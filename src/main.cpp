@@ -1,4 +1,4 @@
-#include "bench/Benchmark.hpp"
+#include "bench/util/Benchmark.hpp"
 #include "bench/impl/AITImp.hpp"
 #include "bench/impl/BatchPopImp.hpp"
 #include "bench/impl/FAAImp.hpp"
@@ -153,10 +153,11 @@ int main(int argc, char *argv[]) {
 
 	bench::BenchCfg cfg = optCfg.value();
 	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
-	bench::Benchmark<bench::FenwickImp> myBench{cfg};
+	bench::Benchmark myBench{cfg};
 
 	myBench.loadData()
 		.verifyData(true)
+		.setBaseline<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::SweepingLineImp>()
 		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)

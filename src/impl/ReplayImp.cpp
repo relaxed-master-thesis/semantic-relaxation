@@ -1,5 +1,5 @@
 #include "bench/impl/ReplayImp.hpp"
-#include "bench/Operation.hpp"
+#include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
 #include "bench/util/VectorQueue.hpp"
 

@@ -1,5 +1,5 @@
 #include "bench/util/TimestampParser.hpp"
-#include "bench/Operation.hpp"
+#include "bench/util/Operation.hpp"
 #include "bench/util/InputData.hpp"
 
 #include <cstdint>
