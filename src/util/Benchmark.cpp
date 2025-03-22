@@ -191,7 +191,7 @@ void Benchmark::printResults() {
 				return std::format("{}us", time);
 			if (time < 1'000'000)
 				return std::format("{:.2f}ms", (float)time / 1000.0);
-			if (time < 1'000'000'000)
+			if (time < 60'000'000)
 				return std::format("{:.2f}s", (float)time / 1'000'000.0);
 
 			auto timeInSeconds = time / 1'000'000;
