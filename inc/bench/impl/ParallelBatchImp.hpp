@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/Benchmark.h"
+#include "bench/util/Executor.hpp"
 
 #include <cstddef>
 #include <cstdint>

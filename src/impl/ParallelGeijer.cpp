@@ -1,9 +1,9 @@
-#include "bench/impl/ParallelGeijerImp.h"
-#include "bench/Benchmark.h"
-#include "bench/impl/ParallelGeijerImp.h"
+#include "bench/impl/ParallelGeijerImp.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <omp.h>
 
@@ -91,11 +91,11 @@ void ParallelGeijerImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ParallelGeijerImp::execute() {
 	return calcMaxMeanError();
 }
-void ParallelGeijerImp::reset(){
+void ParallelGeijerImp::reset() {
 	free(put_stamps_head);
 	put_stamps_head = nullptr;
 	get_stamps = nullptr;
-	put_stamps_size	= 0;
-	get_stamps_size	= 0;
+	put_stamps_size = 0;
+	get_stamps_size = 0;
 }
 } // namespace bench

@@ -6,31 +6,31 @@
 
 namespace bench {
 template <typename T> class FenwickTree {
-    static_assert(std::is_integral<T>::value, "T must be an integral type");
+	static_assert(std::is_integral<T>::value, "T must be an integral type");
 
-    public:
-    FenwickTree(int n) : BIT(n + 1, 0) {};
-    ~FenwickTree() = default;
+  public:
+	FenwickTree(int n) : BIT(n + 1, 0){};
+	~FenwickTree() = default;
 
-    void update(int64_t idx, T val) {
-        while (idx < BIT.size()) {
-            BIT[idx] += val;
-            idx += idx & -idx;
-        }
-    }
+	void update(int64_t idx, T val) {
+		while (idx < BIT.size()) {
+			BIT[idx] += val;
+			idx += idx & -idx;
+		}
+	}
 
-    T query(int64_t idx) {
-        T sum = 0;
-        while (idx > 0) {
-            sum += BIT[idx];
-            idx -= idx & -idx;
-        }
-        return sum;
-    }
+	T query(int64_t idx) {
+		T sum = 0;
+		while (idx > 0) {
+			sum += BIT[idx];
+			idx -= idx & -idx;
+		}
+		return sum;
+	}
 
-    const std::vector<T> &getBit() const { return BIT; }
+	const std::vector<T> &getBit() const { return BIT; }
 
-    private:
-        std::vector<T> BIT;
+  private:
+	std::vector<T> BIT;
 };
 } // namespace bench

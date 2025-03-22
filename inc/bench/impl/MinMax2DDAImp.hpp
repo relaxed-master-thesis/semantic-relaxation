@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/Benchmark.h"
+#include "bench/util/Executor.hpp"
 
 namespace bench {
 class MinMax2DDAImp : public ApproximateExecutor {
@@ -9,8 +9,9 @@ class MinMax2DDAImp : public ApproximateExecutor {
 
   public:
 	MinMax2DDAImp() = default;
-	MinMax2DDAImp(float share, size_t expectedHeight,size_t expectedWidth)
-		: countingShare(share), expectedHeight(expectedHeight), expectedWidth(expectedWidth) {}
+	MinMax2DDAImp(float share, size_t expectedHeight, size_t expectedWidth)
+		: countingShare(share), expectedHeight(expectedHeight),
+		  expectedWidth(expectedWidth) {}
 
 	void prepare(const InputData &data) override;
 	Measurement execute() override;

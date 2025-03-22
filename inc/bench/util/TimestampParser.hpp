@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/util/AbstractParser.h"
+#include "bench/util/Parser.hpp"
 
 #include <memory.h>
 #include <stdint.h>

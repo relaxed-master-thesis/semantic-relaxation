@@ -1,6 +1,6 @@
-#include "bench/util/TimestampParser.h"
-#include "bench/Operation.h"
-#include "bench/util/InputData.h"
+#include "bench/util/TimestampParser.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/InputData.hpp"
 
 #include <cstdint>
 #include <cstdio>

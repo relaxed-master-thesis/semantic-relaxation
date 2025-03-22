@@ -1,6 +1,6 @@
-#include "bench/impl/SweepingLineImp.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/impl/SweepingLineImp.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -76,7 +76,7 @@ void SweepingLineImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement SweepingLineImp::execute() {
 	return calcMaxMeanError();
 }
-void SweepingLineImp::reset(){
+void SweepingLineImp::reset() {
 	events.clear();
 	get_stamps = nullptr;
 	get_stamps_size = 0;

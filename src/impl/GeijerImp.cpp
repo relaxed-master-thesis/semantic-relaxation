@@ -1,6 +1,6 @@
-#include "bench/impl/GeijerImp.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/impl/GeijerImp.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <memory>
 
@@ -82,7 +82,7 @@ void GeijerImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement GeijerImp::execute() {
 	return calcMaxMeanError();
 }
-void GeijerImp::reset(){
+void GeijerImp::reset() {
 	get_stamps = nullptr;
 	free(put_stamps_head);
 	put_stamps_head = nullptr;

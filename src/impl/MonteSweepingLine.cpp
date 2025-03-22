@@ -1,6 +1,6 @@
-#include "bench/impl/MonteSweepingLine.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/impl/MonteSweepingLine.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,7 +44,7 @@ void MonteSweepingLine::prepare(const InputData &data) {
 	}
 	auto puts = data.getPuts();
 	size_t num_puts = puts->size() * counting_share;
-	if(num_puts < 1000){
+	if (num_puts < 1000) {
 		num_puts = 1000;
 		counting_share = (float)1000 / puts->size();
 	}
@@ -54,7 +54,8 @@ void MonteSweepingLine::prepare(const InputData &data) {
 		size_t idx = xorshf96() % (puts->size() - i);
 		const Operation &put = puts->at(idx);
 		uint64_t end_time = 0;
-		end_time = getMap.find(put.value) == getMap.end() ? ~0 : getMap[put.value];
+		end_time =
+			getMap.find(put.value) == getMap.end() ? ~0 : getMap[put.value];
 
 		events[i * 2] = {EventType::START, put.time, put.time, end_time};
 		events[i * 2 + 1] = {EventType::END, end_time, put.time, end_time};
@@ -69,7 +70,7 @@ void MonteSweepingLine::prepare(const InputData &data) {
 AbstractExecutor::Measurement MonteSweepingLine::execute() {
 	return calcMaxMeanError();
 }
-void MonteSweepingLine::reset(){
+void MonteSweepingLine::reset() {
 	events.clear();
 	end_tree.clear();
 	get_stamps = nullptr;

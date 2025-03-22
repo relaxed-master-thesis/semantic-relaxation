@@ -1,10 +1,11 @@
-#include "bench/impl/IVTImp.h"
-#include "bench/Benchmark.h"
+#include "bench/impl/IVTImp.hpp"
+#include "bench/util/Executor.hpp"
 // #include "bench/Interval.h"
-#include "bench/Operation.h"
+#include "bench/Operation.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <stack>
 #include <unordered_set>
 #include <vector>
@@ -289,7 +290,7 @@ void IVTImp::prepare(const InputData &data) {
 }
 
 AbstractExecutor::Measurement IVTImp::execute() { return calcMaxMeanError(); }
-void IVTImp::reset(){
+void IVTImp::reset() {
 	tree.getArr().clear();
 	put_stamps = nullptr;
 	get_stamps = nullptr;

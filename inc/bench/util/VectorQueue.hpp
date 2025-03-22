@@ -1,11 +1,11 @@
 #pragma once
 
-#include "bench/util/GNUOrderedSet.h"
+#include "bench/util/GNUOrderedSet.hpp"
 
 #include <cstdint>
 #include <cstdio>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace bench {
 template <class T> class VectorQueue {

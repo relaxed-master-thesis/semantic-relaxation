@@ -1,11 +1,10 @@
-#include "bench/impl/BatchPopImp.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
-#include "bench/util/VectorQueue.h"
+#include "bench/impl/BatchPopImp.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/VectorQueue.hpp"
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>

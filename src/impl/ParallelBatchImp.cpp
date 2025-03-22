@@ -1,7 +1,7 @@
-#include "bench/impl/ParallelBatchImp.h"
-#include "bench/Benchmark.h"
+#include "bench/impl/ParallelBatchImp.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/GNUOrderedSet.hpp"
 
-#include "bench/util/GNUOrderedSet.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -521,7 +521,7 @@ void ParallelBatchImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ParallelBatchImp::execute() {
 	return calcMaxMeanError();
 }
-void ParallelBatchImp::reset(){
+void ParallelBatchImp::reset() {
 	intervals.clear();
 	numGets = 0;
 	subProblems.clear();

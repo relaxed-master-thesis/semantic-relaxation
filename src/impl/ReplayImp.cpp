@@ -1,7 +1,7 @@
-#include "bench/impl/ReplayImp.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
-#include "bench/util/VectorQueue.h"
+#include "bench/impl/ReplayImp.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/VectorQueue.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -90,7 +90,7 @@ void ReplayImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement ReplayImp::execute() {
 	return calcMaxMeanError();
 }
-void ReplayImp::reset(){
+void ReplayImp::reset() {
 	put_stamps = nullptr;
 	get_stamps = nullptr;
 	put_stamps_size = 0;

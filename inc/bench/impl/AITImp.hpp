@@ -1,10 +1,8 @@
 #pragma once
 
-#include "bench/Benchmark.h"
-// #include "bench/Interval.h"
-#include "bench/Operation.h"
-// #include "bench/util/AugmentedIntervalTree.h"
-#include "bench/util/VectorTree.h"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/VectorTree.hpp"
 
 #include <cstdint>
 #include <memory>

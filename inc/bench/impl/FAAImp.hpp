@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/Benchmark.h"
+#include "bench/util/Executor.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -28,19 +28,20 @@ class IMEImp : public ApproximateExecutor {
 	Measurement execute() override;
 	Measurement calcMaxMeanError() override;
 	void reset() override;
-private:
-    struct Interval {
-        Interval() = default;
-        Interval(uint64_t start, uint64_t end) : start(start), end(end) {}
 
-        uint64_t start, end, pop_idx;
-        bool was_popped{false};
-    };
+  private:
+	struct Interval {
+		Interval() = default;
+		Interval(uint64_t start, uint64_t end) : start(start), end(end) {}
 
-    uint64_t intv_avg_size{0};
-    uint64_t exec_start{0}, exec_end{0};
-    uint64_t put_count{0}, get_count{0};
-    std::vector<Interval> intervals{};
+		uint64_t start, end, pop_idx;
+		bool was_popped{false};
+	};
+
+	uint64_t intv_avg_size{0};
+	uint64_t exec_start{0}, exec_end{0};
+	uint64_t put_count{0}, get_count{0};
+	std::vector<Interval> intervals{};
 };
 
 } // namespace bench

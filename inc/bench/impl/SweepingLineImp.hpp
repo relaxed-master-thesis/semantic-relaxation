@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
-#include "bench/util/GNUOrderedSet.h"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/GNUOrderedSet.hpp"
 
 #include <cstdint>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -11,15 +11,12 @@
 #include <memory.h>
 #include <vector>
 
-
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineAImp : public ApproximateExecutor {
+class SweepingLineImp : public AccurateExecutor {
   public:
-	SweepingLineAImp() = default;
-	SweepingLineAImp(float counting_share) : counting_share(counting_share), counting_type(CountingType::SHARE) {};
-	SweepingLineAImp(uint64_t counting_ammount) : counting_amount(counting_ammount), counting_type(CountingType::AMOUNT) {};
-	~SweepingLineAImp() = default;
+	SweepingLineImp() = default;
+	~SweepingLineImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
@@ -43,8 +40,5 @@ class SweepingLineAImp : public ApproximateExecutor {
 	// std::set<uint64_t> end_tree;
 	ordered_set<uint64_t, std::greater<uint64_t>> end_tree;
 	uint64_t get_stamps_size;
-	float counting_share{1.f};
-	CountingType counting_type;
-	uint64_t counting_amount{0};
 };
 } // namespace bench

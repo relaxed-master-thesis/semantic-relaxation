@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <memory.h>
 #include <vector>

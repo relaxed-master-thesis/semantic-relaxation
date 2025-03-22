@@ -1,6 +1,6 @@
-#include "bench/impl/SweepingLineAImp.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/impl/SweepingLineAImp.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -39,7 +39,7 @@ void SweepingLineAImp::prepare(const InputData &data) {
 	std::unordered_set<uint64_t> getSet{};
 	// get n% of gets
 	int gets_to_count = gets->size() * counting_share;
-	if(counting_type == CountingType::AMOUNT){
+	if (counting_type == CountingType::AMOUNT) {
 		gets_to_count = counting_amount;
 		gets_to_count = std::min(gets_to_count, (int)gets->size());
 	}
@@ -49,7 +49,7 @@ void SweepingLineAImp::prepare(const InputData &data) {
 		getMap[get.value] = get.time;
 		getSet.insert(get.value);
 		counted_gets++;
-		if(counted_gets >= gets_to_count) {
+		if (counted_gets >= gets_to_count) {
 			break;
 		}
 	}
@@ -77,7 +77,7 @@ void SweepingLineAImp::prepare(const InputData &data) {
 		end_event.start_time = put.time;
 		end_event.end_time = end_time;
 		events.push_back(end_event);
-		if(counted_puts >= gets_to_count) {
+		if (counted_puts >= gets_to_count) {
 			break;
 		}
 	}
@@ -91,7 +91,7 @@ void SweepingLineAImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement SweepingLineAImp::execute() {
 	return calcMaxMeanError();
 }
-void SweepingLineAImp::reset(){
+void SweepingLineAImp::reset() {
 	events.clear();
 	get_stamps = nullptr;
 	get_stamps_size = 0;

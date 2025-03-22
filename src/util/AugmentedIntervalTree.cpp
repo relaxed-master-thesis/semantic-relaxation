@@ -1,4 +1,4 @@
-#include "bench/util/AugmentedIntervalTree.h"
+#include "bench/util/AugmentedIntervalTree.hpp"
 
 #include <memory>
 

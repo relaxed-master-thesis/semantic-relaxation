@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bench/Benchmark.h"
-#include "bench/util/VectorTree.h"
+#include "bench/util/Executor.hpp"
+#include "bench/util/VectorTree.hpp"
 
 #include <cmath>
 #include <unordered_map>

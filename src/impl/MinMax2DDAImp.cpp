@@ -1,5 +1,5 @@
-#include "bench/impl/MinMax2DDAImp.h"
-#include "bench/Benchmark.h"
+#include "bench/impl/MinMax2DDAImp.hpp"
+#include "bench/util/Executor.hpp"
 #include "bench/util/FenwickTree.hpp"
 
 #include <algorithm>
@@ -101,7 +101,7 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	size_t getsSize = gets->size();
 	size_t boxSize = expectedHeight * expectedWidth;
 	size_t numBoxes = (nElems / boxSize) + 1;
-	size_t elemsToCount = std::min(numBoxes * boxSize, data.getGets()->size());
+	size_t elemsToCount = std::min(numBoxes * boxSize, getsSize);
 
 	std::unordered_map<uint64_t, int> getMap{};
 	for (size_t i = 0; i < elemsToCount; ++i) {

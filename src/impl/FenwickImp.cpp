@@ -1,4 +1,4 @@
-#include "bench/impl/FenwickImp.h"
+#include "bench/impl/FenwickImp.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -35,7 +35,7 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 	for (size_t i = 0; i < n; ++i) {
 		sortedEnds[i] = intervals[i].end;
 	}
-	
+
 	std::ranges::sort(sortedEnds);
 	std::unordered_map<int64_t, int64_t> endIndices{};
 	for (int64_t i = 0; i < n; ++i) {
@@ -99,7 +99,5 @@ void FenwickImp::prepare(const InputData &data) {
 AbstractExecutor::Measurement FenwickImp::execute() {
 	return calcMaxMeanError();
 }
-void FenwickImp::reset() {
-	intervals.clear();
-}
+void FenwickImp::reset() { intervals.clear(); }
 } // namespace bench

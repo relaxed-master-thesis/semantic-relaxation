@@ -1,6 +1,7 @@
-#include "bench/impl/HeuristicGeijer.h"
-#include "bench/Benchmark.h"
-#include "bench/Operation.h"
+#include "bench/impl/HeuristicGeijer.hpp"
+#include "bench/Operation.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/GNUOrderedSet.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -8,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include "bench/util/GNUOrderedSet.h"
 
 namespace bench {
 
@@ -72,8 +72,6 @@ AbstractExecutor::Measurement HeuristicGeijer::calcMaxMeanErrorBatch() {
 		int dels = pops.size();
 		// map of all pops and where they were found
 		ordered_set<int, std::less<int>> found_pops;
-
-		
 
 		uint64_t found = 0;
 		while (found < dels && pops.contains(head->value)) {
@@ -211,7 +209,7 @@ void HeuristicGeijer::prepare(const InputData &data) {
 AbstractExecutor::Measurement HeuristicGeijer::execute() {
 	return calcMaxMeanError();
 }
-void HeuristicGeijer::reset(){
+void HeuristicGeijer::reset() {
 	put_stamps = nullptr;
 	get_stamps = nullptr;
 	put_stamps_size = 0;

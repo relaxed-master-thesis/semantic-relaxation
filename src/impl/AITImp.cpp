@@ -1,5 +1,4 @@
-#include "bench/impl/AITImp.h"
-#include "bench/Benchmark.h"
+#include "bench/impl/AITImp.hpp"
 
 #include <cassert>
 #include <cstdint>

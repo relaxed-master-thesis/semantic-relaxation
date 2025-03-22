@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/util/InputData.h"
+#include "bench/util/InputData.hpp"
 
 namespace bench {
 

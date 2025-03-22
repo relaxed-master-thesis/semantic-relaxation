@@ -1,6 +1,6 @@
-#include "bench/impl/GeijerBatchImp.h"
-#include "bench/Benchmark.h"
-#include "bench/util/GNUOrderedSet.h"
+#include "bench/impl/GeijerBatchImp.hpp"
+#include "bench/util/Executor.hpp"
+#include "bench/util/GNUOrderedSet.hpp"
 
 #include <cassert>
 #include <cstdint>

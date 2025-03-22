@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bench/Operation.h"
+#include "bench/Operation.hpp"
 #include <cstddef>
 #include <memory>
 #include <vector>
