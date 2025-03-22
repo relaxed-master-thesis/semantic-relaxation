@@ -76,7 +76,7 @@ class Benchmark {
 	template <class Base, typename... Args>
 	Benchmark &setBaseline(Args &&...args) {
 		static_assert(std::is_base_of<AbstractExecutor, Base>::value,
-					  "Baseline must be a subclass of AbstractExecutor");
+					  "typename must be a subclass of AbstractExecutor");
 		assert(executors.empty() && "Baseline must be set first");
 		executors.push_back(
 			std::make_shared<Base>(std::forward<Args>(args)...));
@@ -85,7 +85,7 @@ class Benchmark {
 
 	template <class T, typename... Args> Benchmark &addConfig(Args &&...args) {
 		static_assert(std::is_base_of<AbstractExecutor, T>::value,
-					  "U must be a subclass of AbstractExecutor");
+					  "typename must be a subclass of AbstractExecutor");
 		assert(!executors.empty() && "Baseline must be set first");
 		executors.push_back(std::make_shared<T>(std::forward<Args>(args)...));
 		return *this;
