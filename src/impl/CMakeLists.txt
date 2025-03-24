@@ -18,5 +18,5 @@ target_sources(SemanticRelaxation PRIVATE
     SweepingLineAImp.cpp
     MinMax2DDAImp.cpp
     OrderApproxImp.cpp
-    ParallelBox.cpp
+    ParallelBoxImp.cpp
 )

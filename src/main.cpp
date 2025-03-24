@@ -10,7 +10,7 @@
 #include "bench/impl/MinMax2DDAImp.hpp"
 #include "bench/impl/MonteSweepingLine.hpp"
 #include "bench/impl/ParallelBatchImp.hpp"
-#include "bench/impl/ParallelBox.hpp"
+#include "bench/impl/ParallelBoxImp.hpp"
 #include "bench/impl/ParallelGeijerImp.hpp"
 #include "bench/impl/ReplayImp.hpp"
 #include "bench/impl/SweepingLineAImp.hpp"
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 		.verifyData(true)
 		.setBaseline<bench::GeijerImp>()
 		.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelBox>(128, 64)
+		.addConfig<bench::ParallelBoxImp>(128, 64)
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::SweepingLineImp>()

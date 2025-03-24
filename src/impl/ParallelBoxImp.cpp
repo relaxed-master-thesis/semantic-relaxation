@@ -1,4 +1,4 @@
-#include "bench/impl/ParallelBox.hpp"
+#include "bench/impl/ParallelBoxImp.hpp"
 #include "bench/util/Executor.hpp"
 #include "bench/util/FenwickTree.hpp"
 
@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace bench {
-AbstractExecutor::Measurement ParallelBox::execute() {
+AbstractExecutor::Measurement ParallelBoxImp::execute() {
 	auto func = [this](size_t tid,
 					   std::pair<uint64_t, uint64_t> *results) -> void {
 		*results = calcBox(ranges.at(tid));
@@ -35,9 +35,9 @@ AbstractExecutor::Measurement ParallelBox::execute() {
 	return {rankMax, (long double)rankSum / gets->size()};
 }
 
-AbstractExecutor::Measurement ParallelBox::calcMaxMeanError() { return {0, 0}; }
+AbstractExecutor::Measurement ParallelBoxImp::calcMaxMeanError() { return {0, 0}; }
 
-std::pair<uint64_t, uint64_t> ParallelBox::calcBox(range r) {
+std::pair<uint64_t, uint64_t> ParallelBoxImp::calcBox(range r) {
 
 	std::vector<std::pair<int, int>> points{};
 	for (size_t i = r.from; i < r.to; ++i) {
@@ -89,7 +89,7 @@ std::pair<uint64_t, uint64_t> ParallelBox::calcBox(range r) {
 	return {max, sum};
 }
 
-void ParallelBox::prepare(const InputData &data) {
+void ParallelBoxImp::prepare(const InputData &data) {
 	if (height == 0 || width == 0) {
 		throw std::invalid_argument("Height and width must be set");
 	}
@@ -118,7 +118,7 @@ void ParallelBox::prepare(const InputData &data) {
 	}
 }
 
-void ParallelBox::reset() {
+void ParallelBoxImp::reset() {
 	gets = nullptr;
 	puts = nullptr;
 	ranges.clear();

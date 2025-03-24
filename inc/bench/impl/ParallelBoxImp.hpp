@@ -10,15 +10,15 @@
 #include <vector>
 
 namespace bench {
-class ParallelBox : public AccurateExecutor {
+class ParallelBoxImp : public AccurateExecutor {
   public:
 
     struct range {
         size_t from, to;
     };
 
-	ParallelBox(size_t height, size_t width) : height(height), width(width) {}
-    ~ParallelBox() = default;
+	ParallelBoxImp(size_t height, size_t width) : height(height), width(width) {}
+    ~ParallelBoxImp() = default;
 
 	Measurement execute() override;
 	Measurement calcMaxMeanError() override;
