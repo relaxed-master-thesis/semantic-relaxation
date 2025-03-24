@@ -19,13 +19,13 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        "8 4"
-        "16 8"
-        "32 16"
+        # "8 4"
+        # "16 8"
+        # "32 16"
         "64 32"
-        "128 64"
-        "256 128"
-        "512 256"
+        # "128 64"
+        # "256 128"
+        # "512 256"
     )
 
     if [ ! -d ../semantic-relaxation-dcbo ]; then
@@ -49,7 +49,7 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=100
+        testDurMs=1000
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000

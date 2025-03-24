@@ -161,6 +161,10 @@ Result Benchmark::runCumulative(std::shared_ptr<AbstractExecutor> executor,
 			std::cerr << "Different runs of " << execName
 					  << " do not yield same measurements, skipping...\n";
 			++fails;
+			std::cout << "Initial: " << initialResult.measurement.mean << " "
+					  << initialResult.measurement.max
+					  << " New: " << ires.measurement.mean << " "
+					  << ires.measurement.max << "\n";
 			continue;
 		}
 
@@ -248,7 +252,7 @@ TableEntry::TableEntry(const std::string &name, long double mean, uint64_t max,
 					   long prep, float prepSpeedup)
 	: isValid(true), name(name), mean(mean), max(max), tot(tot),
 	  totSpeedup(totSpeedup), calc(calc), calcSpeedup(calcSpeedup), prep(prep),
-	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)),
+	  prepSpeedup(prepSpeedup), smean(std::format("{}", mean)),
 	  smax(std::to_string(max)),
 	  stot(std::format("{} ({:.2f})", timeToNiceStr(tot), totSpeedup)),
 	  scalc(std::format("{} ({:.2f})", timeToNiceStr(calc), calcSpeedup)),
@@ -348,12 +352,12 @@ void Benchmark::printResults() {
 				(float)correct_max;
 			if (meanDiff > 0.1) {
 				meanCol = ANSI_Red;
-			} else if (meanDiff > 0.0001) {
+			} else if (meanDiff > 0.01) {
 				meanCol = ANSI_Yellow;
 			}
 			if (maxDiff > 0.1) {
 				maxCol = ANSI_Red;
-			} else if (maxDiff > 0.0001) {
+			} else if (maxDiff > 0.01) {
 				maxCol = ANSI_Yellow;
 			}
 		} else {

@@ -1,7 +1,8 @@
 #include "bench/impl/GeijerImp.hpp"
-#include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
+#include "bench/util/Operation.hpp"
 
+#include <format>
 #include <memory>
 
 namespace bench {
@@ -27,8 +28,8 @@ AbstractExecutor::Measurement GeijerImp::calcMaxMeanError() {
 				current = current->next;
 				rank_error += 1;
 				if (current->next == NULL) {
-					throw std::runtime_error("Out of bounds on finding "
-											 "matching relaxation enqueue\n");
+					throw std::runtime_error(
+						std::format("Put for elem {} not found\n", key));
 				}
 			}
 			// current->next has the removed item, so just unlink it from the

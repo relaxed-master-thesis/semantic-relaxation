@@ -5,7 +5,7 @@ import re
 
 # folder = 'data/timestamps/FAKE/'
 # folder = 'data/timestamps/2dd-queue-opt-1ms/'
-folder = 'data/benchData/2ddqopt-w512-l256-i1000000-n16-d100/'
+folder = 'data/benchData/2ddqopt-w64-l32-i10000-n2-d10/'
 
 # folder = 'data/timestamps/2dd-queue-opt-500ms/'
 xs = pd.read_csv(
@@ -28,12 +28,16 @@ points = pd.merge(
     xs,
     ys,
     on='id',
-    how='inner'  # Use left join to keep all starts
+    how='left'  # Use left join to keep all starts
 )
+
+# sort on start time
+points = points.sort_values(by='timestamp_start')
 
 # Create scatter plot
 plt.figure(figsize=(8, 6))  # Set the figure size
 plt.scatter(points['timestamp_start'], points['timestamp_end'], c='blue', alpha=0.6, edgecolors='black', s=50, label='Points')
+# do a scatter plot for a chunk size and each chunk has different colors
 
 # Customize plot
 splits = folder.split('/')
@@ -49,27 +53,32 @@ plt.ylabel('Pop time', fontsize=12)
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.7)
 
-xlines = []
-ylines = []
-i = 0
-while i < len(points):
-    # pushsum = sum(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
-    # pushavg = pushsum / (int(w) * int(l))
-    # popsum = sum(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
-    # popavg = popsum / (int(w) * int(l))
-    # xlines.append(pushavg)
-    # ylines.append(popavg)
-    xmin = min(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
-    xmax = max(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
-    ymin = min(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
-    ymax = max(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
-    # for j in range(int(w) * int(l)):
-    #     x, y = points.iloc[i + j]['timestamp_start'], points.iloc[i + j]['timestamp_end']
-    plt.axvline(x=xmin, color='r', linestyle='--')
-    plt.axvline(x=xmax, color='g', linestyle='--')
-    plt.axhline(y=ymin, color='r', linestyle='--')
-    plt.axhline(y=ymax, color='g', linestyle='--')
-    i += int(w) * int(l)
+for i in range(0, len(points), int(w) * int(l)):
+    plt.axvline(x=points.iloc[i]['timestamp_start'], color='r', linestyle='--')
+    plt.axhline(y=points.iloc[i]['timestamp_end'], color='r', linestyle='--')
+    # plt.scatter(points.iloc[i:i + int(w) * int(l)]['timestamp_start'], points.iloc[i:i + int(w) * int(l)]['timestamp_end'], c='blue', alpha=0.6, edgecolors='black', s=50, label='Points')
+
+# xlines = []
+# ylines = []
+# i = 0
+# while i < len(points):
+#     # pushsum = sum(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
+#     # pushavg = pushsum / (int(w) * int(l))
+#     # popsum = sum(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
+#     # popavg = popsum / (int(w) * int(l))
+#     # xlines.append(pushavg)
+#     # ylines.append(popavg)
+#     xmin = min(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
+#     xmax = max(points.iloc[i:i + int(w) * int(l)]['timestamp_start'])
+#     ymin = min(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
+#     ymax = max(points.iloc[i:i + int(w) * int(l)]['timestamp_end'])
+#     # for j in range(int(w) * int(l)):
+#     #     x, y = points.iloc[i + j]['timestamp_start'], points.iloc[i + j]['timestamp_end']
+#     plt.axvline(x=xmin, color='r', linestyle='--')
+#     plt.axvline(x=xmax, color='g', linestyle='--')
+#     plt.axhline(y=ymin, color='r', linestyle='--')
+#     plt.axhline(y=ymax, color='g', linestyle='--')
+#     i += int(w) * int(l)
 
 # for xline in xlines:
 #     plt.axvline(x=xline, color='r', linestyle='--')

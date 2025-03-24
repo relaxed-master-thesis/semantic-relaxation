@@ -73,18 +73,26 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	size_t boxSize = expectedHeight * expectedWidth;
 	size_t numBoxes = (nElems / boxSize) + 1;
 	size_t elemsToCount = std::min(numBoxes * boxSize, getsSize);
+	size_t half = getsSize / 2;
+	size_t startIdx = half - (half % boxSize);
+	startIdx = 0;
 
 	std::unordered_map<uint64_t, int> getMap{};
-	for (size_t i = 0; i < elemsToCount; ++i) {
-		auto &put = gets->at(i);
+	for (size_t i = 0; i < boxSize*100; ++i) {
+		auto &put = gets->at(i + startIdx);
 		getMap[put.value] = put.time;
 	}
 
-	for (size_t i = 0; i < elemsToCount; ++i) {
-		auto &put = puts->at(i);
+	int found = 0;
+	for (size_t i = 0; i < boxSize*100; ++i) {
+		// size_t idx = std::max(0, (int)startIdx - ((int)boxSize*2));
+		auto &put = puts->at(i + startIdx);
 		if (getMap.find(put.value) != getMap.end()) {
 			points.emplace_back(put.time, getMap[put.value]);
-		} else {
+			// if(++found == boxSize) [[unlikely]] {
+				// break;
+			// }
+		}  else {
 			points.emplace_back(put.time, std::numeric_limits<int>::max());
 		}
 	}

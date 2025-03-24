@@ -1,10 +1,11 @@
 #include "bench/impl/MonteSweepingLine.hpp"
-#include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
+#include "bench/util/Operation.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <iostream>
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>
@@ -13,6 +14,7 @@ namespace bench {
 
 AbstractExecutor::Measurement MonteSweepingLine::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
+	Event maxEvent = events.back();
 
 	for (auto &event : events) {
 		if (event.end_time == ~0) {
@@ -25,12 +27,14 @@ AbstractExecutor::Measurement MonteSweepingLine::calcMaxMeanError() {
 			counted_rank++;
 			if (rank > rank_max) {
 				rank_max = rank;
+				maxEvent = event;
 			}
 			end_tree.insert(event.end_time);
 		} else {
 			end_tree.erase(event.end_time);
 		}
 	}
+
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
