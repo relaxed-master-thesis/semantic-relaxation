@@ -17,4 +17,5 @@ target_sources(SemanticRelaxation PRIVATE
     MonteSweepingLine.cpp
     SweepingLineAImp.cpp
     MinMax2DDAImp.cpp
+    OrderApproxImp.cpp
 )
