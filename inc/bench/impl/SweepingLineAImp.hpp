@@ -24,6 +24,7 @@ class SweepingLineAImp : public ApproximateExecutor {
 	~SweepingLineAImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
+	void prep_box(const InputData &data);
 	AbstractExecutor::Measurement execute() override;
 	void reset() override;
 
