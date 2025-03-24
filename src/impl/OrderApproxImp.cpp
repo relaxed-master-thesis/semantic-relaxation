@@ -1,4 +1,4 @@
-#include "bench/impl/OrderApproxImp.h"
+#include "bench/impl/OrderApproxImp.hpp"
 #include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
 #include <cstddef>
