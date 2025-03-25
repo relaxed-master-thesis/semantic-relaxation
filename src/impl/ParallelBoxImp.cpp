@@ -48,7 +48,6 @@ std::pair<uint64_t, uint64_t> ParallelBoxImp::calcBox(range r) {
 			points.emplace_back(put.time, std::numeric_limits<int>::max());
 		}
 	}
-    std::cout << "Points size: " << points.size() << "\n";
 
 	size_t n = r.to - r.from;
 	std::vector<int> sortedEnds(n, 0);
