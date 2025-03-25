@@ -17,6 +17,7 @@
 #include "bench/impl/ReplayTreeImp.hpp"
 #include "bench/util/Benchmark.hpp"
 #include "bench/util/TimestampParser.hpp"
+#include "bench/util/FenwickTree.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -122,6 +123,32 @@ std::optional<bench::BenchCfg> parseArguments(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 
+	// bench::FenwickTree<int> BIT(10);
+	// BIT.update(1, 1);
+	// BIT.update(2, 1);
+	// BIT.update(3, 1);
+	// BIT.update(4, 1);
+	// BIT.update(5, 1);
+	// BIT.update(5, 1);
+	// BIT.update(6, 1);
+	// BIT.update(7, 1);
+	// BIT.update(8, 1);
+	// BIT.update(9, 1);
+	// BIT.update(10, 1);
+
+	// for(auto i = 1; i <= 10; ++i) {
+	// 	std::cout << "BIT.query(" << i << ") : " << BIT.query(i) << "\n";
+	// }
+
+	// return 0;
+
+
+
+
+
+
+
+
 	auto optCfg = parseArguments(argc, argv);
 
 	if (!optCfg.has_value())
@@ -158,16 +185,16 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		// .setBaseline<bench::GeijerImp>()
-		.setBaseline<bench::FenwickImp>()
+		.setBaseline<bench::GeijerImp>()
 		.addConfig<bench::ReplayTreeImp>()
-		// .addConfig<bench::ParallelBoxImp>(128, 64)
+		.addConfig<bench::FenwickImp>()
+		.addConfig<bench::ParallelBoxImp>(512, 256)
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::ReplayTreeImp>()
 		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
 		// .addConfig<bench::GeijerBatchImp>()
-		.addConfig<bench::ReplayTreeAImp>(0.1f)
+		// .addConfig<bench::ReplayTreeAImp>(0.1f)
 		// .addConfig<bench::FenwickAImp>(0.1f)
 		.addConfig<bench::MonteReplayTree>(0.1)
 		// .addConfig<bench::MinMax2DDAImp>(0.1f, 128, 64)

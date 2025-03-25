@@ -3,6 +3,7 @@
 #include "bench/util/Executor.hpp"
 
 #include <cstdint>
+#include <vector>
 
 namespace bench {
 class FenwickImp : public AccurateExecutor {
@@ -20,17 +21,14 @@ class FenwickImp : public AccurateExecutor {
 		const std::vector<int64_t> &getBit() const { return BIT; }
 	};
 
-	class SInterval {
-	  public:
-		SInterval() = default;
-		~SInterval() = default;
-		int64_t start;
-		int64_t end;
-		int64_t value;
-	};
-
 	FenwickImp() = default;
 	~FenwickImp() = default;
+
+	struct PushedItem {
+		int64_t pop_time;
+	};
+	std::vector<PushedItem> pushed_items;
+
 
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
@@ -38,6 +36,5 @@ class FenwickImp : public AccurateExecutor {
 	void reset() override;
 
   private:
-	std::vector<SInterval> intervals{};
 };
 } // namespace bench

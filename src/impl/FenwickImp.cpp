@@ -25,49 +25,30 @@ int64_t FenwickImp::FenwickTree::query(int64_t idx) {
 }
 
 AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
-	int64_t n = static_cast<int64_t>(intervals.size());
-
-	std::ranges::sort(
-		intervals, [](const SInterval &left, const SInterval &right) -> bool {
-			return left.start < right.start;
-		});
-
-	std::vector<int64_t> sortedEnds(n, 0);
-	for (size_t i = 0; i < n; ++i) {
-		sortedEnds[i] = intervals[i].end;
-	}
-
-	std::ranges::sort(sortedEnds);
-	std::unordered_map<int64_t, int64_t> endIndices{};
-	for (int64_t i = 0; i < n; ++i) {
-		endIndices[sortedEnds[i]] = i + 1;
-	}
-
+	
+	size_t n = pushed_items.size();
 	FenwickTree BIT(n);
+
 	std::vector<int64_t> result(n, 0);
 	int64_t constError = 0;
 	int64_t countedElems = 0;
 	int64_t sum = 0;
 	int64_t max = 0;
 	size_t maxIdx = 0;
-
 	for (int64_t i = 0; i < n; ++i) {
-		int64_t endVal = intervals[i].end;
+		int64_t pop_time = pushed_items[i].pop_time;
 
-		if (endVal == std::numeric_limits<int64_t>::max()) {
+		if (pop_time == std::numeric_limits<int64_t>::max()) {
 			++constError;
 			continue;
 		}
 		++countedElems;
-		int64_t comprEnd = endIndices[endVal];
-
-		int64_t res = BIT.query(n) - BIT.query(comprEnd) + constError;
+		int64_t res = i - BIT.query(pop_time);
 		sum += res;
 		maxIdx = max < res ? i : maxIdx;
 		max = max < res ? res : max;
-		BIT.update(comprEnd, 1);
+		BIT.update(pop_time, 1);
 	}
-
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
@@ -75,32 +56,23 @@ void FenwickImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	auto puts = data.getPuts();
 
-	intervals.resize(puts->size());
-
 	std::unordered_map<int64_t, size_t> putMap{};
-	int64_t time = 0;
 
 	for (size_t i = 0; i < puts->size(); ++i) {
 		auto &put = puts->at(i);
-		auto &interval = intervals.at(i);
-		interval.start = time;
-		// this is a potential bug, multiple intvs have same end
-		interval.end = std::numeric_limits<int64_t>::max();
-		interval.value = static_cast<int64_t>(put.value);
+		pushed_items.push_back({std::numeric_limits<int64_t>::max()});
 		putMap[put.value] = i;
-		++time;
 	}
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		int64_t getv = static_cast<int64_t>(get.value);
-		auto &interval = intervals.at(putMap[getv]);
-		interval.end = time;
-		++time;
+		if(putMap.find(get.value) != putMap.end()) {
+			pushed_items[putMap[get.value]].pop_time = i + 1;
+		}
 	}
 }
 
 AbstractExecutor::Measurement FenwickImp::execute() {
 	return calcMaxMeanError();
 }
-void FenwickImp::reset() { intervals.clear(); }
+void FenwickImp::reset() { pushed_items.clear(); }
 } // namespace bench
