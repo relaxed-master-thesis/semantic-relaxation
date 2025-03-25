@@ -12,6 +12,7 @@ target_sources(SemanticRelaxation PRIVATE
     ParallelBatchImp.cpp
     ReplayTreeImp.cpp
     FenwickImp.cpp
+    ParallelFenwickImp.cpp
     FAAImp.cpp
     FenwickAImp.cpp
     MonteReplayTree.cpp

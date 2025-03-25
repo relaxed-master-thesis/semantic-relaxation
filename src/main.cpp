@@ -11,6 +11,7 @@
 #include "bench/impl/MonteReplayTree.hpp"
 #include "bench/impl/ParallelBatchImp.hpp"
 #include "bench/impl/ParallelBoxImp.hpp"
+#include "bench/impl/ParallelFenwickImp.hpp"
 #include "bench/impl/ParallelGeijerImp.hpp"
 #include "bench/impl/ReplayImp.hpp"
 #include "bench/impl/ReplayTreeAImp.hpp"
@@ -185,10 +186,11 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::GeijerImp>()
-		.addConfig<bench::ReplayTreeImp>()
-		.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelBoxImp>(512, 256)
+		// .setBaseline<bench::GeijerImp>()
+		// .addConfig<bench::ReplayTreeImp>()
+		.setBaseline<bench::FenwickImp>()
+		.addConfig<bench::ParallelFenwickImp>()
+		// .addConfig<bench::ParallelBoxImp>(512, 256)
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::ReplayTreeImp>()
@@ -196,7 +198,7 @@ int main(int argc, char *argv[]) {
 		// .addConfig<bench::GeijerBatchImp>()
 		// .addConfig<bench::ReplayTreeAImp>(0.1f)
 		// .addConfig<bench::FenwickAImp>(0.1f)
-		.addConfig<bench::MonteReplayTree>(0.1)
+		// .addConfig<bench::MonteReplayTree>(0.1)
 		// .addConfig<bench::MinMax2DDAImp>(0.1f, 128, 64)
 		.run();
 	myBench.printResults();
