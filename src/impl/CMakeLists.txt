@@ -10,12 +10,12 @@ target_sources(SemanticRelaxation PRIVATE
     ReplayImp.cpp
     HeuristicGeijer.cpp
     ParallelBatchImp.cpp
-    SweepingLineImp.cpp
+    ReplayTreeImp.cpp
     FenwickImp.cpp
     FAAImp.cpp
     FenwickAImp.cpp
-    MonteSweepingLine.cpp
-    SweepingLineAImp.cpp
+    MonteReplayTree.cpp
+    ReplayTreeAImp.cpp
     MinMax2DDAImp.cpp
     OrderApproxImp.cpp
     ParallelBoxImp.cpp

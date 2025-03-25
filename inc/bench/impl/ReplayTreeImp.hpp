@@ -13,10 +13,10 @@
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineImp : public AccurateExecutor {
+class ReplayTreeImp : public AccurateExecutor {
   public:
-	SweepingLineImp() = default;
-	~SweepingLineImp() = default;
+	ReplayTreeImp() = default;
+	~ReplayTreeImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
@@ -27,18 +27,18 @@ class SweepingLineImp : public AccurateExecutor {
 		uint64_t value;
 		item *next;
 	};
-	enum class EventType { START, END };
+	enum class EventType { PUSH, POP };
 	struct Event {
 		EventType type;
 		uint64_t time;
-		uint64_t start_time;
-		uint64_t end_time;
+		uint64_t push_time;
+		uint64_t pop_time;
 	};
 	std::vector<Event> events;
 	std::shared_ptr<std::vector<Operation>> get_stamps;
 	std::shared_ptr<std::vector<Operation>> put_stamps;
 	// std::set<uint64_t> end_tree;
-	ordered_set<uint64_t, std::greater<uint64_t>> end_tree;
+	ordered_set<uint64_t, std::greater<uint64_t>> pop_tree;
 	uint64_t get_stamps_size;
 };
 } // namespace bench

@@ -8,13 +8,13 @@
 #include "bench/impl/HeuristicGeijer.hpp"
 #include "bench/impl/IVTImp.hpp"
 #include "bench/impl/MinMax2DDAImp.hpp"
-#include "bench/impl/MonteSweepingLine.hpp"
+#include "bench/impl/MonteReplayTree.hpp"
 #include "bench/impl/ParallelBatchImp.hpp"
 #include "bench/impl/ParallelBoxImp.hpp"
 #include "bench/impl/ParallelGeijerImp.hpp"
 #include "bench/impl/ReplayImp.hpp"
-#include "bench/impl/SweepingLineAImp.hpp"
-#include "bench/impl/SweepingLineImp.hpp"
+#include "bench/impl/ReplayTreeAImp.hpp"
+#include "bench/impl/ReplayTreeImp.hpp"
 #include "bench/util/Benchmark.hpp"
 #include "bench/util/TimestampParser.hpp"
 
@@ -91,7 +91,7 @@ static int testWithCreatedData() {
 	// bench::Benchmark<bench::GeijerImp> geijerBench{};
 	// auto geijer_res = geijerBench.run(data);
 
-	// bench::Benchmark<bench::SweepingLineImp> sweepingImp{};
+	// bench::Benchmark<bench::ReplayTreeImp> sweepingImp{};
 	// auto sweeping_res = sweepingImp.run(data);
 
 	return 0;
@@ -158,18 +158,19 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::GeijerImp>()
-		.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelBoxImp>(128, 64)
+		// .setBaseline<bench::GeijerImp>()
+		.setBaseline<bench::FenwickImp>()
+		.addConfig<bench::ReplayTreeImp>()
+		// .addConfig<bench::ParallelBoxImp>(128, 64)
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
-		// .addConfig<bench::SweepingLineImp>()
+		// .addConfig<bench::ReplayTreeImp>()
 		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
 		// .addConfig<bench::GeijerBatchImp>()
-		// .addConfig<bench::SweepingLineAImp>(0.1f)
-		.addConfig<bench::FenwickAImp>(0.1f)
-		// .addConfig<bench::MonteSweepingLine>(0.1)
-		.addConfig<bench::MinMax2DDAImp>(0.1f, 128, 64)
+		.addConfig<bench::ReplayTreeAImp>(0.1f)
+		// .addConfig<bench::FenwickAImp>(0.1f)
+		.addConfig<bench::MonteReplayTree>(0.1)
+		// .addConfig<bench::MinMax2DDAImp>(0.1f, 128, 64)
 		.run();
 	myBench.printResults();
 }

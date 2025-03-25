@@ -1,4 +1,4 @@
-#include "bench/impl/MonteSweepingLine.hpp"
+#include "bench/impl/MonteReplayTree.hpp"
 #include "bench/util/Executor.hpp"
 #include "bench/util/Operation.hpp"
 
@@ -12,7 +12,7 @@
 
 namespace bench {
 
-AbstractExecutor::Measurement MonteSweepingLine::calcMaxMeanError() {
+AbstractExecutor::Measurement MonteReplayTree::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
 	Event maxEvent = events.back();
 
@@ -38,7 +38,7 @@ AbstractExecutor::Measurement MonteSweepingLine::calcMaxMeanError() {
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
-void MonteSweepingLine::prepare(const InputData &data) {
+void MonteReplayTree::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
@@ -71,10 +71,10 @@ void MonteSweepingLine::prepare(const InputData &data) {
 			  });
 }
 
-AbstractExecutor::Measurement MonteSweepingLine::execute() {
+AbstractExecutor::Measurement MonteReplayTree::execute() {
 	return calcMaxMeanError();
 }
-void MonteSweepingLine::reset() {
+void MonteReplayTree::reset() {
 	events.clear();
 	end_tree.clear();
 	get_stamps = nullptr;

@@ -1,4 +1,4 @@
-#include "bench/impl/SweepingLineAImp.hpp"
+#include "bench/impl/ReplayTreeAImp.hpp"
 #include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
 
@@ -14,29 +14,29 @@
 
 namespace bench {
 
-AbstractExecutor::Measurement SweepingLineAImp::calcMaxMeanError() {
+AbstractExecutor::Measurement ReplayTreeAImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
 
 	for (auto &event : events) {
-		if (event.end_time == ~0) {
+		if (event.pop_time == ~0) {
 			const_error++;
-		} else if (event.type == EventType::START) {
-			uint64_t rank = end_tree.order_of_key(event.end_time);
+		} else if (event.type == EventType::PUSH) {
+			uint64_t rank = pop_tree.order_of_key(event.pop_time);
 			rank += const_error;
 			rank_sum += rank;
 			counted_rank++;
 			if (rank > rank_max) {
 				rank_max = rank;
 			}
-			end_tree.insert(event.end_time);
+			pop_tree.insert(event.pop_time);
 		} else {
-			end_tree.erase(event.end_time);
+			pop_tree.erase(event.pop_time);
 		}
 	}
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
-void SweepingLineAImp::prep_box(const InputData &data) {
+void ReplayTreeAImp::prep_box(const InputData &data) {
 	struct Point {
 		uint64_t push_time;
 		uint64_t pop_time;
@@ -113,18 +113,18 @@ void SweepingLineAImp::prep_box(const InputData &data) {
 		uint64_t end_time = point.pop_time;
 
 		Event start_event;
-		start_event.type = EventType::START;
+		start_event.type = EventType::PUSH;
 		start_event.time = start_time;
-		start_event.start_time = start_time;
-		start_event.end_time = end_time;
+		start_event.push_time = start_time;
+		start_event.pop_time = end_time;
 		events.push_back(start_event);
 
 		Event end_event;
 
-		end_event.type = EventType::END;
+		end_event.type = EventType::POP;
 		end_event.time = end_time;
-		end_event.start_time = start_time;
-		end_event.end_time = end_time;
+		end_event.push_time = start_time;
+		end_event.pop_time = end_time;
 		events.push_back(end_event);
 		idx++;
 	}
@@ -134,7 +134,7 @@ void SweepingLineAImp::prep_box(const InputData &data) {
 				  return left.time < right.time;
 			  });
 }
-void SweepingLineAImp::prepare(const InputData &data) {
+void ReplayTreeAImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
@@ -166,18 +166,18 @@ void SweepingLineAImp::prepare(const InputData &data) {
 			counted_puts++;
 		}
 		Event start_event;
-		start_event.type = EventType::START;
+		start_event.type = EventType::PUSH;
 		start_event.time = put.time;
-		start_event.start_time = put.time;
-		start_event.end_time = end_time;
+		start_event.push_time = put.time;
+		start_event.pop_time = end_time;
 		events.push_back(start_event);
 
 		Event end_event;
 
-		end_event.type = EventType::END;
+		end_event.type = EventType::POP;
 		end_event.time = end_time;
-		end_event.start_time = put.time;
-		end_event.end_time = end_time;
+		end_event.push_time = put.time;
+		end_event.pop_time = end_time;
 		events.push_back(end_event);
 		if (counted_puts >= gets_to_count) {
 			break;
@@ -190,14 +190,14 @@ void SweepingLineAImp::prepare(const InputData &data) {
 			  });
 }
 
-AbstractExecutor::Measurement SweepingLineAImp::execute() {
+AbstractExecutor::Measurement ReplayTreeAImp::execute() {
 	return calcMaxMeanError();
 }
-void SweepingLineAImp::reset() {
+void ReplayTreeAImp::reset() {
 	events.clear();
 	get_stamps = nullptr;
 	get_stamps_size = 0;
 	put_stamps = nullptr;
-	end_tree.clear();
+	pop_tree.clear();
 }
 } // namespace bench

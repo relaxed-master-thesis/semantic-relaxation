@@ -13,15 +13,15 @@
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class SweepingLineAImp : public ApproximateExecutor {
+class ReplayTreeAImp : public ApproximateExecutor {
   public:
-	SweepingLineAImp() = default;
-	SweepingLineAImp(float counting_share)
+	ReplayTreeAImp() = default;
+	ReplayTreeAImp(float counting_share)
 		: counting_share(counting_share), counting_type(CountingType::SHARE){};
-	SweepingLineAImp(uint64_t counting_ammount)
+	ReplayTreeAImp(uint64_t counting_ammount)
 		: counting_amount(counting_ammount),
 		  counting_type(CountingType::AMOUNT){};
-	~SweepingLineAImp() = default;
+	~ReplayTreeAImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	void prep_box(const InputData &data);
@@ -33,18 +33,18 @@ class SweepingLineAImp : public ApproximateExecutor {
 		uint64_t value;
 		item *next;
 	};
-	enum class EventType { START, END };
+	enum class EventType { PUSH, POP };
 	struct Event {
 		EventType type;
 		uint64_t time;
-		uint64_t start_time;
-		uint64_t end_time;
+		uint64_t push_time;
+		uint64_t pop_time;
 	};
 	std::vector<Event> events;
 	std::shared_ptr<std::vector<Operation>> get_stamps;
 	std::shared_ptr<std::vector<Operation>> put_stamps;
 	// std::set<uint64_t> end_tree;
-	ordered_set<uint64_t, std::greater<uint64_t>> end_tree;
+	ordered_set<uint64_t, std::greater<uint64_t>> pop_tree;
 	uint64_t get_stamps_size;
 	float counting_share{1.f};
 	CountingType counting_type;

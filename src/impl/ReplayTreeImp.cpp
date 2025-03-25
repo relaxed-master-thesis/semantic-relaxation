@@ -1,4 +1,4 @@
-#include "bench/impl/SweepingLineImp.hpp"
+#include "bench/impl/ReplayTreeImp.hpp"
 #include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
 
@@ -10,24 +10,24 @@
 
 namespace bench {
 
-AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
+AbstractExecutor::Measurement ReplayTreeImp::calcMaxMeanError() {
 	uint64_t rank_sum = 0, rank_max = 0, counted_rank = 0, const_error = 0;
 	// int pops_to_calc = events.size() *0.01;
 
 	for (auto &event : events) {
-		if (event.end_time == ~0) {
+		if (event.pop_time == ~0) {
 			const_error++;
-		} else if (event.type == EventType::START) {
-			uint64_t rank = end_tree.order_of_key(event.end_time);
+		} else if (event.type == EventType::PUSH) {
+			uint64_t rank = pop_tree.order_of_key(event.pop_time);
 			rank += const_error;
 			rank_sum += rank;
 			counted_rank++;
 			if (rank > rank_max) {
 				rank_max = rank;
 			}
-			end_tree.insert(event.end_time);
+			pop_tree.insert(event.pop_time);
 		} else {
-			end_tree.erase(event.end_time);
+			pop_tree.erase(event.pop_time);
 		}
 		// if(counted_rank >= pops_to_calc) {
 		// 	break;
@@ -36,7 +36,7 @@ AbstractExecutor::Measurement SweepingLineImp::calcMaxMeanError() {
 	return {rank_max, (double)rank_sum / counted_rank};
 }
 
-void SweepingLineImp::prepare(const InputData &data) {
+void ReplayTreeImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	get_stamps_size = gets->size();
 	std::unordered_map<uint64_t, size_t> getMap{};
@@ -52,18 +52,18 @@ void SweepingLineImp::prepare(const InputData &data) {
 			end_time = getMap[put.value];
 		}
 		Event start_event;
-		start_event.type = EventType::START;
+		start_event.type = EventType::PUSH;
 		start_event.time = put.time;
-		start_event.start_time = put.time;
-		start_event.end_time = end_time;
+		start_event.push_time = put.time;
+		start_event.pop_time = end_time;
 		events.push_back(start_event);
 
 		Event end_event;
 
-		end_event.type = EventType::END;
+		end_event.type = EventType::POP;
 		end_event.time = end_time;
-		end_event.start_time = put.time;
-		end_event.end_time = end_time;
+		end_event.push_time = put.time;
+		end_event.pop_time = end_time;
 		events.push_back(end_event);
 	}
 	// sort events by time, if equals, end comes first
@@ -73,14 +73,14 @@ void SweepingLineImp::prepare(const InputData &data) {
 			  });
 }
 
-AbstractExecutor::Measurement SweepingLineImp::execute() {
+AbstractExecutor::Measurement ReplayTreeImp::execute() {
 	return calcMaxMeanError();
 }
-void SweepingLineImp::reset() {
+void ReplayTreeImp::reset() {
 	events.clear();
 	get_stamps = nullptr;
 	get_stamps_size = 0;
 	put_stamps = nullptr;
-	end_tree.clear();
+	pop_tree.clear();
 }
 } // namespace bench

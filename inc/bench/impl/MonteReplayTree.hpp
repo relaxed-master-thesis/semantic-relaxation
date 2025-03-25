@@ -32,11 +32,11 @@ inline unsigned long xorshf96(void) { // period 2^96-1
 
 	return z;
 }
-class MonteSweepingLine : public ApproximateExecutor {
+class MonteReplayTree : public ApproximateExecutor {
   public:
-	MonteSweepingLine() = default;
-	MonteSweepingLine(float counting_share) : counting_share(counting_share){};
-	~MonteSweepingLine() = default;
+	MonteReplayTree() = default;
+	MonteReplayTree(float counting_share) : counting_share(counting_share){};
+	~MonteReplayTree() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
