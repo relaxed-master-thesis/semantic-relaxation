@@ -14,6 +14,8 @@ See [this](docs/README.md) documentation.
 
 You can build the project with the `./run.sh` script. The script currently takes in two flags: `-c -r`. Use the `-c` flag to compile the project and `-r` to run the executable post-compilation. You can also use these flags independently of each other.
 
+**TODO: add more build flags**
+
 ## Documentation
 
 Docs are located in the `docs` folder. There are independent documentation of utilisation classes and implementation classes (those who do actual work).
