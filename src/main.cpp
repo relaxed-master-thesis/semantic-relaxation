@@ -17,8 +17,8 @@
 #include "bench/impl/ReplayTreeAImp.hpp"
 #include "bench/impl/ReplayTreeImp.hpp"
 #include "bench/util/Benchmark.hpp"
-#include "bench/util/TimestampParser.hpp"
 #include "bench/util/FenwickTree.hpp"
+#include "bench/util/TimestampParser.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -28,9 +28,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
-#include <thread>
 
 static void createAndSaveData(size_t size, const std::string &filename) {
 	// we need to create a random set of sequences
@@ -100,7 +100,14 @@ static int testWithCreatedData() {
 	return 0;
 }
 
-std::optional<bench::BenchCfg> parseArguments(int argc, char *argv[]) {
+struct InputInfo {
+	bool is2Ddqopt;
+	size_t width;
+	size_t height;
+};
+
+std::optional<std::pair<bench::BenchCfg, InputInfo>>
+parseArguments(int argc, char *argv[]) {
 	if (argc <= 1) {
 		return std::nullopt;
 	}
@@ -111,46 +118,99 @@ std::optional<bench::BenchCfg> parseArguments(int argc, char *argv[]) {
 			arg_map[argv[i]] = argv[i + 1];
 		}
 	}
-	// maybe add checks for invalid arguments
 
-	try {
-		return std::make_optional<bench::BenchCfg>(
-			{std::thread::hardware_concurrency(), arg_map["-i"],
-			 static_cast<size_t>(std::stoi(arg_map["-r"]))});
-	} catch (std::exception &e) {
-		std::cerr << "Invalid arguments, RTM\n";
+	size_t numThreads = std::thread::hardware_concurrency();
+	if (arg_map.find("-t") != arg_map.end()) {
+		numThreads = std::stoi(arg_map["-t"]);
+	}
+
+	size_t numRuns = 3;
+	if (arg_map.find("-r") != arg_map.end()) {
+		numRuns = std::stoi(arg_map["-r"]);
+	}
+
+	std::string dir{""};
+	if (arg_map.find("-i") != arg_map.end()) {
+		dir = arg_map["-i"];
+	} else {
+		std::cerr << "No directory specified (-i)\n";
 		return std::nullopt;
 	}
+
+	// if string contains "2Ddqopt" then we are using 2Ddqopt
+	if (dir.find("2ddqopt") != std::string::npos) {
+		size_t width = 0;
+		size_t height = 0;
+		size_t wArgPos = dir.find("-w");
+		size_t hArgPos = dir.find("-l");
+		if (wArgPos != std::string::npos) {
+			width = std::stoi(dir.c_str() + wArgPos + 2);
+		} else {
+			std::cerr << "No width specified (-w)\n";
+			return std::nullopt;
+		}
+		if (hArgPos != std::string::npos) {
+			height = std::stoi(dir.c_str() + hArgPos + 2);
+		} else {
+			std::cerr << "No height specified (-h)\n";
+			return std::nullopt;
+		}
+		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
+			bench::BenchCfg(numThreads, dir, numRuns),
+			InputInfo{true, width, height});
+	}
+
+	if (dir.find("dcbo") != std::string::npos) {
+		size_t width = 0;
+		size_t wArgPos = dir.find("-w");
+		if (wArgPos != std::string::npos) {
+			width = std::stoi(dir.c_str() + wArgPos + 2);
+		}
+
+		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
+			bench::BenchCfg(numThreads, dir, numRuns),
+			InputInfo{false, width, 0});
+	}
+
+	std::cerr << "Invalid data directory (\"" << dir
+			  << "\"), must be 2Ddqopt or dcbo\n";
+	return std::nullopt;
 }
 
 int main(int argc, char *argv[]) {
-
 
 	auto optCfg = parseArguments(argc, argv);
 
 	if (!optCfg.has_value())
 		return -1;
 
-	bench::BenchCfg cfg = optCfg.value();
+	bench::BenchCfg cfg = optCfg.value().first;
+	InputInfo info = optCfg.value().second;
 	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
 	bench::Benchmark myBench{cfg};
 
 	myBench.loadData()
 		.verifyData(true)
-		// .setBaseline<bench::GeijerImp>()
-		.setBaseline<bench::ReplayTreeImp>()
+		.setBaseline<bench::GeijerImp>()
+		.addConfig<bench::GeijerBatchImp>()
+		.addConfig<bench::ReplayTreeImp>()
 		.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelFenwickImp>()
-		.addConfig<bench::ParallelBoxImp>(256, 128)
-		// .addConfig<bench::FenwickImp>()
-		// .addConfig<bench::FenwickImp>()
-		// .addConfig<bench::ReplayTreeImp>()
-		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
-		// .addConfig<bench::GeijerBatchImp>()
-		// .addConfig<bench::ReplayTreeAImp>(0.1f)
-		.addConfig<bench::FenwickAImp>(0.1f)
-		// .addConfig<bench::MonteReplayTree>(0.1)
-		.addConfig<bench::MinMax2DDAImp>(0.1f, 256, 128)
-		.run();
+		.addConfig<bench::ParallelBatchImp>(false)
+		.addConfig<bench::ParallelFenwickImp>();
+	if (info.is2Ddqopt) {
+		myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);
+	}
+	myBench.addConfig<bench::FenwickAImp>(0.1f)
+		.addConfig<bench::MonteReplayTree>(0.1)
+		.addConfig<bench::ReplayTreeAImp>(0.1f);
+	if (info.is2Ddqopt) {
+		myBench.addConfig<bench::MinMax2DDAImp>(0.1f, info.width, info.height);
+	}
+	// .addConfig<bench::FenwickImp>()
+	// .addConfig<bench::FenwickImp>()
+	// .addConfig<bench::ReplayTreeImp>()
+	// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
+	// .addConfig<bench::GeijerBatchImp>()
+	myBench.run();
 	myBench.printResults();
 }
