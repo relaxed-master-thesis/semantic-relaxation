@@ -32,54 +32,42 @@ AbstractExecutor::Measurement ParallelBoxImp::execute() {
 		rankMax = std::max(rankMax, max);
 		rankSum += sum;
 	}
-	return {rankMax, (long double)rankSum / gets->size()};
+	return {rankMax, (double)rankSum / (uint64_t)gets->size()};
 }
 
 AbstractExecutor::Measurement ParallelBoxImp::calcMaxMeanError() { return {0, 0}; }
 
 std::pair<uint64_t, uint64_t> ParallelBoxImp::calcBox(range r) {
 
-	std::vector<std::pair<int, int>> points{};
+	std::vector<uint64_t> pushed_pop_orders{};
 	for (size_t i = r.from; i < r.to; ++i) {
 		auto &put = puts->at(i);
 		if (getMap.find(put.value) != getMap.end()) {
-			points.emplace_back(put.time, getMap[put.value]);
+			pushed_pop_orders.push_back(getMap[put.value]);
 		} else {
-			points.emplace_back(put.time, std::numeric_limits<int>::max());
+			pushed_pop_orders.push_back(std::numeric_limits<int>::max());
 		}
 	}
 
 	size_t n = r.to - r.from;
-	std::vector<int> sortedEnds(n, 0);
-	for (size_t i = 0; i < n; ++i) {
-		sortedEnds[i] = points[i].second;
-	}
-
-	std::ranges::sort(sortedEnds);
-	std::unordered_map<int, int> endIndices{};
-	for (int i = 0; i < n; ++i) {
-		endIndices[sortedEnds[i]] = i + 1;
-	}
-
-	FenwickTree<int> BIT(n);
-	int constErr = 0;
+	FenwickTree<uint64_t> BIT(gets->size());
+	uint64_t constErr = 0;
 	int countedElems = 0;
-	int sum = 0;
-	int max = 0;
+	uint64_t sum = 0;
+	uint64_t max = 0;
 
 	for (int i = 0; i < n; ++i) {
-		int endVal = points[i].second;
+		uint64_t pop_order = pushed_pop_orders[i];
 
-		if (endVal == std::numeric_limits<int>::max()) {
+		if (pop_order == std::numeric_limits<int>::max()) {
 			++constErr;
 			continue;
 		}
 
 		++countedElems;
-		int comprEnd = endIndices[endVal];
 
-		int res = BIT.query(n) - BIT.query(comprEnd) + constErr;
-		BIT.update(comprEnd, 1);
+		uint64_t res = BIT.query(pop_order) + constErr;
+		BIT.update(pop_order, 1);
 
 		sum += res;
 		max = max < res ? res : max;
@@ -105,14 +93,14 @@ void ParallelBoxImp::prepare(const InputData &data) {
 
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &put = gets->at(i);
-		getMap[put.value] = put.time;
+		getMap[put.value] = i + 1;
 	}
 
 	for (size_t i = 0; i < numRanges; ++i) {
 		size_t from = i * boxesPerThread * boxSize;
 		size_t to = (i == numRanges - 1) ? puts->size()
 										 : from + boxesPerThread * boxSize;
-		// std::cout << "(" << from << ", " << to << ")" << "\n";
+		std::cout << "(" << from << ", " << to << ")" << "\n";
 		ranges.emplace_back(from, to);
 	}
 }

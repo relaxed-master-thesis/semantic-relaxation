@@ -11,44 +11,24 @@
 
 namespace bench {
 ApproximateExecutor::Measurement MinMax2DDAImp::execute() {
-	// Use a Fenwick tree to calculate the mean and max errors for all points
-	size_t n = points.size();
-
-	std::vector<int> sortedEnds(n, 0);
-	for (size_t i = 0; i < n; ++i) {
-		sortedEnds[i] = points[i].second;
-	}
-
-	std::ranges::sort(sortedEnds);
-	std::unordered_map<int, int> endIndices{};
-	for (int i = 0; i < n; ++i) {
-		endIndices[sortedEnds[i]] = i + 1;
-	}
-
+	size_t n = pushed_items.size();
 	FenwickTree<int> BIT(n);
 	int constErr = 0;
 	int countedElems = 0;
 	int sum = 0;
 	int max = 0;
-
 	for (int i = 0; i < n; ++i) {
-		int endVal = points[i].second;
-
-		if (endVal == std::numeric_limits<int>::max()) {
+		int pop_time = pushed_items[i].pop_time;
+		if (pop_time == std::numeric_limits<int>::max()) {
 			++constErr;
 			continue;
 		}
-
 		++countedElems;
-		int comprEnd = endIndices[endVal];
-
-		int res = BIT.query(n) - BIT.query(comprEnd) + constErr;
-		BIT.update(comprEnd, 1);
-
+		int res = BIT.query(pop_time) + constErr;
+		BIT.update(pop_time, 1);
 		sum += res;
 		max = max < res ? res : max;
 	}
-
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
@@ -57,8 +37,7 @@ ApproximateExecutor::Measurement MinMax2DDAImp::calcMaxMeanError() {
 }
 
 void MinMax2DDAImp::reset() {
-	points.clear();
-	ranges.clear();
+	pushed_items.clear();
 }
 
 void MinMax2DDAImp::prepare(const InputData &data) {
@@ -78,22 +57,17 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	startIdx = 0;
 
 	std::unordered_map<uint64_t, int> getMap{};
-	for (size_t i = 0; i < boxSize*100; ++i) {
+	for (size_t i = 0; i < boxSize; ++i) {
 		auto &put = gets->at(i + startIdx);
-		getMap[put.value] = put.time;
+		getMap[put.value] = i+1;
 	}
 
-	int found = 0;
-	for (size_t i = 0; i < boxSize*100; ++i) {
-		// size_t idx = std::max(0, (int)startIdx - ((int)boxSize*2));
+	for (size_t i = 0; i < boxSize; ++i) {
 		auto &put = puts->at(i + startIdx);
 		if (getMap.find(put.value) != getMap.end()) {
-			points.emplace_back(put.time, getMap[put.value]);
-			// if(++found == boxSize) [[unlikely]] {
-				// break;
-			// }
+			pushed_items.emplace_back(getMap[put.value]);
 		}  else {
-			points.emplace_back(put.time, std::numeric_limits<int>::max());
+			pushed_items.emplace_back(std::numeric_limits<int>::max());
 		}
 	}
 }

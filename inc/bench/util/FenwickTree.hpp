@@ -13,17 +13,17 @@ template <typename T> class FenwickTree {
 	~FenwickTree() = default;
 
 	void update(int64_t idx, T val) {
-		while (idx < BIT.size()) {
+		while (idx > 0) {
 			BIT[idx] += val;
-			idx += idx & -idx;
+			idx -= idx & -idx;
 		}
 	}
 
 	T query(int64_t idx) {
 		T sum = 0;
-		while (idx > 0) {
+		while (idx < BIT.size()) {
 			sum += BIT[idx];
-			idx -= idx & -idx;
+			idx += idx & -idx;
 		}
 		return sum;
 	}

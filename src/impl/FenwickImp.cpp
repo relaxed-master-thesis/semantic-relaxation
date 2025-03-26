@@ -28,7 +28,7 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 			continue;
 		}
 		++countedElems;
-		int64_t res = i - BIT.query(pop_time);
+		int64_t res = BIT.query(pop_time) + constError;
 		sum += res;
 		maxIdx = max < res ? i : maxIdx;
 		max = max < res ? res : max;
@@ -51,9 +51,7 @@ void FenwickImp::prepare(const InputData &data) {
 	}
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		if (putMap.find(get.value) != putMap.end()) {
-			pushed_items[putMap[get.value]].pop_time = i + 1;
-		}
+		pushed_items[putMap[get.value]].pop_time = i + 1;
 	}
 }
 

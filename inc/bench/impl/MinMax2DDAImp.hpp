@@ -4,8 +4,6 @@
 
 namespace bench {
 class MinMax2DDAImp : public ApproximateExecutor {
-	using point = std::pair<uint64_t, uint64_t>;
-	using range = std::pair<size_t, size_t>;
 
   public:
 	MinMax2DDAImp() = default;
@@ -19,10 +17,12 @@ class MinMax2DDAImp : public ApproximateExecutor {
 	void reset() override;
 
   private:
+	struct PushedItem {
+		int64_t pop_time;
+	};
+	std::vector<PushedItem> pushed_items;
 	float countingShare{1.0};
 	size_t expectedHeight{0};
 	size_t expectedWidth{0};
-	std::vector<point> points{};
-	std::vector<range> ranges{};
 };
 } // namespace bench

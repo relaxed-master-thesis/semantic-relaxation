@@ -138,7 +138,8 @@ int main(int argc, char *argv[]) {
 	myBench.loadData()
 		.verifyData(true)
 		// .setBaseline<bench::GeijerImp>()
-		.setBaseline<bench::FenwickImp>()
+		.setBaseline<bench::ReplayTreeImp>()
+		.addConfig<bench::FenwickImp>()
 		.addConfig<bench::ParallelFenwickImp>()
 		.addConfig<bench::ParallelBoxImp>(256, 128)
 		// .addConfig<bench::FenwickImp>()
@@ -147,9 +148,9 @@ int main(int argc, char *argv[]) {
 		// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
 		// .addConfig<bench::GeijerBatchImp>()
 		// .addConfig<bench::ReplayTreeAImp>(0.1f)
-		// .addConfig<bench::FenwickAImp>(0.1f)
+		.addConfig<bench::FenwickAImp>(0.1f)
 		// .addConfig<bench::MonteReplayTree>(0.1)
-		// .addConfig<bench::MinMax2DDAImp>(0.1f, 128, 64)
+		.addConfig<bench::MinMax2DDAImp>(0.1f, 256, 128)
 		.run();
 	myBench.printResults();
 }

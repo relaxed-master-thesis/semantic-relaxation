@@ -21,7 +21,7 @@ std::pair<uint64_t, uint64_t> ParallelFenwickImp::calcRange(range r) {
 
 	int64_t sum = 0;
 	int64_t max = 0;
-	size_t counted_pushes = 0;
+	size_t constErr = 0;
 	for (int64_t i = 0; i < n; ++i) {
 		PushedItem item = pushed_items[i];
 		if (item.time > to) {
@@ -32,16 +32,15 @@ std::pair<uint64_t, uint64_t> ParallelFenwickImp::calcRange(range r) {
 		}
 		int64_t pop_order = pushed_items[i].pop_order;
 		if (pop_order == std::numeric_limits<int64_t>::max()) {
-			++counted_pushes;
+			constErr++;
 			continue;
 		}
 		if (from <= item.pop_time && item.pop_time < to) {
-			int64_t res = counted_pushes - BIT.query(pop_order);
+			int64_t res = BIT.query(pop_order) + constErr;
 			sum += res;
 			max = max < res ? res : max;
 		}
 		BIT.update(pop_order, 1);
-		++counted_pushes;
 	}
 	return {static_cast<uint64_t>(max), sum};
 }

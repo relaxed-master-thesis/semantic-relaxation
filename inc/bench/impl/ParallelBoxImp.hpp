@@ -31,7 +31,6 @@ class ParallelBoxImp : public AccurateExecutor {
     size_t height{0}, width{0};
     std::vector<range> ranges;
     std::unordered_map<uint64_t, uint64_t> getMap{};
-	// std::vector<std::pair<int, int>> points{};
     std::shared_ptr<const std::vector<Operation>> puts;
     std::shared_ptr<const std::vector<Operation>> gets;
 };

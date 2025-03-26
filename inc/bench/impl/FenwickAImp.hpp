@@ -3,18 +3,11 @@
 #include "bench/util/Executor.hpp"
 
 #include <cstdint>
+#include <vector>
 
 namespace bench {
 class FenwickAImp : public ApproximateExecutor {
   public:
-	struct SInterval {
-		SInterval() = default;
-		~SInterval() = default;
-		int64_t start;
-		int64_t end;
-		int64_t value;
-	};
-
 	FenwickAImp(float counting_share)
 		: counting_share(counting_share), counting_type(CountingType::SHARE){};
 	FenwickAImp(uint64_t counting_ammount)
@@ -28,7 +21,10 @@ class FenwickAImp : public ApproximateExecutor {
 	void reset() override;
 
   private:
-	std::vector<SInterval> intervals{};
+	struct PushedItem {
+		int64_t pop_time;
+	};
+	std::vector<PushedItem> pushed_items;
 	float counting_share;
 	CountingType counting_type;
 	uint64_t counting_amount{0};
