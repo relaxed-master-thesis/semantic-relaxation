@@ -100,7 +100,7 @@ void ParallelBoxImp::prepare(const InputData &data) {
 		size_t from = i * boxesPerThread * boxSize;
 		size_t to = (i == numRanges - 1) ? puts->size()
 										 : from + boxesPerThread * boxSize;
-		std::cout << "(" << from << ", " << to << ")" << "\n";
+		// std::cout << "(" << from << ", " << to << ")" << "\n";
 		ranges.emplace_back(from, to);
 	}
 }
