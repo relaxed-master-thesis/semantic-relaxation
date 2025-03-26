@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <list>
 #include <sys/types.h>
+#include <thread>
 #include <unordered_set>
 #include <vector>
 
@@ -14,8 +15,9 @@ namespace bench {
 class ParallelBatchImp : public AccurateExecutor {
   public:
 	ParallelBatchImp() = default;
-	ParallelBatchImp(uint64_t numThreads, bool useParSplit)
-		: numThreads(numThreads), useParSplit(useParSplit) {}
+	ParallelBatchImp(bool useParSplit)
+		: numThreads(std::thread::hardware_concurrency()),
+		  useParSplit(useParSplit) {}
 	~ParallelBatchImp() = default;
 
 	AbstractExecutor::Measurement calcMaxMeanError() override;
