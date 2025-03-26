@@ -112,6 +112,8 @@ Result Benchmark::runSingle(std::shared_ptr<AbstractExecutor> executor) {
 	// If the clock is not monotonic we cannot trust the measurements
 	if (prepTime < 0 || prepTime > 1'000'000'000) {
 		return {std::format("Prepare time invalid: {}", prepTime)};
+	} else if (prepTime == 0) {
+		prepTime = 1;
 	}
 
 	try {
@@ -128,6 +130,8 @@ Result Benchmark::runSingle(std::shared_ptr<AbstractExecutor> executor) {
 
 	if (execTime < 0 || execTime > 1'000'000'000) {
 		return {std::format("Execute time invalid: {}", execTime)};
+	}else if (execTime == 0) {
+		execTime = 1;
 	}
 
 	// Reset the executor for future runs
@@ -224,7 +228,7 @@ struct TableEntry {
 
 	static std::string timeToNiceStr(long time) {
 		if (time < 1'000)
-			return std::format("{}us", time);
+			return std::format("{}us", std::max(1L, time));
 		if (time < 1'000'000)
 			return std::format("{:.2f}ms", (float)time / 1000.0);
 		if (time < 60'000'000)
