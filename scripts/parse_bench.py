@@ -1,4 +1,5 @@
 import re
+import sys
 
 class Benchmark:
     def __init__(self, name, data, baseline="GeijerImp"):
@@ -48,7 +49,9 @@ class Implementation:
             ret += f"\t\t Prep: {self.prep[mean]} Speedup: {self.prep_speedup[mean]}\n"
         return ret
 
-file = open("bench.txt", "r")
+# open the file which is the first argument to this script
+
+file = open(sys.argv[1], "r")
 lines = file.readlines()
 file.close()
 #figure out how many implementations were run
