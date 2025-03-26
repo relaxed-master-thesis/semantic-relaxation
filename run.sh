@@ -7,7 +7,8 @@ optPlot=false
 optSingle=false
 optSaveLog=false
 
-logFile=""
+dcboLogFile=""
+twoddLogFile=""
 
 Help()
 {
@@ -28,26 +29,26 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        # "8 4"
-        # "16 8"
-        # "32 16"
-        # "64 32"
-        # "128 64"
-        # "256 128"
+        "8 4"
+        "16 8"
+        "32 16"
+        "64 32"
+        "128 64"
+        "256 128"
         # "512 256"
     )
 
     declare -a dcbocfgs=(
-        # "8"
-        # "16"
-        # "32"
+        "8"
+        "16"
+        "32"
         "64"
         "128"
         "256"
         "512"
         "1024"
         "2048"
-        "4096"
+        # "4096"
         # "50000"
     )
 
@@ -79,7 +80,7 @@ Benchmark()
     fi
     
     # change to 1s
-    testDurMs=10
+    testDurMs=100
     # change -n to 16 threads
     numThreads=8
     # should be at least 3
@@ -108,7 +109,7 @@ Benchmark()
         rm -rf results/timestamps
 
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r ${numRuns}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns}"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -118,6 +119,17 @@ Benchmark()
             echo "Failed to move ${dataPath}, skipping..."
         fi
     done
+    
+    if [ "$optSaveLog" = true ]; then
+        if [ ! -d ./../semantic-relaxation/logs ]; then
+            mkdir ./../semantic-relaxation/logs
+        fi
+
+        if [ -f ./../semantic-relaxation/tmp.txt ]; then
+            twoddLogFile="2ddqopt-$(date -d "today" +"%Y%m%d%H%M").log"
+            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddLogFile
+        fi
+    fi
 
     for elem in "${dcbocfgs[@]}"; do
         read -a strarr <<< "$elem"
@@ -158,8 +170,8 @@ Benchmark()
         fi
 
         if [ -f ./../semantic-relaxation/tmp.txt ]; then
-            logFile="$(date -d "today" +"%Y%m%d%H%M").log"
-            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$logFile
+            dcboLogFile="dcbo-faaq-$(date -d "today" +"%Y%m%d%H%M").log"
+            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboLogFile
         fi
     fi
     
@@ -193,7 +205,18 @@ Plot()
 {
     # plot data
     echo "Plotting..."
-    python3 scripts/parse_bench.py logs/$logFile
+    if [ -z "$twoddLogFile" ] && [ -z "$dcboLogFile" ]; then
+        echo "No log files found, using latest available"
+
+    elif [ -z "$twoddLogFile" ]; then
+        echo "Found only dcbo log file"
+        python3 scripts/parse_bench.py logs/$dcboLogFile
+    elif [ -z "$dcboLogFile" ]; then
+        echo "Found only twodd log file"
+        python3 scripts/parse_bench.py logs/$twoddLogFile
+    else
+        python3 scripts/parse_bench.py logs/$twoddLogFile logs/$dcboLogFile
+    fi
 }
 
 while getopts ":hcrbpsl" option; do
