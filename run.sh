@@ -22,9 +22,9 @@ Benchmark()
         # "8 4"
         # "16 8"
         # "32 16"
-        "64 32"
+        # "64 32"
         # "128 64"
-        # "256 128"
+        "256 128"
         # "512 256"
     )
 
@@ -49,11 +49,11 @@ Benchmark()
         fi
 
         # change to 1s
-        testDurMs=1000
+        testDurMs=100
         # change -n to 16 threads
         numThreads=2
         # change to 1'000'000
-        startSize=10000
+        startSize=1000000
 
         echo "Running: ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
 
@@ -69,7 +69,7 @@ Benchmark()
 
         if [ $? -eq 0 ]; then
             runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r 2" 
-            eval "$runArg" >> ./../semantic-relaxation/bench.txt
+            eval "$runArg" #>> ./../semantic-relaxation/bench.txt
         fi
     done
 
@@ -80,7 +80,7 @@ Benchmark()
 Compile()
 {
     cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=OFF
-    cmake --build ./build
+    cmake --build ./build --parallel 8
 
     if [ ! $? -eq 0 ]; then
         echo "Build failed"

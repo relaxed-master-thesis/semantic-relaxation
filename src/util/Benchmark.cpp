@@ -252,7 +252,7 @@ TableEntry::TableEntry(const std::string &name, long double mean, uint64_t max,
 					   long prep, float prepSpeedup)
 	: isValid(true), name(name), mean(mean), max(max), tot(tot),
 	  totSpeedup(totSpeedup), calc(calc), calcSpeedup(calcSpeedup), prep(prep),
-	  prepSpeedup(prepSpeedup), smean(std::format("{}", mean)),
+	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)),
 	  smax(std::to_string(max)),
 	  stot(std::format("{} ({:.2f})", timeToNiceStr(tot), totSpeedup)),
 	  scalc(std::format("{} ({:.2f})", timeToNiceStr(calc), calcSpeedup)),

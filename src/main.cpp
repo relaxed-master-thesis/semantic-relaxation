@@ -30,6 +30,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <thread>
 
 static void createAndSaveData(size_t size, const std::string &filename) {
 	// we need to create a random set of sequences
@@ -114,7 +115,7 @@ std::optional<bench::BenchCfg> parseArguments(int argc, char *argv[]) {
 
 	try {
 		return std::make_optional<bench::BenchCfg>(
-			{static_cast<size_t>(std::stoi(arg_map["-t"])), arg_map["-i"],
+			{std::thread::hardware_concurrency(), arg_map["-i"],
 			 static_cast<size_t>(std::stoi(arg_map["-r"]))});
 	} catch (std::exception &e) {
 		std::cerr << "Invalid arguments, RTM\n";
@@ -124,61 +125,11 @@ std::optional<bench::BenchCfg> parseArguments(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 
-	// bench::FenwickTree<int> BIT(10);
-	// BIT.update(1, 1);
-	// BIT.update(2, 1);
-	// BIT.update(3, 1);
-	// BIT.update(4, 1);
-	// BIT.update(5, 1);
-	// BIT.update(5, 1);
-	// BIT.update(6, 1);
-	// BIT.update(7, 1);
-	// BIT.update(8, 1);
-	// BIT.update(9, 1);
-	// BIT.update(10, 1);
-
-	// for(auto i = 1; i <= 10; ++i) {
-	// 	std::cout << "BIT.query(" << i << ") : " << BIT.query(i) << "\n";
-	// }
-
-	// return 0;
-
-
-
-
-
-
-
 
 	auto optCfg = parseArguments(argc, argv);
 
 	if (!optCfg.has_value())
 		return -1;
-
-	// return testWithCreatedData();
-
-	// std::string folder_name = "queue-k-seg-1s-4t";
-	// std::string folder_name = "2dd-queue-opt-1ms";
-	// std::string folder_name = "generated";
-	// std::string folder_name = "FAKE";
-	// std::string folder_name = "2ddqopt-4t-i10k";
-	// std::string folder_name = "2dd-queue-opt-1s";
-	// std::string folder_name = "q-k-1s-8t";
-	// std::string folder_name = "q-k-1ms-8t";
-	// std::string folder_name = "2dd-queue-opt-1ms-4t-i10k";
-	// std::string folder_name = "2dd-queue-opt-100ms";
-
-	// std::string folder_name = "2ddqopt-4t-i10k";
-	// std::string folder_name = "2ddqopt-8t-i1M-10ms";
-	// std::string folder_name = "2ddqopt-8t-i10k";
-	// std::string folder_name = "qkseg-4t-10ms";
-	// std::string folder_name = "dcbo-4t-i1M-1ms";
-
-	// std::string folder_name = "2dd-q-opt-w50-l10-i1000-8t-30ms";
-
-	// bench::InputData data = bench::TimestampParser().parse(
-	// 	"./data/timestamps/" + folder_name + "/combined_get_stamps.txt",
-	// 	"./data/timestamps/" + folder_name + "/combined_put_stamps.txt");
 
 	bench::BenchCfg cfg = optCfg.value();
 	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
@@ -187,10 +138,9 @@ int main(int argc, char *argv[]) {
 	myBench.loadData()
 		.verifyData(true)
 		// .setBaseline<bench::GeijerImp>()
-		// .addConfig<bench::ReplayTreeImp>()
 		.setBaseline<bench::FenwickImp>()
 		.addConfig<bench::ParallelFenwickImp>()
-		// .addConfig<bench::ParallelBoxImp>(512, 256)
+		.addConfig<bench::ParallelBoxImp>(256, 128)
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::FenwickImp>()
 		// .addConfig<bench::ReplayTreeImp>()

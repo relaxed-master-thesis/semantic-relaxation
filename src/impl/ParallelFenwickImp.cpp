@@ -1,4 +1,5 @@
 #include "bench/impl/ParallelFenwickImp.hpp"
+#include "bench/util/FenwickTree.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -9,22 +10,6 @@
 #include <unordered_map>
 
 namespace bench {
-void ParallelFenwickImp::FenwickTree::update(int64_t idx, int64_t val) {
-	while (idx < BIT.size()) {
-		BIT[idx] += val;
-		idx += idx & -idx;
-	}
-}
-
-int64_t ParallelFenwickImp::FenwickTree::query(int64_t idx) {
-	int64_t sum = 0;
-	while (idx > 0) {
-		sum += BIT[idx];
-		idx -= idx & -idx;
-	}
-	return sum;
-}
-
 AbstractExecutor::Measurement ParallelFenwickImp::calcMaxMeanError() {
 	return {0, 0};
 }
@@ -32,7 +17,7 @@ std::pair<uint64_t, uint64_t> ParallelFenwickImp::calcRange(range r) {
 	uint64_t from = r.from;
 	uint64_t to = r.to;
 	size_t n = pushed_items.size();
-	FenwickTree BIT(n);
+	FenwickTree<int64_t> BIT(n);
 
 	int64_t sum = 0;
 	int64_t max = 0;
@@ -45,23 +30,22 @@ std::pair<uint64_t, uint64_t> ParallelFenwickImp::calcRange(range r) {
 		if (item.pop_time < from) {
 			continue;
 		}
-
 		int64_t pop_order = pushed_items[i].pop_order;
-
 		if (pop_order == std::numeric_limits<int64_t>::max()) {
-			counted_pushes++;
+			++counted_pushes;
 			continue;
 		}
-		if (item.pop_time < to) {
+		if (from <= item.pop_time && item.pop_time < to) {
 			int64_t res = counted_pushes - BIT.query(pop_order);
 			sum += res;
 			max = max < res ? res : max;
 		}
 		BIT.update(pop_order, 1);
-		counted_pushes++;
+		++counted_pushes;
 	}
 	return {static_cast<uint64_t>(max), sum};
 }
+
 
 void ParallelFenwickImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
@@ -86,12 +70,12 @@ void ParallelFenwickImp::prepare(const InputData &data) {
 	// prep threads
 
 	size_t threadsAvailable = std::thread::hardware_concurrency();
-	uint64_t last_get = gets->back().time;
+
 	size_t gets_per_thread = gets->size() / threadsAvailable;
 	for (size_t i = 0; i < threadsAvailable; ++i) {
 		if (i == threadsAvailable - 1) {
 			auto start_get = gets->at(i * gets_per_thread);
-			ranges.push_back({start_get.time, last_get});
+			ranges.push_back({start_get.time, std::numeric_limits<int64_t>::max()});
 			break;
 		}
 		auto start_get = gets->at(i * gets_per_thread);
@@ -120,7 +104,7 @@ AbstractExecutor::Measurement ParallelFenwickImp::execute() {
 		rankMax = std::max(rankMax, max);
 		rankSum += sum;
 	}
-	return {rankMax, (long double)rankSum / get_stamps_size};
+	return {rankMax, (double)rankSum / get_stamps_size};
 
 	return calcMaxMeanError();
 }

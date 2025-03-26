@@ -1,4 +1,5 @@
 #include "bench/impl/FenwickImp.hpp"
+#include "bench/util/FenwickTree.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -8,26 +9,10 @@
 #include <unordered_map>
 
 namespace bench {
-void FenwickImp::FenwickTree::update(int64_t idx, int64_t val) {
-	while (idx < BIT.size()) {
-		BIT[idx] += val;
-		idx += idx & -idx;
-	}
-}
-
-int64_t FenwickImp::FenwickTree::query(int64_t idx) {
-	int64_t sum = 0;
-	while (idx > 0) {
-		sum += BIT[idx];
-		idx -= idx & -idx;
-	}
-	return sum;
-}
-
 AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
-	
+
 	size_t n = pushed_items.size();
-	FenwickTree BIT(n);
+	FenwickTree<int64_t> BIT(n);
 
 	std::vector<int64_t> result(n, 0);
 	int64_t constError = 0;
@@ -49,6 +34,7 @@ AbstractExecutor::Measurement FenwickImp::calcMaxMeanError() {
 		max = max < res ? res : max;
 		BIT.update(pop_time, 1);
 	}
+
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
@@ -65,7 +51,7 @@ void FenwickImp::prepare(const InputData &data) {
 	}
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		if(putMap.find(get.value) != putMap.end()) {
+		if (putMap.find(get.value) != putMap.end()) {
 			pushed_items[putMap[get.value]].pop_time = i + 1;
 		}
 	}
