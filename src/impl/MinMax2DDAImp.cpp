@@ -13,10 +13,10 @@ namespace bench {
 ApproximateExecutor::Measurement MinMax2DDAImp::execute() {
 	size_t n = pushed_items.size();
 	FenwickTree<int> BIT(n);
-	int constErr = 0;
-	int countedElems = 0;
-	int sum = 0;
-	int max = 0;
+	int64_t constErr = 0;
+	int64_t countedElems = 0;
+	int64_t sum = 0;
+	int64_t max = 0;
 	for (int i = 0; i < n; ++i) {
 		int pop_time = pushed_items[i].pop_time;
 		if (pop_time == std::numeric_limits<int>::max()) {
@@ -24,7 +24,7 @@ ApproximateExecutor::Measurement MinMax2DDAImp::execute() {
 			continue;
 		}
 		++countedElems;
-		int res = BIT.query(pop_time) + constErr;
+		int64_t res = BIT.query(pop_time) + constErr;
 		BIT.update(pop_time, 1);
 		sum += res;
 		max = max < res ? res : max;
@@ -56,6 +56,7 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	size_t startIdx = half - (half % boxSize);
 	startIdx = 0;
 
+	// hmm de e sant, ye sant bara en boxjävel
 	std::unordered_map<uint64_t, int> getMap{};
 	for (size_t i = 0; i < boxSize; ++i) {
 		auto &put = gets->at(i + startIdx);
