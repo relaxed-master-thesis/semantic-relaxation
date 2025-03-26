@@ -2,6 +2,7 @@
 /win_build/*
 .cache/*
 data/*
+logs/*
 
 .vscode
 .clangd

@@ -1,5 +1,14 @@
 #!/bin/bash
 
+optBench=false
+optCompile=false
+optRun=false
+optPlot=false
+optSingle=false
+optSaveLog=false
+
+logFile=""
+
 Help()
 {
     echo "Run Semantic-Relaxation benchmarks"
@@ -24,8 +33,22 @@ Benchmark()
         # "32 16"
         # "64 32"
         # "128 64"
-        "256 128"
+        # "256 128"
         # "512 256"
+    )
+
+    declare -a dcbocfgs=(
+        # "8"
+        # "16"
+        # "32"
+        "64"
+        "128"
+        "256"
+        "512"
+        "1024"
+        "2048"
+        "4096"
+        # "50000"
     )
 
     if [ ! -d ../semantic-relaxation-dcbo ]; then
@@ -38,8 +61,29 @@ Benchmark()
     rm ./../semantic-relaxation/bench.txt
 
     echo "Compiling 2Dd-queue_optimized..."
-    buildArg="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
-    eval "$buildArg" > /dev/null 2>&1
+    twoddBuildCmd="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$twoddBuildCmd" > /dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "Build failed for 2Dd-queue_optimized"
+        exit
+    fi
+
+    echo "Compiling dcbo-faaaq..."
+    dcboBuildCmd="make dcbo-faaaq RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$dcboBuildCmd" > /dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "Build failed for dcbo-faaaq"
+        exit
+    fi
+    
+    # change to 1s
+    testDurMs=10
+    # change -n to 16 threads
+    numThreads=8
+    # should be at least 3
+    numRuns=1
     
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
@@ -48,12 +92,8 @@ Benchmark()
             rm -rf results/timestamps
         fi
 
-        # change to 1s
-        testDurMs=100
-        # change -n to 16 threads
-        numThreads=2
         # change to 1'000'000
-        startSize=1000000
+        startSize=$((strarr[0] * strarr[1] * 2))
 
         echo "Running: ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
 
@@ -68,13 +108,63 @@ Benchmark()
         rm -rf results/timestamps
 
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r 2" 
-            eval "$runArg" #>> ./../semantic-relaxation/bench.txt
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r ${numRuns}"
+            if [ "$optSaveLog" = true ]; then
+                eval "$runArg" >> ./../semantic-relaxation/tmp.txt
+            else
+                eval "$runArg"
+            fi
+        else
+            echo "Failed to move ${dataPath}, skipping..."
         fi
     done
 
+    for elem in "${dcbocfgs[@]}"; do
+        read -a strarr <<< "$elem"
+
+        if [ -d results/timestamps ]; then
+            rm -rf results/timestamps
+        fi
+
+        startSize=$((strarr[0] * 8))
+
+        echo "Running: ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+        ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null
+        dataPath="../semantic-relaxation/data/benchData/dcbo-w${strarr[0]}-i${startSize}-n${numThreads}-d${testDurMs}"
+
+        
+        rm -rf $dataPath
+        mkdir $dataPath
+        mv results/timestamps/* $dataPath
+        rm -rf results/timestamps
+
+
+
+        if [ $? -eq 0 ]; then
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r ${numRuns}"
+            if [ "$optSaveLog" = true ]; then
+                eval "$runArg" >> ./../semantic-relaxation/tmp.txt
+            else
+                eval "$runArg"
+            fi
+        else
+            echo "Failed to move ${dataPath}, skipping..."
+        fi
+    done
+
+    if [ "$optSaveLog" = true ]; then
+        if [ ! -d ./../semantic-relaxation/logs ]; then
+            mkdir ./../semantic-relaxation/logs
+        fi
+
+        if [ -f ./../semantic-relaxation/tmp.txt ]; then
+            logFile="$(date -d "today" +"%Y%m%d%H%M").log"
+            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$logFile
+        fi
+    fi
+    
     echo "Leaving ../semantic-relaxation-dcbo"
-    cd ../semantic-relaxation
+    cd ./../semantic-relaxation
 }
 
 Compile()
@@ -103,16 +193,10 @@ Plot()
 {
     # plot data
     echo "Plotting..."
-    python3 scripts/parse_bench.py
+    python3 scripts/parse_bench.py logs/$logFile
 }
 
-optBench=false
-optCompile=false
-optRun=false
-optPlot=false
-optSingle=false
-
-while getopts ":hcrbps" option; do
+while getopts ":hcrbpsl" option; do
     case $option in
         h) # display help
             Help
@@ -124,7 +208,10 @@ while getopts ":hcrbps" option; do
         b)  # bench
             optBench=true;;
         p) # plot
-            optPlot=true;;
+            optPlot=true
+            optSaveLog=true;;
+        l) # save log
+            optSaveLog=true;;
         \?) # compile first
             echo "Error: Invalid argument"
             exit;;
