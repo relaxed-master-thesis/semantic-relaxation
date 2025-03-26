@@ -57,7 +57,7 @@ std::pair<uint64_t, uint64_t> ParallelBoxImp::calcBox(range r) {
 	uint64_t max = 0;
 
 	for (int i = 0; i < n; ++i) {
-		uint64_t pop_order = pushed_pop_orders[i];
+		int64_t pop_order = static_cast<int64_t>(pushed_pop_orders[i]);
 
 		if (pop_order == std::numeric_limits<int>::max()) {
 			++constErr;
