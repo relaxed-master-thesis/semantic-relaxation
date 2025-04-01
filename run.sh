@@ -29,27 +29,24 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        "8 4"
-        "16 8"
-        "32 16"
-        "64 32"
-        "128 64"
-        "256 128"
-        # "512 256"
+        # "8 4"
+        # "16 8"
+        # "32 16"
+        # "64 32"
+        # "128 64"
+        # "256 128"
+        "512 256"
     )
 
     declare -a dcbocfgs=(
-        "8"
-        "16"
-        "32"
-        "64"
-        "128"
-        "256"
-        "512"
-        "1024"
-        "2048"
-        # "4096"
-        # "50000"
+        # "8"
+        # "32"
+        # "128"
+        # "512"
+        # "2048"
+        # "8192"
+        # "32768"
+        # "65536"
     )
 
     if [ ! -d ../semantic-relaxation-dcbo ]; then
@@ -80,7 +77,7 @@ Benchmark()
     fi
     
     # change to 1s
-    testDurMs=100
+    testDurMs=1
     # change -n to 16 threads
     numThreads=8
     # should be at least 3
@@ -138,7 +135,7 @@ Benchmark()
             rm -rf results/timestamps
         fi
 
-        startSize=$((strarr[0] * 8))
+        startSize=$((strarr[0] * 4))
 
         echo "Running: ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
         ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null

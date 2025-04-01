@@ -56,7 +56,10 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	size_t startIdx = half - (half % boxSize);
 	startIdx = 0;
 
-	// hmm de e sant, ye sant bara en boxjävel
+	if (getsSize < boxSize) {
+		boxSize = getsSize;
+	}
+
 	std::unordered_map<uint64_t, int> getMap{};
 	for (size_t i = 0; i < boxSize; ++i) {
 		auto &put = gets->at(i + startIdx);
