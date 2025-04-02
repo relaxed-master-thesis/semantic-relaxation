@@ -110,7 +110,7 @@ Result Benchmark::runSingle(std::shared_ptr<AbstractExecutor> executor) {
 	}
 
 	// If the clock is not monotonic we cannot trust the measurements
-	if (prepTime < 0 || prepTime > 1'000'000'000) {
+	if (prepTime < 0 || prepTime > 1'000'000'000'000) {
 		return {std::format("Prepare time invalid: {}", prepTime)};
 	} else if (prepTime == 0) {
 		prepTime = 1;
@@ -128,7 +128,7 @@ Result Benchmark::runSingle(std::shared_ptr<AbstractExecutor> executor) {
 		return {"Execute failed: " + std::string(e.what())};
 	}
 
-	if (execTime < 0 || execTime > 1'000'000'000) {
+	if (execTime < 0 || execTime > 1'000'000'000'000) {
 		return {std::format("Execute time invalid: {}", execTime)};
 	}else if (execTime == 0) {
 		execTime = 1;
