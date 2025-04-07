@@ -218,7 +218,7 @@ void ParallelBatchImp::splitOnTime(const std::vector<Interval> &intervals,
 		while (idx < intervals.size() && intervals.at(idx).start < curr_end) {
 			auto &interv = intervals.at(idx);
 			subProblems[i].puts.push_back(interv.value);
-			subProblems[i].intervals.push_back(interv);
+			subProblems[i].intervals.push_back(idx);
 			if (interv.end >= curr_end && i != numThreads - 1) {
 				int next_i = i + 1;
 				int64_t next_start = start_times[next_i];
@@ -228,7 +228,7 @@ void ParallelBatchImp::splitOnTime(const std::vector<Interval> &intervals,
 					} else {
 						subProblems[next_i].non_counting_puts.insert(
 							interv.value);
-						subProblems[next_i].intervals.push_back(interv);
+						subProblems[next_i].intervals.push_back(idx);
 						subProblems[next_i].puts.push_back(interv.value);
 					}
 
@@ -240,11 +240,12 @@ void ParallelBatchImp::splitOnTime(const std::vector<Interval> &intervals,
 		}
 		std::ranges::sort(
 			subProblems[i].intervals,
-			[](const Interval &left, const Interval &right) -> bool {
-				return left.end < right.end;
+			[intervals](const size_t &left, const size_t &right) -> bool {
+				return intervals[left].end < intervals[right].end;
 			});
 
-		for (auto &intv : subProblems[i].intervals) {
+		for (auto &idx : subProblems[i].intervals) {
+			auto &intv = intervals.at(idx);
 			if (intv.end < max_time + 1)
 				subProblems[i].getValues.push_back(intv.value);
 		}
@@ -321,7 +322,7 @@ void ParallelBatchImp::splitOnWorkPar(const std::vector<Interval> &intervals,
 			// subProblems[i].puts.push_back(interv.value);
 			{
 				std::lock_guard<std::mutex> lock(subProblemMutexes[tid]);
-				subProblems[tid].intervals.push_back(interv);
+				subProblems[tid].intervals.push_back(idx);
 			}
 			if (interv.end >= curr_end && tid != numThreads - 1) {
 				int next_i = tid + 1;
@@ -337,7 +338,7 @@ void ParallelBatchImp::splitOnWorkPar(const std::vector<Interval> &intervals,
 							subProblemMutexes[next_i]);
 						subProblems[next_i].non_counting_puts.insert(
 							interv.value);
-						subProblems[next_i].intervals.push_back(interv);
+						subProblems[next_i].intervals.push_back(idx);
 						// subProblems[next_i].non_counting_intervals.push_back(interv);
 						// subProblems[next_i].puts.push_back(interv.value);
 					}
@@ -364,19 +365,21 @@ void ParallelBatchImp::splitOnWorkPar(const std::vector<Interval> &intervals,
 		// sort on start times to make sure that the puts are in order
 		std::ranges::sort(
 			subProblems[i].intervals,
-			[](const Interval &left, const Interval &right) -> bool {
-				return left.start < right.start;
+			[intervals](const size_t &left, const size_t &right) -> bool {
+				return intervals[left].start < intervals[right].start;
 			});
-		for (auto &intv : subProblems[i].intervals) {
+		for (auto &idx : subProblems[i].intervals) {
+			auto &intv = intervals.at(idx);
 			subProblems[i].puts.push_back(intv.value);
 		}
 		std::ranges::sort(
 			subProblems[i].intervals,
-			[](const Interval &left, const Interval &right) -> bool {
-				return left.end < right.end;
+			[intervals](const size_t &left, const size_t &right) -> bool {
+				return intervals[left].end < intervals[right].end;
 			});
 
-		for (auto &intv : subProblems[i].intervals) {
+		for (auto &idx : subProblems[i].intervals) {
+			auto &intv = intervals.at(idx);
 			if (intv.end < max_time + 1)
 				subProblems[i].getValues.push_back(intv.value);
 		}
@@ -443,7 +446,7 @@ void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 		while (idx < intervals.size() && intervals.at(idx).start < curr_end) {
 			auto &interv = intervals.at(idx);
 			subProblems[i].puts.push_back(interv.value);
-			subProblems[i].intervals.push_back(interv);
+			subProblems[i].intervals.push_back(idx);
 			if (interv.end >= curr_end && i != numThreads - 1) {
 				int next_i = i + 1;
 				int64_t next_start = start_times[next_i];
@@ -453,7 +456,7 @@ void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 					} else {
 						subProblems[next_i].non_counting_puts.insert(
 							interv.value);
-						subProblems[next_i].intervals.push_back(interv);
+						subProblems[next_i].intervals.push_back(idx);
 						subProblems[next_i].puts.push_back(interv.value);
 					}
 
@@ -465,11 +468,12 @@ void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 		}
 		std::ranges::sort(
 			subProblems[i].intervals,
-			[](const Interval &left, const Interval &right) -> bool {
-				return left.end < right.end;
+			[intervals](const size_t &left, const size_t &right) -> bool {
+				return intervals[left].end < intervals[right].end;
 			});
 
-		for (auto &intv : subProblems[i].intervals) {
+		for (auto &idx : subProblems[i].intervals) {
+			auto &intv = intervals.at(idx);
 			if (intv.end < max_time + 1)
 				subProblems[i].getValues.push_back(intv.value);
 		}
@@ -478,6 +482,7 @@ void ParallelBatchImp::splitOnWork(const std::vector<Interval> &intervals,
 		subProblems[i].puts2 =
 			static_cast<Item *>(calloc(nItems, sizeof(Item)));
 		auto putsiter = subProblems[i].puts.begin();
+		size_t k = 0;
 		for (size_t j = 0; j < nItems; ++j) {
 			Item *item = &subProblems[i].puts2[j];
 			item->value = *putsiter;

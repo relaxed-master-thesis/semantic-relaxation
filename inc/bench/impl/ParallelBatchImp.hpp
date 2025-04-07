@@ -44,7 +44,7 @@ class ParallelBatchImp : public AccurateExecutor {
 	};
 
 	struct SubProblem {
-		std::vector<Interval> intervals{};
+		std::vector<size_t> intervals{};
 		std::unordered_set<uint64_t> non_counting_puts{};
 		uint64_t const_error{0};
 		std::list<uint64_t> puts{};
