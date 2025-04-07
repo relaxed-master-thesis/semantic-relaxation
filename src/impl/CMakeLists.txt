@@ -21,4 +21,6 @@ target_sources(SemanticRelaxation PRIVATE
     MinMax2DDAImp.cpp
     OrderApproxImp.cpp
     ParallelBoxImp.cpp
+    GeijerDelayImp.cpp
+    FenwickDelayImp.cpp
 )

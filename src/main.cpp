@@ -2,8 +2,10 @@
 #include "bench/impl/BatchPopImp.hpp"
 #include "bench/impl/FAAImp.hpp"
 #include "bench/impl/FenwickAImp.hpp"
+#include "bench/impl/FenwickDelayImp.hpp"
 #include "bench/impl/FenwickImp.hpp"
 #include "bench/impl/GeijerBatchImp.hpp"
+#include "bench/impl/GeijerDelayImp.hpp"
 #include "bench/impl/GeijerImp.hpp"
 #include "bench/impl/HeuristicGeijer.hpp"
 #include "bench/impl/IVTImp.hpp"
@@ -192,9 +194,12 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::FenwickImp>()
-		.addConfig<bench::MonteReplayTree>(.1)
-		.addConfig<bench::MonteFenwickImp>(.1);
+		.setBaseline<bench::GeijerDelayImp>()
+		.addConfig<bench::FenwickDelayImp>();
+		// .addConfig<bench::GeijerImp>()
+		// .addConfig<bench::GeijerDelayImp>();
+		// .addConfig<bench::MonteReplayTree>(.1)
+		// .addConfig<bench::MonteFenwickImp>(.1);
 	// 	.addConfig<bench::GeijerBatchImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// 	.addConfig<bench::FenwickImp>()

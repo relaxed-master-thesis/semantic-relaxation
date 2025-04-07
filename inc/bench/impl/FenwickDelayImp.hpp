@@ -45,6 +45,8 @@ class FenwickDelayImp : public AccurateExecutor {
 		std::vector<T> BIT;
 	};
 
+	// std::vector<int64_t> popTimes{};
 	std::vector<int64_t> popTimes{};
+	size_t num_gets{0};
 };
 } // namespace bench
