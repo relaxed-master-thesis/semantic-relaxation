@@ -3,6 +3,7 @@
 #include "bench/util/InputData.hpp"
 #include <exception>
 #include <format>
+#include <fstream>
 #include <memory>
 
 #ifdef __GNUC__
@@ -31,9 +32,35 @@ getTemplateParamTypeName(std::shared_ptr<AbstractExecutor> ptr) {
 Benchmark::Benchmark(const BenchCfg &cfg) : cfg(cfg) {}
 
 Benchmark &Benchmark::loadData() {
-	data = bench::TimestampParser().parse(
-		cfg.inputDataDir + "/combined_get_stamps.txt",
-		cfg.inputDataDir + "/combined_put_stamps.txt");
+	std::string getOps = cfg.inputDataDir + "/combined_get_stamps.txt";
+
+	uint64_t time, value;
+	std::ifstream getFile(getOps);
+	auto gets = std::make_shared<std::vector<Operation>>();
+	if (!getFile.good()) {
+		throw std::runtime_error("File \"" + getOps + "\" not found\n");
+		return *this;
+	}
+	size_t getCount = 0;
+	while (getCount++ < cfg.numGets && getFile >> time >> value) {
+		gets->emplace_back(time, value);
+	}
+
+	std::string putOps = cfg.inputDataDir + "/combined_put_stamps.txt";
+	std::ifstream putFile(putOps);
+	if (!putFile.good()) {
+		throw std::runtime_error("File \"" + putOps + "\" not found\n");
+		return *this;
+	}
+
+	auto puts = std::make_shared<std::vector<Operation>>();
+	uint64_t lastGetTime = time;
+	time = 0;
+	while (time < lastGetTime && putFile >> time >> value) {
+		puts->emplace_back(time, value);
+	}
+
+	data = InputData(gets, puts);
 
 	return *this;
 }
@@ -130,7 +157,7 @@ Result Benchmark::runSingle(std::shared_ptr<AbstractExecutor> executor) {
 
 	if (execTime < 0 || execTime > 1'000'000'000'000) {
 		return {std::format("Execute time invalid: {}", execTime)};
-	}else if (execTime == 0) {
+	} else if (execTime == 0) {
 		execTime = 1;
 	}
 

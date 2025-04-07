@@ -86,9 +86,6 @@ AbstractExecutor::Measurement GeijerDelayImp::execute() {
 		current = current->next;
 	}
 
-	std::cout << "delay_sum: " << delay_sum << std::endl;
-	std::cout << "rank_sum: " << rank_sum << std::endl;
-	// assert(delay_sum == rank_sum && "Sum of ranks and delays should be equal");
 	return {delay_max, (long double)delay_sum / (long double)put_stamps_size};
 }
 

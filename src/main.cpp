@@ -21,7 +21,6 @@
 #include "bench/impl/ReplayTreeImp.hpp"
 #include "bench/util/Benchmark.hpp"
 #include "bench/util/FenwickTree.hpp"
-#include "bench/util/TimestampParser.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -132,6 +131,11 @@ parseArguments(int argc, char *argv[]) {
 		numRuns = std::stoi(arg_map["-r"]);
 	}
 
+	size_t numGets = 0;
+	if (arg_map.find("-g") != arg_map.end()) {
+		numGets = std::stoi(arg_map["-g"]);
+	}
+
 	std::string dir{""};
 	if (arg_map.find("-i") != arg_map.end()) {
 		dir = arg_map["-i"];
@@ -159,7 +163,7 @@ parseArguments(int argc, char *argv[]) {
 			return std::nullopt;
 		}
 		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
-			bench::BenchCfg(numThreads, dir, numRuns),
+			bench::BenchCfg(numThreads, dir, numRuns, numGets),
 			InputInfo{true, width, height});
 	}
 
@@ -171,7 +175,7 @@ parseArguments(int argc, char *argv[]) {
 		}
 
 		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
-			bench::BenchCfg(numThreads, dir, numRuns),
+			bench::BenchCfg(numThreads, dir, numRuns, numGets),
 			InputInfo{false, width, 0});
 	}
 
@@ -194,12 +198,12 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::GeijerDelayImp>()
-		.addConfig<bench::FenwickDelayImp>();
-		// .addConfig<bench::GeijerImp>()
-		// .addConfig<bench::GeijerDelayImp>();
-		// .addConfig<bench::MonteReplayTree>(.1)
-		// .addConfig<bench::MonteFenwickImp>(.1);
+		.setBaseline<bench::FenwickImp>()
+		.addConfig<bench::ReplayImp>();
+	// .addConfig<bench::GeijerImp>()
+	// .addConfig<bench::GeijerDelayImp>();
+	// .addConfig<bench::MonteReplayTree>(.1)
+	// .addConfig<bench::MonteFenwickImp>(.1);
 	// 	.addConfig<bench::GeijerBatchImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// 	.addConfig<bench::FenwickImp>()

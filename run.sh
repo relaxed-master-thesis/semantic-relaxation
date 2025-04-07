@@ -1,5 +1,6 @@
 #!/bin/bash
 
+programName=$0
 optBench=false
 optCompile=false
 optRun=false
@@ -12,11 +13,13 @@ twoddLogFile=""
 
 Help()
 {
-    echo "Run Semantic-Relaxation benchmarks"
-    echo
-    echo "options:"
-    echo "-c    Compile before run"
-    echo
+    echo "usage: $programName [-bchlp]"
+    echo "  -b    --bench       Run benchmark"
+    echo "  -c    --compile     Compile before run"
+    echo "  -h    --help        Show this help message"
+    echo "  -l    --save-log    Save log file(s) to logs/"
+    echo "  -p    --plot        Plot data"
+    exit 1
 }
 
 Benchmark()
@@ -29,21 +32,21 @@ Benchmark()
     # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
     # "w l"
     declare -a twoddcfgs=(
-        "8 4"
-        "16 8"
-        "32 16"
-        "64 32"
+        # "8 4"
+        # "16 8"
+        # "32 16"
+        # "64 32"
         "128 64"
         "256 128"
         "512 256"
     )
 
     declare -a dcbocfgs=(
-        "8"
-        "32"
-        "128"
-        "512"
-        "2048"
+        # "8"
+        # "32"
+        # "128"
+        # "512"
+        # "2048"
         "8192"
         "32768"
         "65536"
@@ -79,9 +82,11 @@ Benchmark()
     # change to 1s
     testDurMs=10
     # change -n to 16 threads
-    numThreads=2
+    numThreads=8
     # should be at least 3
     numRuns=1
+    # number of gets to calculate
+    dataSize=1000000
     
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
@@ -97,19 +102,34 @@ Benchmark()
 
         dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
 
-        # check if dataPath does not exist
-        if [ ! -d $dataPath ]; then
-            ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
-            mkdir $dataPath
-            mv results/timestamps/* $dataPath
-            rm -rf results/timestamps
-        else
-            echo "Data already exists, using old data..."
-        fi
-
-
+        getCount=0
+        while [[ "$getCount" -lt "$dataSize" ]]; 
+        do
+            getFile="$dataPath/combined_get_stamps.txt"
+            # check if dataPath does not exist
+            if [ ! -d $dataPath ] || [ $(wc -l < "$getFile") -lt "$dataSize" ]; then
+                rm -rf $dataPath
+                ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
+                mkdir $dataPath
+                mv results/timestamps/* $dataPath
+                rm -rf results/timestamps
+            else
+                echo "Data already exists, using old data..."
+            fi
+            getCount=$(wc -l < "$getFile")
+            if [ "$getCount" -lt "$dataSize" ]; then
+                echo "Not enough data, fixing test duration..."
+                dataProp=$((getCount / dataSize))
+                dataProp="scale=2 ; $getCount / $dataSize" | bc
+                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                testDurMs=$((testDurMs * dataProp))
+                rm -rf $dataPath
+                dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
+            fi
+        done
+        
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -141,19 +161,37 @@ Benchmark()
         startSize=$((strarr[0] * 4))
 
         echo "Running: ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
-        ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null
         dataPath="../semantic-relaxation/data/benchData/dcbo-w${strarr[0]}-i${startSize}-n${numThreads}-d${testDurMs}"
 
-        
-        rm -rf $dataPath
-        mkdir $dataPath
-        mv results/timestamps/* $dataPath
-        rm -rf results/timestamps
+        getCount=0
+        while [[ "$getCount" -lt "$dataSize" ]]; 
+        do
+            getFile="$dataPath/combined_get_stamps.txt"
+            # check if dataPath does not exist
+            if [ ! -d $dataPath ] || [ $(wc -l < "$getFile") -lt "$dataSize" ]; then
+                rm -rf $dataPath
+                ./bin/dcbo-faaaq -w ${strarr[0]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null
+                mkdir $dataPath
+                mv results/timestamps/* $dataPath
+                rm -rf results/timestamps
+            else
+                echo "Data already exists, using old data..."
+            fi
+            getCount=$(wc -l < "$getFile")
 
-
+            if [ "$getCount" -lt "$dataSize" ]; then
+                echo "Not enough data, fixing test duration..."
+                dataProp=$((getCount / dataSize))
+                dataProp="scale=2 ; $getCount / $dataSize" | bc
+                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                testDurMs=$((testDurMs * dataProp))
+                rm -rf $dataPath
+                dataPath="../semantic-relaxation/data/benchData/dcbo-w${strarr[0]}-i${startSize}-n${numThreads}-d${testDurMs}"
+            fi
+        done
 
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -t ${numThreads} -i ${dataPath} -r ${numRuns}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -219,27 +257,59 @@ Plot()
     fi
 }
 
-while getopts ":hcrbpsl" option; do
-    case $option in
-        h) # display help
+# while getopts ":hcrbpsl" option; do
+#     case $option in
+#         h) # display help
+#             Help
+#             exit;;
+#         c) # compile and run
+#             optCompile=true;;
+#         r) # run
+#             optRun=true;;
+#         b)  # bench
+#             optBench=true;;
+#         p) # plot
+#             optPlot=true
+#             optSaveLog=true;;
+#         l) # save log
+#             optSaveLog=true;;
+#         \?) # compile first
+#             echo "Error: Invalid argument"
+#             exit;;
+#     esac
+# done
+
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
             Help
             exit;;
-        c) # compile and run
+        -c|--compile)
             optCompile=true;;
-        r) # run
+        -r|--run)
             optRun=true;;
-        b)  # bench
+        -b|--bench)
             optBench=true;;
-        p) # plot
+        -p|--plot)
             optPlot=true
             optSaveLog=true;;
-        l) # save log
+        -l|--save-log)
             optSaveLog=true;;
-        \?) # compile first
+        --) # end of all options
+            shift
+            break;;
+        -*)
             echo "Error: Invalid argument"
-            exit;;
+            exit 1;;
+        *) # preserve positional arguments
+            POSITIONAL_ARGS+=("$1")
+            ;;
     esac
+    shift
 done
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 if [ "$optCompile" = true ]; then
     Compile
@@ -256,4 +326,5 @@ fi
 
 if [ "$optRun" = true ]; then
     Run
+    exit
 fi

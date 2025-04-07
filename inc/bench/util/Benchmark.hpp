@@ -2,7 +2,6 @@
 
 #include "bench/util/Executor.hpp"
 #include "bench/util/InputData.hpp"
-#include "bench/util/TimestampParser.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -58,12 +57,14 @@ struct Result {
 
 struct BenchCfg {
 	BenchCfg() : numAvailableThreads(0), inputDataDir("") {}
-	BenchCfg(size_t threads, std::string dir, size_t runs)
-		: numAvailableThreads(threads), inputDataDir(dir), numRuns(runs) {}
+	BenchCfg(size_t threads, std::string dir, size_t runs, size_t numGets)
+		: numAvailableThreads(threads), inputDataDir(dir), numRuns(runs),
+		  numGets(numGets) {}
 
 	size_t numAvailableThreads{1}; // -n 16 e.g.
 	std::string inputDataDir{""};
-	size_t numRuns{1};
+	size_t numRuns;
+	size_t numGets; // -g 100 e.g.
 };
 
 class Benchmark {
@@ -97,7 +98,6 @@ class Benchmark {
 	void printResults();
 
   private:
-
 	Result runSingle(std::shared_ptr<AbstractExecutor> executor);
 	Result runCumulative(std::shared_ptr<AbstractExecutor> executor,
 						 Result &initialResult);

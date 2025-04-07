@@ -77,8 +77,6 @@ AbstractExecutor::Measurement FenwickDelayImp::execute() {
 		BIT.update(popTime, 1);
 	}
 
-	std::cout << "fdelay_sum: " << sum << "\n";
-
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
