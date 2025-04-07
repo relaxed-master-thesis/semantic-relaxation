@@ -8,6 +8,7 @@
 #include "bench/impl/HeuristicGeijer.hpp"
 #include "bench/impl/IVTImp.hpp"
 #include "bench/impl/MinMax2DDAImp.hpp"
+#include "bench/impl/MonteFenwickImp.hpp"
 #include "bench/impl/MonteReplayTree.hpp"
 #include "bench/impl/ParallelBatchImp.hpp"
 #include "bench/impl/ParallelBoxImp.hpp"
@@ -191,21 +192,23 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::GeijerImp>()
-		.addConfig<bench::GeijerBatchImp>()
-		.addConfig<bench::ReplayTreeImp>()
-		.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelBatchImp>(false)
-		.addConfig<bench::ParallelFenwickImp>();
-	if (info.is2Ddqopt) {
-		myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);
-	}
-	myBench.addConfig<bench::FenwickAImp>(0.1f)
-		.addConfig<bench::MonteReplayTree>(0.1)
-		.addConfig<bench::ReplayTreeAImp>(0.1f);
-	if (info.is2Ddqopt) {
-		myBench.addConfig<bench::MinMax2DDAImp>(0.1f, info.width, info.height);
-	}
+		.setBaseline<bench::FenwickImp>()
+		.addConfig<bench::MonteReplayTree>(.1)
+		.addConfig<bench::MonteFenwickImp>(.1);
+	// 	.addConfig<bench::GeijerBatchImp>()
+	// 	.addConfig<bench::ReplayTreeImp>()
+	// 	.addConfig<bench::FenwickImp>()
+	// 	.addConfig<bench::ParallelBatchImp>(false)
+	// 	.addConfig<bench::ParallelFenwickImp>();
+	// if (info.is2Ddqopt) {
+	// 	myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);
+	// }
+	// myBench.addConfig<bench::FenwickAImp>(0.1f)
+	// 	.addConfig<bench::MonteReplayTree>(0.1)
+	// 	.addConfig<bench::ReplayTreeAImp>(0.1f);
+	// if (info.is2Ddqopt) {
+	// 	myBench.addConfig<bench::MinMax2DDAImp>(0.1f, info.width, info.height);
+	// }
 	// .addConfig<bench::FenwickImp>()
 	// .addConfig<bench::FenwickImp>()
 	// .addConfig<bench::ReplayTreeImp>()

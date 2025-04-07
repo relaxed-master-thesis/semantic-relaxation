@@ -16,6 +16,7 @@ target_sources(SemanticRelaxation PRIVATE
     FAAImp.cpp
     FenwickAImp.cpp
     MonteReplayTree.cpp
+    MonteFenwickImp.cpp
     ReplayTreeAImp.cpp
     MinMax2DDAImp.cpp
     OrderApproxImp.cpp

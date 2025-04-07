@@ -1,6 +1,7 @@
 #include "bench/impl/MonteReplayTree.hpp"
 #include "bench/util/Executor.hpp"
 #include "bench/util/Operation.hpp"
+#include "bench/util/FastRandom.hpp"
 
 #include <cstddef>
 #include <cstdint>
