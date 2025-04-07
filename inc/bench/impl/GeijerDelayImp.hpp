@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bench/util/Executor.hpp"
+#include <cstdint>
 
 namespace bench {
 class GeijerDelayImp : public AccurateExecutor {
@@ -16,6 +17,7 @@ class GeijerDelayImp : public AccurateExecutor {
     private:
     struct item {
         uint64_t value;
+        uint64_t delay;
         item *next;
     };
     std::shared_ptr<std::vector<Operation>> put_stamps;

@@ -1,5 +1,6 @@
 #include "bench/impl/GeijerDelayImp.hpp"
 #include "bench/util/Executor.hpp"
+#include <cstdint>
 
 namespace bench {
 void GeijerDelayImp::prepare(const InputData &data) {
@@ -22,6 +23,8 @@ AbstractExecutor::Measurement GeijerDelayImp::execute() {
 	// return {0, 0};
 	uint64_t delay_sum = 0;
 	uint64_t delay_max = 0;
+	uint64_t rank_sum = 0;
+	uint64_t rank_max = 0;
 
 	item *head = get_stamps_head;
 
@@ -32,35 +35,38 @@ AbstractExecutor::Measurement GeijerDelayImp::execute() {
 			break;
 		}
 
-		uint64_t rank_delay = 0;
+		uint64_t rank = 0;
 		if (head->value == key) {
 			head = head->next;
 		} else {
-			rank_delay = 1;
+			rank = 1;
+			head->delay++;
 			item *current = head;
 			if (current->next == nullptr) {
 				// if get doesnt exist for put, just ignore it
-				rank_delay = 0;
+				rank = 0;
 			} else {
 				while (current->next->value != key) {
+					current->next->delay++;
 					current = current->next;
-					rank_delay += 1;
+					rank += 1;
 					if (current->next == nullptr) {
 						// if get doesnt exist for put, just ignore it
-						rank_delay = 0;
+						rank = 0;
 						break;
 					}
 				}
 			}
 
 			current->next = current->next->next;
+			
 		}
 
-		(*put_stamps)[enq_ind].value = rank_delay;
+		(*put_stamps)[enq_ind].value = rank;
 
-		delay_sum += rank_delay;
-		if (rank_delay > delay_max) {
-			delay_max = rank_delay;
+		rank_sum += rank;
+		if (rank > rank_max) {
+			rank_max = rank;
 		}
 	}
 
