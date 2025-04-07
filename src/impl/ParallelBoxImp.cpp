@@ -31,7 +31,6 @@ AbstractExecutor::Measurement ParallelBoxImp::execute() {
 		rankMax = std::max(rankMax, max);
 		rankSum += sum;
 	}
-	std::cout << "Sum: " << rankSum << "\n";
 	return {rankMax, (double)rankSum / (uint64_t)gets->size()};
 }
 
