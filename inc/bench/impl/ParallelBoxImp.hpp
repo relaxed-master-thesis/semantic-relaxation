@@ -26,12 +26,13 @@ class ParallelBoxImp : public AccurateExecutor {
 	void reset() override;
 
   private:
-    std::pair<uint64_t, uint64_t> calcBox(range r);
+    std::pair<uint64_t, uint64_t> calcBox(size_t tid, range r);
 
     size_t height{0}, width{0};
     std::vector<range> ranges;
-    std::unordered_map<uint64_t, uint64_t> getMap{};
     std::shared_ptr<const std::vector<Operation>> puts;
     std::shared_ptr<const std::vector<Operation>> gets;
+
+    std::vector<std::vector<uint64_t>> range_pp_orders{};
 };
 } // namespace bench
