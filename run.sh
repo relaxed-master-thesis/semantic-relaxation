@@ -77,9 +77,9 @@ Benchmark()
     fi
     
     # change to 1s
-    testDurMs=1000
+    testDurMs=10
     # change -n to 16 threads
-    numThreads=72
+    numThreads=2
     # should be at least 3
     numRuns=1
     
@@ -95,15 +95,18 @@ Benchmark()
 
         echo "Running: ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
 
-        ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
-
         dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
 
-        # mkdir ../semantic-relaxation/data/benchData
-        rm -rf $dataPath
-        mkdir $dataPath
-        mv results/timestamps/* $dataPath
-        rm -rf results/timestamps
+        # check if dataPath does not exist
+        if [ ! -d $dataPath ]; then
+            ./bin/2Dd-queue_optimized -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
+            mkdir $dataPath
+            mv results/timestamps/* $dataPath
+            rm -rf results/timestamps
+        else
+            echo "Data already exists, using old data..."
+        fi
+
 
         if [ $? -eq 0 ]; then
             runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns}"
