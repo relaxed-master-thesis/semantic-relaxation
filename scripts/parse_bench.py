@@ -66,6 +66,8 @@ def plotFile(file):
             imps.append(imp_pattern.match(line).group(1))
         elif bench_name_pattern.match(line):
             break 
+    
+    imps = list(set(imps))
     #parse all the benchmarks
     # Define ANSI color codes
     red_pattern = r"\033\[91m"
@@ -84,7 +86,7 @@ def plotFile(file):
     data_pattern = f"{col_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\){space_pattern}{time_pattern} \({float_pattern}\)" 
     line_pattern = re.compile(f"{name_pattern}{space_pattern}{mean_max_pattern}{space_pattern}{data_pattern}")
 
-
+    print(f"plotting {log_file_name} with {len(imps)} implementations")
     benches = []
     i = 0
     while i < len(lines):

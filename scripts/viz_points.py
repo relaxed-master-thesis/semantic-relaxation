@@ -4,7 +4,8 @@ import numpy as np
 
 # folder = 'data/timestamps/FAKE/'
 # folder = 'data/timestamps/2dd-queue-opt-1ms/'
-folder = 'data/timestamps/dcbo-w32-n1-d1/'
+# folder = 'data/timestamps/dcbo-w32-n1-d1/'
+folder = 'data/benchData/2ddqopt-w64-l32-i4096-n2-d10/'
 
 # folder = 'data/timestamps/2dd-queue-opt-500ms/'
 xs = pd.read_csv(
@@ -48,7 +49,7 @@ if '2dd' in folder:
     n = name_split[4][1:]
     d = name_split[5][1:]
     plt.title(f'2Dd-queue with params:\nwidth={w}, length={l}, initial size={i}, threads={n}, duration={d}ms', fontsize=14)
-if 'dcbo' in folder:
+elif 'dcbo' in folder:
     w = name_split[1][1:]
     n = name_split[2][1:]
     d = name_split[3][1:]
