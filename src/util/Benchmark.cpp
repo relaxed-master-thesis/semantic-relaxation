@@ -283,7 +283,7 @@ TableEntry::TableEntry(const std::string &name, long double mean, uint64_t max,
 					   long prep, float prepSpeedup)
 	: isValid(true), name(name), mean(mean), max(max), tot(tot),
 	  totSpeedup(totSpeedup), calc(calc), calcSpeedup(calcSpeedup), prep(prep),
-	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)),
+	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)) ,
 	  smax(std::to_string(max)),
 	  stot(std::format("{} ({:.2f})", timeToNiceStr(tot), totSpeedup)),
 	  scalc(std::format("{} ({:.2f})", timeToNiceStr(calc), calcSpeedup)),
@@ -346,10 +346,12 @@ void Benchmark::printResults() {
 
 	size_t totWidth = nameLen + meanLen + maxLen + totLen + calcLen + prepLen;
 
-	size_t titleLen = std::strlen(cfg.inputDataDir.c_str());
+	std::string title = cfg.inputDataDir + " gets: " + std::to_string(cfg.numGets);
+
+	size_t titleLen = std::strlen(title.c_str());
 	size_t padding = (totWidth - titleLen - 2) / 2;
 
-	std::cout << std::string(padding, '-') << ' ' << cfg.inputDataDir << ' '
+	std::cout << std::string(padding, '-') << ' ' << title << ' '
 			  << std::string(padding, '-') << "\n";
 
 	std::cout << std::left << std::setw(nameLen) << "Name" << std::setw(meanLen)
