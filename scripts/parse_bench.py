@@ -260,13 +260,13 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
     for i in range(3):
         # speed_axs[i].set_xscale("log")
         # speed_axs[i].set_yscale("log")
-        speed_axs[i].set_ylabel("Ranks per second")
+        speed_axs[i].set_ylabel("Dequeues per second")
         speed_axs[i].set_xlabel("Mean relaxation error")
 
-    speed_axs[0].set_title("Total Ranks per second")
+    speed_axs[0].set_title("Total Dequeues per second")
     speed_axs[2].legend()
-    speed_axs[1].set_title("Calc Ranks per second")
-    speed_axs[2].set_title("Prep Ranks per second")
+    speed_axs[1].set_title("Calc Dequeues per second")
+    speed_axs[2].set_title("Prep Dequeues per second")
     error_axs[0].set_title("Mean Calculation Error (%)")
     error_axs[1].set_title("Max Calculation Error (%)")
     error_axs[1].legend()
@@ -289,7 +289,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
     #set names on plots
     error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
-    speed_fig.suptitle(f"{log_file_name} Ranks per second, {int(gets)} gets")
+    speed_fig.suptitle(f"{log_file_name} Dequeues per second, {int(gets)} gets")
     speed_fig.subplots_adjust(bottom=0.2)
 
 
