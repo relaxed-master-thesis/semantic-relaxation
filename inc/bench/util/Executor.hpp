@@ -8,7 +8,7 @@
 namespace bench {
 
 enum BenchmarkType { Accurate = 0, Approximate };
-enum class DataStructureType { Queue = 0, Stack};
+enum DataStructureType { Queue = 0, Stack};
 
 class AbstractExecutor {
   public:
