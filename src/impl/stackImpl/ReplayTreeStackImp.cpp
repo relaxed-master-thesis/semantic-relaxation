@@ -26,7 +26,7 @@ AbstractExecutor::Measurement ReplayTreeStackImp::calcMaxMeanError() {
 			}
 		}
 	}
-	std::cout << "sum: " << rank_sum << " max: " << rank_max << std::endl;
+
 	return {rank_max, (double)rank_sum / get_stamps_size};
 }
 AbstractExecutor::Measurement ReplayTreeStackImp::execute() {

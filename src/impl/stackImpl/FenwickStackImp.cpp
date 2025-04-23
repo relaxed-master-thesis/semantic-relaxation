@@ -54,7 +54,6 @@ AbstractExecutor::Measurement FenwickStackImp::execute() {
 		}
 	}
 
-	std::cout << "sum: " << sum << " max: " << max << std::endl;
 	return {static_cast<uint64_t>(max), static_cast<double>(sum) / pops};
 }
 

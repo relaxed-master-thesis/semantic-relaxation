@@ -48,7 +48,6 @@ namespace bench {
             }
         }
 
-        std::cout << "sum: " << sum << " max: " << max << std::endl;
         return {max, (long double)sum / (long double)get_stamps_size};
     }
 
