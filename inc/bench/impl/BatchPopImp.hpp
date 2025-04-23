@@ -3,7 +3,7 @@
 #include "bench/util/Executor.hpp"
 
 namespace bench {
-class BatchPopImp : public AccurateExecutor {
+class BatchPopImp : public AccurateQueueExecutor {
   public:
 	BatchPopImp() = default;
 	~BatchPopImp(){};

@@ -13,7 +13,7 @@
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
 
-class MonteReplayTree : public ApproximateExecutor {
+class MonteReplayTree : public ApproximateQueueExecutor {
   public:
 	MonteReplayTree() = default;
 	MonteReplayTree(float counting_share) : counting_share(counting_share){};

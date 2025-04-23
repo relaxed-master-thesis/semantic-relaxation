@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace bench {
-class ParallelBoxImp : public AccurateExecutor {
+class ParallelBoxImp : public AccurateQueueExecutor {
   public:
 
     struct range {

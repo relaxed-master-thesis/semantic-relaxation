@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace bench {
-class ParallelGeijerImp : public AccurateExecutor {
+class ParallelGeijerImp : public AccurateQueueExecutor {
   public:
 	ParallelGeijerImp() = default;
 	~ParallelGeijerImp() = default;

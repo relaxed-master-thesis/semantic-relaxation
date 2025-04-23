@@ -3,7 +3,7 @@
 #include "bench/util/Executor.hpp"
 
 namespace bench {
-class ReplayImp : public AccurateExecutor {
+class ReplayImp : public AccurateQueueExecutor {
   public:
 	ReplayImp() = default;
 	~ReplayImp(){};

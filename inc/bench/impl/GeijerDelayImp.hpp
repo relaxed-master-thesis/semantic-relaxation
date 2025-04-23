@@ -4,7 +4,7 @@
 #include <cstdint>
 
 namespace bench {
-class GeijerDelayImp : public AccurateExecutor {
+class GeijerDelayImp : public AccurateQueueExecutor {
   public:
     GeijerDelayImp() = default;
     ~GeijerDelayImp() = default;

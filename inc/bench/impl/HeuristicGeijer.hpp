@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace bench {
-class HeuristicGeijer : public AccurateExecutor {
+class HeuristicGeijer : public AccurateQueueExecutor {
   public:
 	HeuristicGeijer() = default;
 	~HeuristicGeijer() = default;

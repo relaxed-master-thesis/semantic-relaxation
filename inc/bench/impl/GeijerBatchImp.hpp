@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace bench {
-class GeijerBatchImp : public AccurateExecutor {
+class GeijerBatchImp : public AccurateQueueExecutor {
   public:
 	GeijerBatchImp() = default;
 	~GeijerBatchImp() = default;

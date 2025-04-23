@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace bench {
-class AITImp : public AccurateExecutor {
+class AITImp : public AccurateQueueExecutor {
   public:
 	AITImp() = default;
 	~AITImp() = default;

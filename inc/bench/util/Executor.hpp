@@ -8,6 +8,7 @@
 namespace bench {
 
 enum BenchmarkType { Accurate = 0, Approximate };
+enum class DataStructureType { Queue = 0, Stack};
 
 class AbstractExecutor {
   public:
@@ -43,15 +44,39 @@ class AbstractExecutor {
 	virtual Measurement calcMaxMeanError() = 0;
 	virtual void reset() = 0;
 	virtual BenchmarkType type() = 0;
+	virtual DataStructureType dataStructureType() = 0;
 };
 
-class AccurateExecutor : public AbstractExecutor {
+class AccurateQueueExecutor : public AbstractExecutor {
   public:
 	BenchmarkType type() final { return BenchmarkType::Accurate; }
+	DataStructureType dataStructureType() final {
+		return DataStructureType::Queue;
+	}
+  private:
 };
-class ApproximateExecutor : public AbstractExecutor {
+class AccurateStackExecutor : public AbstractExecutor {
+  public:
+	BenchmarkType type() final { return BenchmarkType::Accurate; }
+	DataStructureType dataStructureType() final {
+		return DataStructureType::Stack;
+	}
+  private:
+};
+class ApproximateQueueExecutor : public AbstractExecutor {
   public:
 	BenchmarkType type() final { return BenchmarkType::Approximate; }
+	DataStructureType dataStructureType() final {
+		return DataStructureType::Queue;
+	}
+	enum class CountingType { SHARE, AMOUNT };
+};
+class ApproximateStackExecutor : public AbstractExecutor {
+  public:
+	BenchmarkType type() final { return BenchmarkType::Approximate; }
+	DataStructureType dataStructureType() final {
+		return DataStructureType::Stack;
+	}
 	enum class CountingType { SHARE, AMOUNT };
 };
 } // namespace bench

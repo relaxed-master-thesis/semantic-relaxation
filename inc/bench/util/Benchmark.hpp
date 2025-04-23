@@ -80,6 +80,7 @@ class Benchmark {
 		assert(executors.empty() && "Baseline must be set first");
 		executors.push_back(
 			std::make_shared<Base>(std::forward<Args>(args)...));
+		dataStructureType = executors.back()->dataStructureType();
 		return *this;
 	}
 
@@ -87,6 +88,8 @@ class Benchmark {
 		static_assert(std::is_base_of<AbstractExecutor, T>::value,
 					  "typename must be a subclass of AbstractExecutor");
 		assert(!executors.empty() && "Baseline must be set first");
+		assert(dataStructureType == T().dataStructureType() &&
+			   "Data structure type must be the same as baseline");
 		executors.push_back(std::make_shared<T>(std::forward<Args>(args)...));
 		return *this;
 	}
@@ -106,5 +109,6 @@ class Benchmark {
 	std::vector<Result> results{};
 	const BenchCfg cfg;
 	InputData data;
+	DataStructureType dataStructureType{DataStructureType::Queue};
 };
 } // namespace bench

@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace bench {
-class IVTImp : public AccurateExecutor {
+class IVTImp : public AccurateQueueExecutor {
   public:
 	IVTImp() = default;
 	~IVTImp() = default;

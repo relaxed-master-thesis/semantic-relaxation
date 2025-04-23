@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace bench {
-class FAAImp : public ApproximateExecutor {
+class FAAImp : public ApproximateQueueExecutor {
   public:
 	FAAImp() = default;
 
@@ -20,7 +20,7 @@ class FAAImp : public ApproximateExecutor {
 	std::shared_ptr<const std::vector<Operation>> gets;
 };
 
-class IMEImp : public ApproximateExecutor {
+class IMEImp : public ApproximateQueueExecutor {
   public:
 	IMEImp() = default;
 

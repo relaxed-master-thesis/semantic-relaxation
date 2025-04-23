@@ -10,7 +10,7 @@
 // #define VALIDATION
 
 namespace bench {
-ApproximateExecutor::Measurement MinMax2DDAImp::execute() {
+ApproximateQueueExecutor::Measurement MinMax2DDAImp::execute() {
 	size_t n = pushed_items.size();
 	FenwickTree<int> BIT(n);
 	int64_t constErr = 0;
@@ -32,7 +32,7 @@ ApproximateExecutor::Measurement MinMax2DDAImp::execute() {
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
-ApproximateExecutor::Measurement MinMax2DDAImp::calcMaxMeanError() {
+ApproximateQueueExecutor::Measurement MinMax2DDAImp::calcMaxMeanError() {
 	return {0, 0};
 }
 

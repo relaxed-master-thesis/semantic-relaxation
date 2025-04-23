@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace bench {
-class ParallelFenwickImp : public AccurateExecutor {
+class ParallelFenwickImp : public AccurateQueueExecutor {
   public:
 	ParallelFenwickImp() = default;
 	~ParallelFenwickImp() = default;

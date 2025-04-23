@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace bench {
-class MonteFenwickImp : public ApproximateExecutor {
+class MonteFenwickImp : public ApproximateQueueExecutor {
   public:
 	MonteFenwickImp() = default;
 	MonteFenwickImp(float counting_share) : counting_share(counting_share){};

@@ -13,7 +13,7 @@
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class ReplayTreeImp : public AccurateExecutor {
+class ReplayTreeImp : public AccurateQueueExecutor {
   public:
 	ReplayTreeImp() = default;
 	~ReplayTreeImp() = default;

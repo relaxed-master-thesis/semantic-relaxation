@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace bench {
-class FenwickAImp : public ApproximateExecutor {
+class FenwickAImp : public ApproximateQueueExecutor {
   public:
 	FenwickAImp(float counting_share)
 		: counting_share(counting_share), counting_type(CountingType::SHARE){};

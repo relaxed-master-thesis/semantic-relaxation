@@ -3,7 +3,7 @@
 #include "bench/util/Executor.hpp"
 
 namespace bench {
-class MinMax2DDAImp : public ApproximateExecutor {
+class MinMax2DDAImp : public ApproximateQueueExecutor {
 
   public:
 	MinMax2DDAImp() = default;

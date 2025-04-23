@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace bench {
-class ParallelBatchImp : public AccurateExecutor {
+class ParallelBatchImp : public AccurateQueueExecutor {
   public:
 	ParallelBatchImp() = default;
 	ParallelBatchImp(bool useParSplit)

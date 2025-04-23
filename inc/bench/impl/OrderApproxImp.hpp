@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 namespace bench {
-    class OrderApproxImp : public ApproximateExecutor {
+    class OrderApproxImp : public ApproximateQueueExecutor {
         public:
         OrderApproxImp() = default;
         void prepare(const InputData &data) override;

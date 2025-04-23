@@ -198,16 +198,16 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::FenwickImp>()
-		.addConfig<bench::ReplayImp>();
-	// .addConfig<bench::GeijerImp>()
+		.setBaseline<bench::GeijerImp>()
+		.addConfig<bench::ReplayTreeImp>()
+	.addConfig<bench::FenwickImp>()
 	// .addConfig<bench::GeijerDelayImp>();
 	// .addConfig<bench::MonteReplayTree>(.1)
 	// .addConfig<bench::MonteFenwickImp>(.1);
-	// 	.addConfig<bench::GeijerBatchImp>()
+		.addConfig<bench::GeijerBatchImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// 	.addConfig<bench::FenwickImp>()
-	// 	.addConfig<bench::ParallelBatchImp>(false)
+		.addConfig<bench::ParallelBatchImp>(false);
 	// 	.addConfig<bench::ParallelFenwickImp>();
 	// if (info.is2Ddqopt) {
 	// 	myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);

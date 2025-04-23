@@ -13,7 +13,7 @@
 
 //  I wonder why this formatting is so different compared to other files
 namespace bench {
-class ReplayTreeAImp : public ApproximateExecutor {
+class ReplayTreeAImp : public ApproximateQueueExecutor {
   public:
 	ReplayTreeAImp() = default;
 	ReplayTreeAImp(float counting_share)
