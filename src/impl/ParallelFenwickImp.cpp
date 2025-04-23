@@ -17,7 +17,7 @@ std::pair<uint64_t, uint64_t> ParallelFenwickImp::calcRange(range r) {
 	uint64_t from = r.from;
 	uint64_t to = r.to;
 	size_t n = pushed_items.size();
-	FenwickTree<int64_t> BIT(n);
+	ReverseFenwickTree<int64_t> BIT(n);
 
 	int64_t sum = 0;
 	int64_t max = 0;

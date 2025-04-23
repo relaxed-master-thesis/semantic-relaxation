@@ -19,6 +19,9 @@
 #include "bench/impl/ReplayImp.hpp"
 #include "bench/impl/ReplayTreeAImp.hpp"
 #include "bench/impl/ReplayTreeImp.hpp"
+#include "bench/impl/stackImpl/FenwickStackImp.hpp"
+#include "bench/impl/stackImpl/ReplayTreeStackImp.hpp"
+#include "bench/impl/stackImpl/StackReplayImp.hpp"
 #include "bench/util/Benchmark.hpp"
 #include "bench/util/FenwickTree.hpp"
 
@@ -198,16 +201,19 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::GeijerImp>()
-		.addConfig<bench::ReplayTreeImp>()
-	.addConfig<bench::FenwickImp>()
+		.setBaseline<bench::StackReplayImp>()
+		.addConfig<bench::FenwickStackImp>()
+		.addConfig<bench::ReplayTreeStackImp>();
+		// .setBaseline<bench::GeijerImp>()
+		// .addConfig<bench::ReplayTreeImp>()
+	// .addConfig<bench::FenwickImp>()
 	// .addConfig<bench::GeijerDelayImp>();
 	// .addConfig<bench::MonteReplayTree>(.1)
 	// .addConfig<bench::MonteFenwickImp>(.1);
-		.addConfig<bench::GeijerBatchImp>()
+		// .addConfig<bench::GeijerBatchImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// 	.addConfig<bench::FenwickImp>()
-		.addConfig<bench::ParallelBatchImp>(false);
+		// .addConfig<bench::ParallelBatchImp>(false);
 	// 	.addConfig<bench::ParallelFenwickImp>();
 	// if (info.is2Ddqopt) {
 	// 	myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);

@@ -1,5 +1,6 @@
 #include "bench/impl/FenwickDelayImp.hpp"
 #include "bench/util/Executor.hpp"
+#include "bench/util/FenwickTree.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -26,19 +27,6 @@ void FenwickDelayImp::prepare(const InputData &data) {
 			popTimes.push_back(std::numeric_limits<int64_t>::max());
 		}
 	}
-
-	// pushTimes.resize(puts->size(), std::numeric_limits<int64_t>::max());
-
-	// size_t non_get_idx = puts->size() - 1;
-	// for (size_t i = 0; i < puts->size(); ++i) {
-	// 	auto &put = puts->at(i);
-	// 	if(getMap.contains(put.value)) {
-	// 		pushTimes[getMap[put.value]] = i + 1;
-	// 	} else {
-	// 		pushTimes[non_get_idx] = i + 1;
-	// 		--non_get_idx;
-	// 	}
-	// }
 }
 
 void FenwickDelayImp::reset() {
@@ -48,7 +36,7 @@ void FenwickDelayImp::reset() {
 
 AbstractExecutor::Measurement FenwickDelayImp::execute() {
 	size_t n = popTimes.size();
-	ReverseFenwickTree<int64_t> BIT(num_gets);
+	FenwickTree<int64_t> BIT(num_gets);
 
 	int64_t constDelay = 0;
 	int64_t countedElems = 0;

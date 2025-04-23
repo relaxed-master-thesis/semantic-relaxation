@@ -11,7 +11,7 @@
 namespace bench {
 AbstractExecutor::Measurement FenwickAImp::calcMaxMeanError() {
 	int64_t n = static_cast<int64_t>(pushed_items.size());
-	FenwickTree<int64_t> BIT(n);
+	ReverseFenwickTree<int64_t> BIT(n);
 	std::vector<int64_t> result(n, 0);
 	int64_t constError = 0;
 	int64_t countedElems = 0;

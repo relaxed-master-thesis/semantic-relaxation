@@ -12,7 +12,7 @@
 namespace bench {
 ApproximateQueueExecutor::Measurement MinMax2DDAImp::execute() {
 	size_t n = pushed_items.size();
-	FenwickTree<int> BIT(n);
+	ReverseFenwickTree<int> BIT(n);
 	int64_t constErr = 0;
 	int64_t countedElems = 0;
 	int64_t sum = 0;

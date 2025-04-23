@@ -35,10 +35,10 @@ Benchmark()
         # "8 4"
         # "16 8"
         # "32 16"
-        # "64 32"
+        "64 32"
         "128 64"
         "256 128"
-        "512 256"
+        # "512 256"
     )
 
     declare -a dcbocfgs=(
@@ -47,9 +47,9 @@ Benchmark()
         # "128"
         # "512"
         # "2048"
-        "8192"
-        "32768"
-        "65536"
+        # "8192"
+        # "32768"
+        # "65536"
     )
 
     if [ ! -d ../semantic-relaxation-dcbo ]; then
@@ -80,9 +80,9 @@ Benchmark()
     fi
     
     # change to 1s
-    testDurMs=10
+    testDurMs=1
     # change -n to 16 threads
-    numThreads=8
+    numThreads=2
     # should be at least 3
     numRuns=1
     # number of gets to calculate

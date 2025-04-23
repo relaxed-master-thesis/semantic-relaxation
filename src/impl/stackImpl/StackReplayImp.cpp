@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <format>
+#include <iostream>
 #include <sys/types.h>
 
 namespace bench {  
@@ -20,7 +21,6 @@ namespace bench {
             if (event.isPut) {
                 StackItem *newItem = new StackItem{event.value, stackHead};
                 stackHead = newItem;
-                stackSize++;
             } else {
                 if(stackHead->value == key) {
                     rank = 0;
@@ -47,6 +47,8 @@ namespace bench {
                     max = rank;
             }
         }
+
+        std::cout << "sum: " << sum << " max: " << max << std::endl;
         return {max, (long double)sum / (long double)get_stamps_size};
     }
 
@@ -65,7 +67,6 @@ namespace bench {
         std::sort(events.begin(), events.end(),
                   [](const Event &a, const Event &b) { return a.time < b.time; });
         stackHead = nullptr;
-        stackSize = 0;
     }
 
     void StackReplayImp::reset() {
@@ -74,7 +75,6 @@ namespace bench {
             stackHead = stackHead->next;
             delete temp;
         }
-        stackSize = 0;
         events.clear();
         get_stamps_size = 0;
     }

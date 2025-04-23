@@ -38,7 +38,7 @@ AbstractExecutor::Measurement ParallelBoxImp::calcMaxMeanError() { return {0, 0}
 
 std::pair<uint64_t, uint64_t> ParallelBoxImp::calcBox(size_t tid, range r) {
 	size_t n = r.to - r.from;
-	FenwickTree<uint64_t> BIT(gets->size());
+	ReverseFenwickTree<uint64_t> BIT(gets->size());
 	uint64_t constErr = 0;
 	int countedElems = 0;
 	uint64_t sum = 0;
