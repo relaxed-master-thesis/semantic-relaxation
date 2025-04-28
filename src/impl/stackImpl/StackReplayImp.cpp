@@ -1,6 +1,7 @@
 #include "bench/impl/stackImpl/StackReplayImp.hpp"
 #include "bench/util/InputData.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -15,16 +16,17 @@ namespace bench {
     AbstractExecutor::Measurement StackReplayImp::execute() {
         uint64_t max = 0;
         uint64_t sum = 0;
+        size_t stackItemIdx = 0;
         for(const auto &event : events) {
             uint64_t rank = 0;
             uint64_t key = event.value;
             if (event.isPut) {
-                StackItem *newItem = new StackItem{event.value, stackHead};
-                stackHead = newItem;
+                stackItems[stackItemIdx] = {event.value, stackHead};
+                stackHead = &stackItems[stackItemIdx];
+                stackItemIdx++;
             } else {
                 if(stackHead->value == key) {
                     rank = 0;
-                    //is this a memory leak?
                     stackHead = stackHead->next;
                 }
                 else{
@@ -55,6 +57,7 @@ namespace bench {
         auto puts = data.getPuts();
         auto gets = data.getGets();
         get_stamps_size = gets->size();
+        stackItems.reserve(puts->size());
         events.reserve(puts->size() + gets->size());
         for (const auto &put : *puts) {
             events.push_back({put.time, put.value, true});
@@ -69,12 +72,8 @@ namespace bench {
     }
 
     void StackReplayImp::reset() {
-        while(stackHead) {
-            StackItem *temp = stackHead;
-            stackHead = stackHead->next;
-            delete temp;
-        }
         events.clear();
+        stackItems.clear();
         get_stamps_size = 0;
     }
 }

@@ -26,6 +26,7 @@ namespace bench {
         };
         std::vector<Event> events; 
         StackItem *stackHead;
+        std::vector<StackItem> stackItems;
         size_t get_stamps_size;
     };
 }
