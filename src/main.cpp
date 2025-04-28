@@ -206,9 +206,9 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::StackReplayImp>();
-		// .addConfig<bench::FenwickStackImp>()
-		// .addConfig<bench::ReplayTreeStackImp>();
+		.setBaseline<bench::StackReplayImp>()
+		.addConfig<bench::FenwickStackImp>()
+		.addConfig<bench::ReplayTreeStackImp>();
 		// .setBaseline<bench::GeijerImp>()
 		// .addConfig<bench::ReplayTreeImp>()
 		// .addConfig<bench::GeijerBatchImp>();

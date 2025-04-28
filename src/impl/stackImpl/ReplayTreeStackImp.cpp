@@ -51,6 +51,7 @@ void ReplayTreeStackImp::prepare(const InputData &data) {
 			events.push_back({true, false, i + 1, put.time});
 		} else {
 			events.push_back({true, true, i + 1, put.time});
+			events[getMap[put.value]].pushOrder = i + 1;
 		}
 	}
 
