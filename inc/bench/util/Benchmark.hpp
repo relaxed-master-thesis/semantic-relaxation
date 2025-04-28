@@ -70,6 +70,7 @@ struct BenchCfg {
 };
 
 class Benchmark {
+	friend struct InputData;
   public:
 	Benchmark() = delete;
 
@@ -112,6 +113,9 @@ class Benchmark {
 	Result runSingle(std::shared_ptr<AbstractExecutor> executor);
 	Result runCumulative(std::shared_ptr<AbstractExecutor> executor,
 						 Result &initialResult);
+
+	void removePutsAfterGets(bool cleanup);
+	void fixDuplicateValues();
 
 	std::vector<std::shared_ptr<AbstractExecutor>> executors{};
 	std::vector<Result> results{};

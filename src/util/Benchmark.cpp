@@ -1,11 +1,18 @@
 #include "bench/util/Benchmark.hpp"
 #include "bench/util/Executor.hpp"
 #include "bench/util/InputData.hpp"
+
+#include <algorithm>
+#include <cstdio>
 #include <exception>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <set>
+#include <sys/types.h>
+#include <unordered_map>
+#include <vector>
 
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -66,7 +73,7 @@ Benchmark &Benchmark::loadData() {
 	return *this;
 }
 
-Benchmark &Benchmark::verifyData(bool cleanup) {
+void Benchmark::removePutsAfterGets(bool cleanup) {
 	// verify that no puts are after gets
 	std::unordered_map<uint64_t, uint64_t> get_val_to_time{};
 	std::unordered_map<uint64_t, uint64_t> get_val_to_idx{};
@@ -77,7 +84,8 @@ Benchmark &Benchmark::verifyData(bool cleanup) {
 	}
 	bool error = false;
 	int fails = 0;
-	std::vector<std::pair<size_t, size_t>> to_remove{};
+	std::vector<size_t> to_remove_gets{};
+	std::vector<size_t> to_remove_puts{};
 	for (size_t i = 0; i < data.getPuts()->size(); ++i) {
 		const auto &put = data.getPuts()->at(i);
 		if (get_val_to_time.find(put.value) == get_val_to_time.end()) {
@@ -93,7 +101,10 @@ Benchmark &Benchmark::verifyData(bool cleanup) {
 			if (cleanup) {
 
 				size_t get_idx = get_val_to_idx[put.value];
-				to_remove.emplace_back(get_idx, i);
+				std::cout << "Removing Put value " << put.value << " get value "
+						  << data.getGets()->at(get_idx).value << "\n";
+				to_remove_gets.push_back(get_idx);
+				to_remove_puts.push_back(i);
 			}
 			error = true;
 		}
@@ -106,13 +117,74 @@ Benchmark &Benchmark::verifyData(bool cleanup) {
 		exit(1);
 	}
 	if (error && cleanup) {
-		std::cout << "Removing " << to_remove.size()
-				  << " put(s) after get(s)\n";
-		for (size_t i = to_remove.size(); i > 0; --i) {
-			auto [get_idx, put_idx] = to_remove.at(i - 1);
-			data.removeItem(get_idx, put_idx);
+		std::cout << "Removing " << to_remove_gets.size()
+				  << " put(s) after get(s): [\n";
+
+		std::sort(to_remove_gets.begin(), to_remove_gets.end(),
+				  std::greater<size_t>());
+		std::sort(to_remove_puts.begin(), to_remove_puts.end(),
+				  std::greater<size_t>());
+
+		for (size_t i = 0; i < to_remove_gets.size(); ++i) {
+			std::cout << to_remove_gets.at(i) << ", "
+					  << to_remove_puts.at(i) << "\n";
+
+			data.gets->erase(data.gets->begin() + to_remove_gets.at(i));
+			data.puts->erase(data.puts->begin() + to_remove_puts.at(i));
+		}
+		std::cout << "]\n";
+	}
+}
+
+void Benchmark::fixDuplicateValues() {
+	auto &puts = *data.puts;
+	auto &gets = *data.gets;
+
+	uint64_t max_val = 0;
+	for (const auto &put : puts) {
+		max_val = std::max(max_val, put.value);
+	}
+
+	size_t num_changed = 0;
+	std::set<uint64_t> put_vals{};
+
+	for (size_t i = 0; i < puts.size(); ++i) {
+		auto &put = puts[i];
+
+		if (put_vals.find(put.value) == put_vals.end()) {
+			put_vals.insert(put.value);
+			continue;
+		}
+
+		bool found_first = false;
+		for (size_t j = 0; j < gets.size(); ++j) {
+			auto &get = gets[j];
+			if (get.value == put.value) {
+				if (!found_first) {
+					found_first = true;
+					continue;
+				}
+
+				uint64_t new_val = ++max_val;
+				get.value = new_val;
+				put.value = new_val;
+				++num_changed;
+				break;
+			}
 		}
 	}
+
+	std::cout << put_vals.size() << "/" << puts.size()
+			  << " unique put values\n";
+
+	std::cout << "Fixed " << num_changed
+			  << " duplicate values in puts and gets\n";
+}
+
+Benchmark &Benchmark::verifyData(bool cleanup) {
+	fixDuplicateValues();
+	removePutsAfterGets(cleanup);
+
 	return *this;
 }
 
@@ -284,7 +356,7 @@ TableEntry::TableEntry(const std::string &name, long double mean, uint64_t max,
 					   long prep, float prepSpeedup)
 	: isValid(true), name(name), mean(mean), max(max), tot(tot),
 	  totSpeedup(totSpeedup), calc(calc), calcSpeedup(calcSpeedup), prep(prep),
-	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)) ,
+	  prepSpeedup(prepSpeedup), smean(std::format("{:.2f}", mean)),
 	  smax(std::to_string(max)),
 	  stot(std::format("{} ({:.2f})", timeToNiceStr(tot), totSpeedup)),
 	  scalc(std::format("{} ({:.2f})", timeToNiceStr(calc), calcSpeedup)),
@@ -347,7 +419,8 @@ void Benchmark::printResults() {
 
 	size_t totWidth = nameLen + meanLen + maxLen + totLen + calcLen + prepLen;
 
-	std::string title = cfg.inputDataDir + " gets: " + std::to_string(cfg.numGets);
+	std::string title =
+		cfg.inputDataDir + " gets: " + std::to_string(cfg.numGets);
 
 	size_t titleLen = std::strlen(title.c_str());
 	size_t padding = (totWidth - titleLen - 2) / 2;

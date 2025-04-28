@@ -7,6 +7,8 @@
 
 namespace bench {
 struct InputData {
+	friend class Benchmark;
+
   public:
 	InputData(std::shared_ptr<std::vector<Operation>> gets,
 			  std::shared_ptr<std::vector<Operation>> puts)
