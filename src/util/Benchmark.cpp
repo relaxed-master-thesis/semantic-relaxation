@@ -4,6 +4,7 @@
 #include <exception>
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 #ifdef __GNUC__

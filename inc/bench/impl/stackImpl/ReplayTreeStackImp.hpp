@@ -17,13 +17,13 @@ namespace bench {
 
       private:
 struct event {
-    event(bool isPush, bool hasPop, int64_t pushOrder, int64_t time)
+    event(bool isPush, bool hasPop, uint64_t pushOrder, uint64_t time)
         : isPush(isPush), hasPop(hasPop), pushOrder(pushOrder), time(time) {}
 
     bool isPush;
     bool hasPop;
-    int64_t pushOrder;
-    int64_t time;
+    uint64_t pushOrder;
+    uint64_t time;
   };
        uint64_t get_stamps_size;
 	      std::vector<event> events;

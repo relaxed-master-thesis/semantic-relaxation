@@ -56,15 +56,17 @@ struct Result {
 };
 
 struct BenchCfg {
-	BenchCfg() : numAvailableThreads(0), inputDataDir("") {}
-	BenchCfg(size_t threads, std::string dir, size_t runs, size_t numGets)
+	BenchCfg() : numAvailableThreads(0), inputDataDir(""), isStack(false) {}
+	BenchCfg(size_t threads, std::string dir, size_t runs, size_t numGets, bool
+			  isStack = false)
 		: numAvailableThreads(threads), inputDataDir(dir), numRuns(runs),
-		  numGets(numGets) {}
+		  numGets(numGets), isStack(isStack) {}
 
 	size_t numAvailableThreads{1}; // -n 16 e.g.
 	std::string inputDataDir{""};
 	size_t numRuns;
 	size_t numGets; // -g 100 e.g.
+	bool isStack;
 };
 
 class Benchmark {
@@ -81,6 +83,12 @@ class Benchmark {
 		executors.push_back(
 			std::make_shared<Base>(std::forward<Args>(args)...));
 		dataStructureType = executors.back()->dataStructureType();
+		bool validStack = cfg.isStack &&
+						  dataStructureType == DataStructureType::Stack;
+		bool validQueue = !cfg.isStack &&
+						  dataStructureType == DataStructureType::Queue;
+		assert(validStack || validQueue && 
+			   "Data structure type must be the same as baseline");
 		return *this;
 	}
 

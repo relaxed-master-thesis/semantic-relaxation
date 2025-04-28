@@ -230,12 +230,14 @@ Compile()
 
 Run()
 {
-    dataPath="./data/benchData/2ddqopt-w256-l128-i10000-n2-d200"
+    # dataPath="./data/benchData/2ddqopt-w256-l128-i10000-n2-d200"
     # dataPath="./data/timestamps/2dd-q-opt-w50-l10-i1000-8t-30ms"
+    dataPath="./data/timestamps/2Dd-stack-opt-w16-l8-10t-10ms"
 
     t=12
     r=1
-    runArg="./build/src/SemanticRelaxation -t ${t} -i ${dataPath} -r ${r}"
+    g=300000
+    runArg="./build/src/SemanticRelaxation -t ${t} -i ${dataPath} -r ${r} -g ${g}"
     eval "$runArg"
 }
 

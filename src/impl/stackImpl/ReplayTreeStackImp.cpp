@@ -39,18 +39,18 @@ void ReplayTreeStackImp::prepare(const InputData &data) {
 	get_stamps_size = gets->size();
 
 	std::unordered_map<int64_t, size_t> getMap{};
+	events.reserve(puts->size() + gets->size());
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		events.emplace_back(false, true, 0, get.time);
+		events.push_back({false, true, 0, get.time});
 		getMap[get.value] = i;
 	}
 	for (size_t i = 0; i < puts->size(); ++i) {
 		auto &put = puts->at(i);
 		if (getMap.find(put.value) == getMap.end()) {
-			events.emplace_back(true, false, i + 1, put.time);
+			events.push_back({true, false, i + 1, put.time});
 		} else {
-			events.emplace_back(true, true, i + 1, put.time);
-			events[getMap[put.value]].pushOrder = i + 1;
+			events.push_back({true, true, i + 1, put.time});
 		}
 	}
 

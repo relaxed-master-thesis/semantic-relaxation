@@ -181,9 +181,14 @@ parseArguments(int argc, char *argv[]) {
 			bench::BenchCfg(numThreads, dir, numRuns, numGets),
 			InputInfo{false, width, 0});
 	}
+	if(dir.find("stack") != std::string::npos) {
+		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
+			bench::BenchCfg(numThreads, dir, numRuns, numGets, true),
+			InputInfo{false, 0, 0});
+	}
 
 	std::cerr << "Invalid data directory (\"" << dir
-			  << "\"), must be 2Ddqopt or dcbo\n";
+			  << "\"), must be 2Ddqopt, dcbo or stack\n";
 	return std::nullopt;
 }
 
@@ -201,11 +206,12 @@ int main(int argc, char *argv[]) {
 
 	myBench.loadData()
 		.verifyData(true)
-		.setBaseline<bench::StackReplayImp>()
-		.addConfig<bench::FenwickStackImp>()
-		.addConfig<bench::ReplayTreeStackImp>();
+		.setBaseline<bench::StackReplayImp>();
+		// .addConfig<bench::FenwickStackImp>()
+		// .addConfig<bench::ReplayTreeStackImp>();
 		// .setBaseline<bench::GeijerImp>()
 		// .addConfig<bench::ReplayTreeImp>()
+		// .addConfig<bench::GeijerBatchImp>();
 	// .addConfig<bench::FenwickImp>()
 	// .addConfig<bench::GeijerDelayImp>();
 	// .addConfig<bench::MonteReplayTree>(.1)
