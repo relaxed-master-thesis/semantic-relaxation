@@ -10,6 +10,37 @@ optSaveLog=false
 
 dcboLogFile=""
 twoddLogFile=""
+graphLogFile=""
+
+# change to 1s
+testDurMs=1
+# change -n to 16 threads
+numThreads=2
+# should be at least 3
+numRuns=1
+# number of gets to calculate
+dataSize=1000000
+
+declare -a twoddcfgs=(
+    "8 4"
+    "16 8"
+    # "32 16"
+    # "64 32"
+    # "128 64"
+    # "256 128"
+    # "512 256"
+)
+
+declare -a dcbocfgs=(
+    "8"
+    # "32"
+    # "128"
+    # "512"
+    # "2048"
+    # "8192"
+    # "32768"
+    # "65536"
+)
 
 Help()
 {
@@ -22,72 +53,7 @@ Help()
     exit 1
 }
 
-Benchmark()
-{
-    # generate different kinds of data
-    # 2dd: dynamically change w/l to get diff mean
-    # dcbo: ??? 
-    
-    #  32      128     512     2048     8192      32768       (*4)(2*2)
-    # (8*16) (16*32) (32*64) (64*128) (128*256) (256*512)   (*4)(2*2)
-    # "w l"
-    declare -a twoddcfgs=(
-        # "8 4"
-        # "16 8"
-        # "32 16"
-        "64 32"
-        "128 64"
-        "256 128"
-        # "512 256"
-    )
-
-    declare -a dcbocfgs=(
-        # "8"
-        # "32"
-        # "128"
-        # "512"
-        # "2048"
-        # "8192"
-        # "32768"
-        # "65536"
-    )
-
-    if [ ! -d ../semantic-relaxation-dcbo ]; then
-        echo "Can't find ../semantic-relaxation-dcbo, exiting..."
-        exit
-    fi
-
-    echo "Entering ../semantic-relaxation-dcbo"
-    cd ../semantic-relaxation-dcbo
-    rm ./../semantic-relaxation/bench.txt
-
-    echo "Compiling 2Dd-queue_optimized..."
-    twoddBuildCmd="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
-    eval "$twoddBuildCmd" > /dev/null
-
-    if [ $? -ne 0 ]; then
-        echo "Build failed for 2Dd-queue_optimized"
-        exit
-    fi
-
-    echo "Compiling dcbo-faaaq..."
-    dcboBuildCmd="make dcbo-faaaq RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
-    eval "$dcboBuildCmd" > /dev/null
-
-    if [ $? -ne 0 ]; then
-        echo "Build failed for dcbo-faaaq"
-        exit
-    fi
-    
-    # change to 1s
-    testDurMs=1
-    # change -n to 16 threads
-    numThreads=2
-    # should be at least 3
-    numRuns=1
-    # number of gets to calculate
-    dataSize=1000000
-    
+Benchmark_2ddq() {
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -150,7 +116,9 @@ Benchmark()
             mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddLogFile
         fi
     fi
+}
 
+Benchmark_dcbo() {
     for elem in "${dcbocfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -212,6 +180,97 @@ Benchmark()
             mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboLogFile
         fi
     fi
+}
+
+Benchmark_graph() {
+    for elem in "${twoddcfgs[@]}"; do
+        read -a strarr <<< "$elem"
+
+        if [ -d results/timestamps ]; then
+            rm -rf results/timestamps
+        fi
+
+        inputFile="road_usa"
+
+        echo "Running: ./bin/2Dd-queue_optimized -f graphdata/${inputFile}.mtx -w ${strarr[0]} -l ${strarr[1]} -n ${numThreads}"
+
+        dataPath="../semantic-relaxation/data/benchData/2ddqopt-${inputFile}-w${strarr[0]}-l${strarr[1]}-n${numThreads}-d1"
+
+        getCount=0
+
+        getFile="$dataPath/combined_get_stamps.txt"
+        # check if dataPath does not exist
+        if [ ! -d $dataPath ] || [ $(wc -l < "$getFile") -lt "$dataSize" ]; then
+            rm -rf $dataPath
+            ./bin/2Dd-queue_optimized -f graphdata/${inputFile}.mtx -w ${strarr[0]} -l ${strarr[1]} -n ${numThreads} > /dev/null 
+            mkdir $dataPath
+            mv results/timestamps/* $dataPath
+            rm -rf results/timestamps
+        else
+            echo "Data already exists, using old data..."
+        fi
+        getCount=$(wc -l < "$getFile")
+        if [ "$getCount" -gt 0 ] && [ "$getCount" -lt "$dataSize" ]; then
+            echo "Not enough data in ${dataPath}, skipping..."
+            continue
+        fi
+        
+        if [ $? -eq 0 ]; then
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
+            if [ "$optSaveLog" = true ]; then
+                eval "$runArg" >> ./../semantic-relaxation/tmp.txt
+            else
+                eval "$runArg"
+            fi
+        else
+            echo "Failed to produce data, skipping..."
+        fi
+    done
+    
+    if [ "$optSaveLog" = true ]; then
+        if [ ! -d ./../semantic-relaxation/logs ]; then
+            mkdir ./../semantic-relaxation/logs
+        fi
+
+        if [ -f ./../semantic-relaxation/tmp.txt ]; then
+            graphLogFile="2ddqopt-graph-$(date -d "today" +"%Y%m%d%H%M").log"
+            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$graphLogFile
+        fi
+    fi
+}
+
+Benchmark()
+{
+    if [ ! -d ../semantic-relaxation-dcbo ]; then
+        echo "Can't find ../semantic-relaxation-dcbo, exiting..."
+        exit
+    fi
+
+    echo "Entering ../semantic-relaxation-dcbo"
+    cd ../semantic-relaxation-dcbo
+    rm ./../semantic-relaxation/bench.txt
+
+    echo "Compiling 2Dd-queue_optimized..."
+    twoddBuildCmd="make 2Dd-queue_optimized RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$twoddBuildCmd" > /dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "Build failed for 2Dd-queue_optimized"
+        exit
+    fi
+
+    echo "Compiling dcbo-faaaq..."
+    dcboBuildCmd="make dcbo-faaaq RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$dcboBuildCmd" > /dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "Build failed for dcbo-faaaq"
+        exit
+    fi
+    
+    Benchmark_2ddq
+    Benchmark_dcbo
+    Benchmark_graph
     
     echo "Leaving ../semantic-relaxation-dcbo"
     cd ./../semantic-relaxation
@@ -245,18 +304,41 @@ Plot()
 {
     # plot data
     echo "Plotting..."
-    if [ -z "$twoddLogFile" ] && [ -z "$dcboLogFile" ]; then
-        echo "No log files found, using latest available"
-
-    elif [ -z "$twoddLogFile" ]; then
-        echo "Found only dcbo log file"
-        python3 scripts/parse_bench.py logs/$dcboLogFile
-    elif [ -z "$dcboLogFile" ]; then
-        echo "Found only twodd log file"
-        python3 scripts/parse_bench.py logs/$twoddLogFile
-    else
-        python3 scripts/parse_bench.py logs/$twoddLogFile logs/$dcboLogFile
+    if [ -z "$twoddLogFile" ] && [ -z "$dcboLogFile"] && [ -z "$graphLogFile"]; then
+        echo "No log files produced, using latest..."
+        cd logs
+        twoddLogFile=$(ls -1rt 2ddqopt-*.log 2>/dev/null | tail -n 1)
+        dcboLogFile=$(ls -1rt dcbo-faaq-*.log 2>/dev/null | tail -n 1)
+        graphLogFile=$(ls -1rt 2ddqopt-graph-*.log 2>/dev/null | tail -n 1)
+        cd ..
     fi
+
+    pythonArgs=""
+    if [ -n "$twoddLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${twoddLogFile}"
+    fi
+    if [ -n "$dcboLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${dcboLogFile}"
+    fi
+    if [ -n "$graphLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${graphLogFile}"
+    fi
+
+    python3 scripts/parse_bench.py $pythonArgs
+    
+    # elif [ -z "$graphLogFile" ]; then
+    #     echo "Found only dcbo and twodd log files"
+    #     python3 scripts/parse_bench.py logs/$dcboLogFile logs/$twoddLogFile
+
+    # elif [ -z "$twoddLogFile" ]; then
+    #     echo "Found only dcbo log file"
+    #     python3 scripts/parse_bench.py logs/$dcboLogFile
+    # elif [ -z "$dcboLogFile" ]; then
+    #     echo "Found only twodd log file"
+    #     python3 scripts/parse_bench.py logs/$twoddLogFile
+    # else
+    #     python3 scripts/parse_bench.py logs/$twoddLogFile logs/$dcboLogFile logs/$graphLogFile
+    # fi
 }
 
 # while getopts ":hcrbpsl" option; do
@@ -318,12 +400,13 @@ if [ "$optCompile" = true ]; then
 fi
 
 if [ "$optBench" = true ]; then
-    # Compile
+    Compile
     Benchmark
-    if [ "$optPlot" = true ]; then
-        Plot
-    fi
     exit
+fi
+
+if [ "$optPlot" = true ]; then
+    Plot
 fi
 
 if [ "$optRun" = true ]; then
