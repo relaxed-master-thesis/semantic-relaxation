@@ -192,12 +192,41 @@ parseArguments(int argc, char *argv[]) {
 	return std::nullopt;
 }
 
+int testBatchSizes(std::pair<bench::BenchCfg, InputInfo> cfg) {
+	//if these are run with all 2dd configs, they are the "perfect" batch sizes for all the rank errors
+	//but since the complexity is an approxmation, its not perfect, but the tendency is there
+// k -> best batch
+// 6.56 -> 15.1
+// 27.51 -> 63.34
+// 116.56 -> 268.39
+// 507.86 -> 1169.39
+// 1982.51 -> 4564.9
+// 8057.16 -> 18552.3
+// 33113.71 -> 76247.14
+	std::vector<int> batch_sizes = {15, 63, 268, 1169, 4564, 18552, 76247};
+	// std::vector<int> batch_sizes = {1, 10, 100, 1000, 10000, 100000, 1000000};
+	bench::Benchmark myBench{cfg.first};
+	myBench.loadData()
+	.verifyData(true)
+	.setBaseline<bench::GeijerBatchImp>(batch_sizes[0]);
+	
+	for (int i = 1; i < batch_sizes.size(); ++i) {
+		myBench.addConfig<bench::GeijerBatchImp>(batch_sizes[i]);
+	}
+
+	myBench.run();
+	myBench.printResults();
+	return 0;	
+}
+
 int main(int argc, char *argv[]) {
 
 	auto optCfg = parseArguments(argc, argv);
 
 	if (!optCfg.has_value())
 		return -1;
+
+	return testBatchSizes(optCfg.value());
 
 	bench::BenchCfg cfg = optCfg.value().first;
 	InputInfo info = optCfg.value().second;
@@ -209,10 +238,9 @@ int main(int argc, char *argv[]) {
 		.setBaseline<bench::StackReplayImp>()
 		.addConfig<bench::FenwickStackImp>()
 		.addConfig<bench::ReplayTreeStackImp>();
-		// .setBaseline<bench::GeijerImp>()
-		// .addConfig<bench::ReplayTreeImp>()
-		// .addConfig<bench::GeijerBatchImp>();
-	// .addConfig<bench::FenwickImp>()
+	// 	.setBaseline<bench::GeijerImp>()
+	// 	.addConfig<bench::ReplayTreeImp>()
+	// .addConfig<bench::FenwickImp>();
 	// .addConfig<bench::GeijerDelayImp>();
 	// .addConfig<bench::MonteReplayTree>(.1)
 	// .addConfig<bench::MonteFenwickImp>(.1);

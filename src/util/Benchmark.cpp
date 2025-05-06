@@ -21,6 +21,9 @@
 namespace bench {
 static std::string
 getTemplateParamTypeName(std::shared_ptr<AbstractExecutor> ptr) {
+	if(ptr->hasName()) {
+		return ptr->name();
+	}
 #ifdef __GNUC__
 	int status;
 	std::string tname = typeid(*ptr).name();

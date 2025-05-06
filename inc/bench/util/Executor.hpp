@@ -45,6 +45,12 @@ class AbstractExecutor {
 	virtual void reset() = 0;
 	virtual BenchmarkType type() = 0;
 	virtual DataStructureType dataStructureType() = 0;
+	virtual bool hasName() {
+		return false;
+	}
+	virtual std::string name() {
+		return "AbstractExecutor";
+	}
 };
 
 class AccurateQueueExecutor : public AbstractExecutor {

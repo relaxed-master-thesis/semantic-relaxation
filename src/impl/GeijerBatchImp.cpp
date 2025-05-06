@@ -21,8 +21,6 @@ AbstractExecutor::Measurement GeijerBatchImp::calcMaxMeanError() {
 
 	bool keep_running = true;
 	size_t batches_done = 0;
-	// add heuristic?
-	uint64_t batch_size = 10000;
 	size_t total_batches_needed = get_stamps_size / batch_size;
 	// printf("Batches of size %lu needed: %lu\n", batch_size,
 	//    total_batches_needed);

@@ -17,22 +17,22 @@ testDurMs=1
 # change -n to 16 threads
 numThreads=2
 # should be at least 3
-numRuns=1
+numRuns=4
 # number of gets to calculate
 dataSize=1000000
 
 declare -a twoddcfgs=(
     "8 4"
     "16 8"
-    # "32 16"
-    # "64 32"
-    # "128 64"
-    # "256 128"
-    # "512 256"
+    "32 16"
+    "64 32"
+    "128 64"
+    "256 128"
+    "512 256"
 )
 
 declare -a dcbocfgs=(
-    "8"
+    # "8"
     # "32"
     # "128"
     # "512"
@@ -270,7 +270,7 @@ Benchmark()
     
     Benchmark_2ddq
     Benchmark_dcbo
-    Benchmark_graph
+    #Benchmark_graph
     
     echo "Leaving ../semantic-relaxation-dcbo"
     cd ./../semantic-relaxation
@@ -402,7 +402,6 @@ fi
 if [ "$optBench" = true ]; then
     Compile
     Benchmark
-    exit
 fi
 
 if [ "$optPlot" = true ]; then

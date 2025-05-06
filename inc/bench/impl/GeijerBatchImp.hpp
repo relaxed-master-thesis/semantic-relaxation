@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bench/util/Operation.hpp"
 #include "bench/util/Executor.hpp"
+#include "bench/util/Operation.hpp"
 
 #include <memory>
 #include <vector>
@@ -10,11 +10,17 @@ namespace bench {
 class GeijerBatchImp : public AccurateQueueExecutor {
   public:
 	GeijerBatchImp() = default;
+	GeijerBatchImp(uint64_t batch_size) : batch_size(batch_size) {};
 	~GeijerBatchImp() = default;
 	AbstractExecutor::Measurement calcMaxMeanError() override;
 	void prepare(const InputData &data) override;
 	AbstractExecutor::Measurement execute() override;
 	void reset() override;
+
+	bool hasName() override { return true; }
+	std::string name() override {
+		return "bench::GeijerBatchImp_" + std::to_string(batch_size);
+	}
 
   private:
 	std::shared_ptr<std::vector<Operation>> put_stamps;
@@ -26,5 +32,8 @@ class GeijerBatchImp : public AccurateQueueExecutor {
 		item *next;
 	};
 	item *put_stamps_head;
+
+	// Default value, found in the paper.
+	uint64_t batch_size = 10000;
 };
 } // namespace bench

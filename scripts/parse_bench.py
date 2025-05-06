@@ -258,7 +258,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
     #log x axis
 
     for i in range(3):
-        # speed_axs[i].set_xscale("log")
+        speed_axs[i].set_xscale("log")
         # speed_axs[i].set_yscale("log")
         speed_axs[i].set_ylabel("Dequeues per second")
         speed_axs[i].set_xlabel("Mean relaxation error")
