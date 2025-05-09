@@ -56,7 +56,7 @@ void MonteFenwickImp::prepare(const InputData &data) {
 		putMap[put.value] = i;
 	}
 	size_t num_gets = gets->size() * counting_share;
-	num_gets = std::max(num_gets, (size_t)1000);
+	// num_gets = std::max(num_gets, (size_t)1000);
 	std::unordered_set<size_t> get_indices;
 	for(size_t i = 0; i < num_gets; ) {
 		if(get_indices.insert(xorshf96() % (gets->size() - 1)).second) {

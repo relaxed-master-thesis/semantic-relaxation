@@ -11,6 +11,14 @@ optSaveLog=false
 dcboLogFile=""
 twoddLogFile=""
 graphLogFile=""
+stackLogFile=""
+twoddBatchLogFile=""
+twoddApproxLogFile=""
+twoddDelayLogFile=""
+dcboBatchLogFile=""
+dcboApproxLogFile=""
+dcboDelayLogFile=""
+
 
 # change to 1s
 testDurMs=1
@@ -19,23 +27,27 @@ numThreads=2
 # should be at least 3
 numRuns=4
 # number of gets to calculate
-dataSize=1000000
+dataSize=1000
+# preset for 2Dd-queue_optimized, can be 2ddq, batch, approx or delay
+twoddPreset="2ddq"
+#preset for dcbo, can be dcbo, batch, approx or delay
+dcboPreset="dcbo"
 
 declare -a twoddcfgs=(
     "8 4"
     "16 8"
     "32 16"
-    "64 32"
-    "128 64"
-    "256 128"
-    "512 256"
+    # "64 32"
+    # "128 64"
+    # "256 128"
+    # "512 256"
 )
 
 declare -a dcbocfgs=(
-    # "8"
-    # "32"
-    # "128"
-    # "512"
+    "8"
+    "32"
+    "128"
+    "512"
     # "2048"
     # "8192"
     # "32768"
@@ -95,7 +107,7 @@ Benchmark_2ddq() {
         done
         
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p ${twoddPreset} -q 2ddq"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -112,8 +124,19 @@ Benchmark_2ddq() {
         fi
 
         if [ -f ./../semantic-relaxation/tmp.txt ]; then
-            twoddLogFile="2ddqopt-$(date -d "today" +"%Y%m%d%H%M").log"
-            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddLogFile
+            if [ "$twoddPreset" = "generic" ]; then
+                twoddLogFile="2ddqopt-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddLogFile
+            elif [ "$twoddPreset" = "batch" ]; then
+                twoddBatchLogFile="2ddqopt-batch-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddBatchLogFile
+            elif [ "$twoddPreset" = "approx" ]; then
+                twoddApproxLogFile="2ddqopt-approx-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddApproxLogFile
+            elif [ "$twoddPreset" = "delay" ]; then
+                twoddDelayLogFile="2ddqopt-delay-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$twoddDelayLogFile
+            fi
         fi
     fi
 }
@@ -159,7 +182,7 @@ Benchmark_dcbo() {
         done
 
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p ${dcboPreset} -q dcbo"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -176,8 +199,19 @@ Benchmark_dcbo() {
         fi
 
         if [ -f ./../semantic-relaxation/tmp.txt ]; then
-            dcboLogFile="dcbo-faaq-$(date -d "today" +"%Y%m%d%H%M").log"
-            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboLogFile
+            if [ "$dcboPreset" = "generic" ]; then
+                dcboLogFile="dcbo-faaq-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboLogFile
+            elif [ "$dcboPreset" = "batch" ]; then
+                dcboBatchLogFile="dcbo-faaq-batch-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboBatchLogFile
+            elif [ "$dcboPreset" = "approx" ]; then
+                dcboApproxLogFile="dcbo-faaq-approx-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboApproxLogFile
+            elif [ "$dcboPreset" = "delay" ]; then
+                dcboDelayLogFile="dcbo-faaq-delay-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$dcboDelayLogFile
+            fi
         fi
     fi
 }
@@ -216,7 +250,7 @@ Benchmark_graph() {
         fi
         
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize}"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p generic -q 2ddq"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -235,6 +269,71 @@ Benchmark_graph() {
         if [ -f ./../semantic-relaxation/tmp.txt ]; then
             graphLogFile="2ddqopt-graph-$(date -d "today" +"%Y%m%d%H%M").log"
             mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$graphLogFile
+        fi
+    fi
+}
+
+Benchmark_2ddStack() {
+    for elem in "${twoddcfgs[@]}"; do
+        read -a strarr <<< "$elem"
+
+        if [ -d results/timestamps ]; then
+            rm -rf results/timestamps
+        fi
+
+        # change to 1'000'000
+        startSize=$((strarr[0] * strarr[1] * 2))
+
+        echo "Running: ./bin/2Dd-stack -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+
+        dataPath="../semantic-relaxation/data/benchData/2ddstack-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
+
+        getCount=0
+        while [[ "$getCount" -lt "$dataSize" ]]; 
+        do
+            getFile="$dataPath/combined_get_stamps.txt"
+            # check if dataPath does not exist
+            if [ ! -d $dataPath ] || [ $(wc -l < "$getFile") -lt "$dataSize" ]; then
+                rm -rf $dataPath
+                ./bin/2Dd-stack -w ${strarr[0]} -l ${strarr[1]} -i ${startSize} -n ${numThreads} -d ${testDurMs} > /dev/null 
+                mkdir $dataPath
+                mv results/timestamps/* $dataPath
+                rm -rf results/timestamps
+            else
+                echo "Data already exists, using old data..."
+            fi
+            getCount=$(wc -l < "$getFile")
+            if [ "$getCount" -lt "$dataSize" ]; then
+                echo "Not enough data, fixing test duration..."
+                dataProp=$((getCount / dataSize))
+                dataProp="scale=2 ; $getCount / $dataSize" | bc
+                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                testDurMs=$((testDurMs * dataProp))
+                rm -rf $dataPath
+                dataPath="../semantic-relaxation/data/benchData/2ddstack-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
+            fi
+        done
+        
+        if [ $? -eq 0 ]; then
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p generic -q stack"
+            if [ "$optSaveLog" = true ]; then
+                eval "$runArg" >> ./../semantic-relaxation/tmp.txt
+            else
+                eval "$runArg"
+            fi
+        else
+            echo "Failed to move ${dataPath}, skipping..."
+        fi
+    done
+    
+    if [ "$optSaveLog" = true ]; then
+        if [ ! -d ./../semantic-relaxation/logs ]; then
+            mkdir ./../semantic-relaxation/logs
+        fi
+
+        if [ -f ./../semantic-relaxation/tmp.txt ]; then
+            stackLogFilek="2ddstack-$(date -d "today" +"%Y%m%d%H%M").log"
+            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$stackLogFile
         fi
     fi
 }
@@ -267,10 +366,47 @@ Benchmark()
         echo "Build failed for dcbo-faaaq"
         exit
     fi
+
+    echo "Compiling 2Dd-stack..."
+    stackBuildCmd="make 2Dd-stack RELAXATION_ANALYSIS=TIMER SAVE_TIMESTAMPS=1 SKIP_CALCULATIONS=1 VALIDATESIZE=0"
+    eval "$stackBuildCmd" > /dev/null
+  
+    if [ $? -ne 0 ]; then
+        echo "Build failed for 2Dd-stack"
+        exit
+    fi
     
-    Benchmark_2ddq
+    #run 2Dd-queue_optimized benchmark
+    dcboPreset="generic"
     Benchmark_dcbo
-    #Benchmark_graph
+
+    dcboPreset="batch"
+    Benchmark_dcbo
+
+    dcboPreset="approx"
+    Benchmark_dcbo
+
+    dcboPreset="delay"
+    Benchmark_dcbo
+
+    #run 2Dd-queue_optimized benchmark
+    twoddPreset="generic"
+    Benchmark_2ddq
+
+    twoddPreset="batch"
+    Benchmark_2ddq
+
+    twoddPreset="approx"
+    Benchmark_2ddq
+
+    twoddPreset="delay"
+    Benchmark_2ddq
+
+    #run stack test benchmark
+    Benchmark_2ddStack
+
+    #run graph test benchmark
+    Benchmark_graph
     
     echo "Leaving ../semantic-relaxation-dcbo"
     cd ./../semantic-relaxation
@@ -323,6 +459,28 @@ Plot()
     if [ -n "$graphLogFile" ]; then
         pythonArgs="${pythonArgs} logs/${graphLogFile}"
     fi
+    if [ -n "$stackLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${stackLogFile}"
+    fi
+    if [ -n "$twoddBatchLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${twoddBatchLogFile}"
+    fi
+    if [ -n "$twoddApproxLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${twoddApproxLogFile}"
+    fi
+    if [ -n "$twoddDelayLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${twoddDelayLogFile}"
+    fi
+    if [ -n "$dcboBatchLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${dcboBatchLogFile}"
+    fi
+    if [ -n "$dcboApproxLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${dcboApproxLogFile}"
+    fi
+    if [ -n "$dcboDelayLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${dcboDelayLogFile}"
+    fi
+
 
     python3 scripts/parse_bench.py $pythonArgs
     

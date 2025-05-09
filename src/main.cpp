@@ -23,6 +23,7 @@
 #include "bench/impl/stackImpl/ReplayTreeStackImp.hpp"
 #include "bench/impl/stackImpl/StackReplayImp.hpp"
 #include "bench/util/Benchmark.hpp"
+#include "bench/util/Executor.hpp"
 #include "bench/util/FenwickTree.hpp"
 
 #include <cstdint>
@@ -30,6 +31,7 @@
 #include <endian.h>
 #include <exception>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -147,8 +149,47 @@ parseArguments(int argc, char *argv[]) {
 		return std::nullopt;
 	}
 
-	// if string contains "2Ddqopt" then we are using 2Ddqopt
-	if (dir.find("2ddqopt") != std::string::npos) {
+	// -p for preset?
+	using btype = bench::BenchCfg::BenchType;
+	btype bType = btype::DEFAULT;
+	if (arg_map.find("-p") != arg_map.end()) {
+		std::string preset = arg_map["-p"];
+		if (preset == "generic") {
+			bType = btype::GENERIC;
+		} else if (preset == "batch") {
+			bType = btype::TEST_BATCH_SIZE;
+		} else if (preset == "delay") {
+			bType = btype::DELAY;
+		} else if (preset == "approx") {
+			bType = btype::APPROX;
+		} else {
+			std::cerr << "Invalid preset specified (-p " << preset << ")\n";
+			return std::nullopt;
+		}
+
+		std::cout << "Preset: " << preset << "\n";
+	}
+
+	// -q for queue type
+	using qtype = bench::BenchCfg::QueueType;
+	qtype qType = qtype::GENERIC;
+	if (arg_map.find("-q") != arg_map.end()) {
+		std::string queue = arg_map["-q"];
+		if (queue == "2ddq") {
+			qType = qtype::TWODD_QUEUE;
+		} else if (queue == "dcbo") {
+			qType = qtype::DCBO_QUEUE;
+		} else if (queue == "stack") {
+			qType = qtype::STACK;
+		} else {
+			std::cerr << "Invalid queue specified (-q " << queue << " )\n";
+			return std::nullopt;
+		}
+		std::cout << "Queue: " << queue << "\n";
+	}
+
+
+	if (qType == qtype::TWODD_QUEUE) { 
 		size_t width = 0;
 		size_t height = 0;
 		size_t wArgPos = dir.find("-w");
@@ -162,15 +203,15 @@ parseArguments(int argc, char *argv[]) {
 		if (hArgPos != std::string::npos) {
 			height = std::stoi(dir.c_str() + hArgPos + 2);
 		} else {
-			std::cerr << "No height specified (-h)\n";
+			std::cerr << "No height specified (-l)\n";
 			return std::nullopt;
 		}
 		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
-			bench::BenchCfg(numThreads, dir, numRuns, numGets),
+			bench::BenchCfg(numThreads, dir, numRuns, numGets, bType, qType),
 			InputInfo{true, width, height});
 	}
 
-	if (dir.find("dcbo") != std::string::npos) {
+	if (qType == qtype::DCBO_QUEUE) {
 		size_t width = 0;
 		size_t wArgPos = dir.find("-w");
 		if (wArgPos != std::string::npos) {
@@ -178,76 +219,121 @@ parseArguments(int argc, char *argv[]) {
 		}
 
 		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
-			bench::BenchCfg(numThreads, dir, numRuns, numGets),
+			bench::BenchCfg(numThreads, dir, numRuns, numGets, bType, qType),
 			InputInfo{false, width, 0});
 	}
-	if(dir.find("stack") != std::string::npos) {
+	
+	if (qType == qtype::STACK) {
 		return std::make_optional<std::pair<bench::BenchCfg, InputInfo>>(
-			bench::BenchCfg(numThreads, dir, numRuns, numGets, true),
+			bench::BenchCfg(numThreads, dir, numRuns, numGets, bType, qType),
 			InputInfo{false, 0, 0});
 	}
 
-	std::cerr << "Invalid data directory (\"" << dir
-			  << "\"), must be 2Ddqopt, dcbo or stack\n";
+	std::cerr << "Invalid preset or queue specified (-p or -q)\n";
 	return std::nullopt;
 }
 
 int testBatchSizes(std::pair<bench::BenchCfg, InputInfo> cfg) {
-	//if these are run with all 2dd configs, they are the "perfect" batch sizes for all the rank errors
-	//but since the complexity is an approxmation, its not perfect, but the tendency is there
-// k -> best batch
-// 6.56 -> 15.1
-// 27.51 -> 63.34
-// 116.56 -> 268.39
-// 507.86 -> 1169.39
-// 1982.51 -> 4564.9
-// 8057.16 -> 18552.3
-// 33113.71 -> 76247.14
-	std::vector<int> batch_sizes = {15, 63, 268, 1169, 4564, 18552, 76247};
-	// std::vector<int> batch_sizes = {1, 10, 100, 1000, 10000, 100000, 1000000};
+	// if these are run with all 2dd configs, they are the "perfect" batch sizes
+	// for all the rank errors but since the complexity is an approxmation, its
+	// not perfect, but the tendency is there
+	// k -> best batch
+	// 6.56 -> 15.1
+	// 27.51 -> 63.34
+	// 116.56 -> 268.39
+	// 507.86 -> 1169.39
+	// 1982.51 -> 4564.9
+	// 8057.16 -> 18552.3
+	// 33113.71 -> 76247.14
+	// std::vector<int> batch_sizes = {15, 63, 268, 1169, 4564, 18552, 76247};
+	std::vector<int> batch_sizes = {1, 10, 100, 1000, 10000, 100000, 1000000};
 	bench::Benchmark myBench{cfg.first};
-	myBench.loadData()
-	.verifyData(true)
-	.setBaseline<bench::GeijerBatchImp>(batch_sizes[0]);
-	
+	myBench.loadData().verifyData(true).setBaseline<bench::GeijerBatchImp>(
+		batch_sizes[0]);
+
 	for (int i = 1; i < batch_sizes.size(); ++i) {
 		myBench.addConfig<bench::GeijerBatchImp>(batch_sizes[i]);
 	}
 
 	myBench.run();
 	myBench.printResults();
-	return 0;	
+	return 0;
+}
+
+int runPresetIfDefined(
+	bench::Benchmark &myBench, std::optional<std::pair<bench::BenchCfg, InputInfo>> &optCfg, bench::BenchCfg::BenchType bType, bench::BenchCfg::QueueType qType) {
+
+	auto &info = optCfg.value().second;
+
+	using btype = bench::BenchCfg::BenchType;
+	using qtype = bench::BenchCfg::QueueType;
+
+	if (qType == qtype::STACK) {
+		myBench.setBaseline<bench::StackReplayImp>()
+			.addConfig<bench::ReplayTreeStackImp>()
+			.addConfig<bench::FenwickStackImp>();
+	} else if (bType == btype::GENERIC) {
+		myBench.setBaseline<bench::GeijerImp>()
+			.addConfig<bench::GeijerBatchImp>()
+			.addConfig<bench::ParallelBatchImp>(false)
+			.addConfig<bench::ReplayTreeImp>()
+			.addConfig<bench::FenwickImp>()
+			.addConfig<bench::ParallelFenwickImp>();
+	} else if (bType == btype::TEST_BATCH_SIZE) {
+		testBatchSizes(optCfg.value());
+		std::exit(0);
+	} else if (bType == btype::DELAY) {
+		myBench.setBaseline<bench::GeijerDelayImp>()
+			.addConfig<bench::FenwickDelayImp>();
+	} else if (bType == btype::APPROX) {
+		myBench.setBaseline<bench::FenwickImp>()
+			.addConfig<bench::FenwickAImp>(0.1f)
+			.addConfig<bench::ReplayTreeAImp>(0.1f)
+			.addConfig<bench::MonteReplayTree>(0.1f)
+			.addConfig<bench::MonteFenwickImp>(0.1f);
+		
+		if (info.is2Ddqopt) {
+			myBench.addConfig<bench::MinMax2DDAImp>(0.1f, info.width, info.height);
+		}
+	} else {
+		return 0;
+	}
+
+	myBench.run();
+	myBench.printResults();
+	return 1;
 }
 
 int main(int argc, char *argv[]) {
-
 	auto optCfg = parseArguments(argc, argv);
 
 	if (!optCfg.has_value())
 		return -1;
 
-	return testBatchSizes(optCfg.value());
-
 	bench::BenchCfg cfg = optCfg.value().first;
 	InputInfo info = optCfg.value().second;
-	// bench::Benchmark<bench::GeijerImp> myBench{cfg};
 	bench::Benchmark myBench{cfg};
+	myBench.loadData().verifyData(true);
 
-	myBench.loadData()
-		.verifyData(true)
-		.setBaseline<bench::StackReplayImp>()
-		.addConfig<bench::FenwickStackImp>()
-		.addConfig<bench::ReplayTreeStackImp>();
+	if (runPresetIfDefined(myBench, optCfg, cfg.benchType, cfg.queueType)) {
+		return 0;
+	}
+
+	// myBench.loadData()
+	// 	.verifyData(true)
+	// 	.setBaseline<bench::StackReplayImp>()
+	// 	.addConfig<bench::FenwickStackImp>()
+	// 	.addConfig<bench::ReplayTreeStackImp>();
 	// 	.setBaseline<bench::GeijerImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// .addConfig<bench::FenwickImp>();
 	// .addConfig<bench::GeijerDelayImp>();
 	// .addConfig<bench::MonteReplayTree>(.1)
 	// .addConfig<bench::MonteFenwickImp>(.1);
-		// .addConfig<bench::GeijerBatchImp>()
+	// .addConfig<bench::GeijerBatchImp>()
 	// 	.addConfig<bench::ReplayTreeImp>()
 	// 	.addConfig<bench::FenwickImp>()
-		// .addConfig<bench::ParallelBatchImp>(false);
+	// .addConfig<bench::ParallelBatchImp>(false);
 	// 	.addConfig<bench::ParallelFenwickImp>();
 	// if (info.is2Ddqopt) {
 	// 	myBench.addConfig<bench::ParallelBoxImp>(info.width, info.height);
@@ -263,6 +349,6 @@ int main(int argc, char *argv[]) {
 	// .addConfig<bench::ReplayTreeImp>()
 	// .addConfig<bench::ParallelBatchImp>(cfg.numAvailableThreads, false)
 	// .addConfig<bench::GeijerBatchImp>()
-	myBench.run();
-	myBench.printResults();
+	// myBench.run();
+	// myBench.printResults();
 }

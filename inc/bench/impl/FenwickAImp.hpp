@@ -8,6 +8,7 @@
 namespace bench {
 class FenwickAImp : public ApproximateQueueExecutor {
   public:
+	FenwickAImp() = default;
 	FenwickAImp(float counting_share)
 		: counting_share(counting_share), counting_type(CountingType::SHARE){};
 	FenwickAImp(uint64_t counting_ammount)

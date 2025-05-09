@@ -56,16 +56,32 @@ struct Result {
 };
 
 struct BenchCfg {
+	enum class BenchType {
+		DEFAULT = 0,
+		GENERIC,
+		TEST_BATCH_SIZE,
+		DELAY,
+		APPROX,
+	};
+
+	enum class QueueType {
+		GENERIC = 0,
+		TWODD_QUEUE,
+		DCBO_QUEUE,
+		STACK
+	};
+
 	BenchCfg() : numAvailableThreads(0), inputDataDir(""), isStack(false) {}
-	BenchCfg(size_t threads, std::string dir, size_t runs, size_t numGets, bool
-			  isStack = false)
+	BenchCfg(size_t threads, std::string dir, size_t runs, size_t numGets, BenchType bType, QueueType qType)
 		: numAvailableThreads(threads), inputDataDir(dir), numRuns(runs),
-		  numGets(numGets), isStack(isStack) {}
+		  numGets(numGets), benchType(bType), queueType(qType), isStack(qType == QueueType::STACK) {}
 
 	size_t numAvailableThreads{1}; // -n 16 e.g.
 	std::string inputDataDir{""};
 	size_t numRuns;
 	size_t numGets; // -g 100 e.g.
+	BenchType benchType{BenchType::DEFAULT};
+	QueueType queueType{QueueType::GENERIC};
 	bool isStack;
 };
 
