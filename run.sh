@@ -21,13 +21,13 @@ dcboDelayLogFile=""
 
 
 # change to 1s
-testDurMs=1
+testDurMs=200
 # change -n to 16 threads
-numThreads=2
+numThreads=72
 # should be at least 3
-numRuns=4
+numRuns=3
 # number of gets to calculate
-dataSize=1000
+dataSize=1000000
 # preset for 2Dd-queue_optimized, can be 2ddq, batch, approx or delay
 twoddPreset="2ddq"
 #preset for dcbo, can be dcbo, batch, approx or delay
@@ -37,10 +37,10 @@ declare -a twoddcfgs=(
     "8 4"
     "16 8"
     "32 16"
-    # "64 32"
-    # "128 64"
-    # "256 128"
-    # "512 256"
+    "64 32"
+    "128 64"
+    "256 128"
+    "512 256"
 )
 
 declare -a dcbocfgs=(
@@ -48,10 +48,10 @@ declare -a dcbocfgs=(
     "32"
     "128"
     "512"
-    # "2048"
-    # "8192"
-    # "32768"
-    # "65536"
+    "2048"
+    "8192"
+    "32768"
+    "65536"
 )
 
 Help()
