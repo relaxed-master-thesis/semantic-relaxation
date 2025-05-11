@@ -96,16 +96,16 @@ void Benchmark::removePutsAfterGets(bool cleanup) {
 		}
 		if (put.time > get_val_to_time[put.value]) {
 			if (!error && !cleanup) {
-				std::cerr << "Put after get detected for value " << put.value
-						  << " with time diff: "
-						  << put.time - get_val_to_time[put.value] << "\n";
+				// std::cerr << "Put after get detected for value " << put.value
+				// 		  << " with time diff: "
+						//   << put.time - get_val_to_time[put.value] << "\n";
 			}
 			fails++;
 			if (cleanup) {
 
 				size_t get_idx = get_val_to_idx[put.value];
-				std::cout << "Removing Put value " << put.value << " get value "
-						  << data.getGets()->at(get_idx).value << "\n";
+				// std::cout << "Removing Put value " << put.value << " get value "
+						//   << data.getGets()->at(get_idx).value << "\n";
 				to_remove_gets.push_back(get_idx);
 				to_remove_puts.push_back(i);
 			}
@@ -120,22 +120,22 @@ void Benchmark::removePutsAfterGets(bool cleanup) {
 		exit(1);
 	}
 	if (error && cleanup) {
-		std::cout << "Removing " << to_remove_gets.size()
-				  << " put(s) after get(s): [\n";
-
+		// std::cout << "Removing " << to_remove_gets.size()
+		// << " put(s) after get(s): [\n";
+		
 		std::sort(to_remove_gets.begin(), to_remove_gets.end(),
-				  std::greater<size_t>());
+		std::greater<size_t>());
 		std::sort(to_remove_puts.begin(), to_remove_puts.end(),
-				  std::greater<size_t>());
-
+		std::greater<size_t>());
+		
 		for (size_t i = 0; i < to_remove_gets.size(); ++i) {
-			std::cout << to_remove_gets.at(i) << ", "
-					  << to_remove_puts.at(i) << "\n";
-
+			// std::cout << to_remove_gets.at(i) << ", "
+			// << to_remove_puts.at(i) << "\n";
+			
 			data.gets->erase(data.gets->begin() + to_remove_gets.at(i));
 			data.puts->erase(data.puts->begin() + to_remove_puts.at(i));
 		}
-		std::cout << "]\n";
+		// std::cout << "]\n";
 	}
 }
 
@@ -177,11 +177,11 @@ void Benchmark::fixDuplicateValues() {
 		}
 	}
 
-	std::cout << put_vals.size() << "/" << puts.size()
-			  << " unique put values\n";
+	// std::cout << put_vals.size() << "/" << puts.size()
+	// 		  << " unique put values\n";
 
-	std::cout << "Fixed " << num_changed
-			  << " duplicate values in puts and gets\n";
+	// std::cout << "Fixed " << num_changed
+	// 		  << " duplicate values in puts and gets\n";
 }
 
 Benchmark &Benchmark::verifyData(bool cleanup) {

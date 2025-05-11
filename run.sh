@@ -65,7 +65,8 @@ Help()
     exit 1
 }
 
-Benchmark_2ddq() {
+Benchmark_2ddq()
+{
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -103,6 +104,7 @@ Benchmark_2ddq() {
                 testDurMs=$((testDurMs * dataProp))
                 rm -rf $dataPath
                 dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
+                echo "New test duration: $testDurMs"
             fi
         done
         
