@@ -67,6 +67,7 @@ Help()
 
 Benchmark_2ddq()
 {
+    oldTestDurMs=$testDurMs
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -98,10 +99,11 @@ Benchmark_2ddq()
             getCount=$(wc -l < "$getFile")
             if [ "$getCount" -lt "$dataSize" ]; then
                 echo "Not enough data, fixing test duration..."
-                dataProp=$((getCount / dataSize))
-                dataProp="scale=2 ; $getCount / $dataSize" | bc
-                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
-                testDurMs=$((testDurMs * dataProp))
+                # dataProp=$((getCount / dataSize))
+                # dataProp="scale=2 ; $getCount / $dataSize" | bc
+                # dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                # testDurMs=$((testDurMs * dataProp))
+                testDurMs=$((testDurMs * 2))
                 rm -rf $dataPath
                 dataPath="../semantic-relaxation/data/benchData/2ddqopt-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
                 echo "New test duration: $testDurMs"
@@ -141,9 +143,12 @@ Benchmark_2ddq()
             fi
         fi
     fi
+    testDurMs=$oldTestDurMs
+    echo "Resetting test duration to $testDurMs"
 }
 
 Benchmark_dcbo() {
+    oldTestDurMs=$testDurMs
     for elem in "${dcbocfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -174,10 +179,11 @@ Benchmark_dcbo() {
 
             if [ "$getCount" -lt "$dataSize" ]; then
                 echo "Not enough data, fixing test duration..."
-                dataProp=$((getCount / dataSize))
-                dataProp="scale=2 ; $getCount / $dataSize" | bc
-                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
-                testDurMs=$((testDurMs * dataProp))
+                # dataProp=$((getCount / dataSize))
+                # dataProp="scale=2 ; $getCount / $dataSize" | bc
+                # dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                # testDurMs=$((testDurMs * dataProp))
+                testDurMs=$((testDurMs * 2))
                 rm -rf $dataPath
                 dataPath="../semantic-relaxation/data/benchData/dcbo-w${strarr[0]}-i${startSize}-n${numThreads}-d${testDurMs}"
             fi
@@ -216,6 +222,7 @@ Benchmark_dcbo() {
             fi
         fi
     fi
+    testDurMs=$oldTestDurMs
 }
 
 Benchmark_graph() {
@@ -276,6 +283,7 @@ Benchmark_graph() {
 }
 
 Benchmark_2ddStack() {
+    oldTestDurMs=$testDurMs
     for elem in "${twoddcfgs[@]}"; do
         read -a strarr <<< "$elem"
 
@@ -307,10 +315,11 @@ Benchmark_2ddStack() {
             getCount=$(wc -l < "$getFile")
             if [ "$getCount" -lt "$dataSize" ]; then
                 echo "Not enough data, fixing test duration..."
-                dataProp=$((getCount / dataSize))
-                dataProp="scale=2 ; $getCount / $dataSize" | bc
-                dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
-                testDurMs=$((testDurMs * dataProp))
+                # dataProp=$((getCount / dataSize))
+                # dataProp="scale=2 ; $getCount / $dataSize" | bc
+                # dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
+                # testDurMs=$((testDurMs * dataProp))
+                testDurMs=$((testDurMs * 2))
                 rm -rf $dataPath
                 dataPath="../semantic-relaxation/data/benchData/2ddstack-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
             fi
@@ -338,6 +347,8 @@ Benchmark_2ddStack() {
             mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$stackLogFile
         fi
     fi
+    testDurMs=$oldTestDurMs
+    echo "Resetting test duration to $testDurMs"
 }
 
 Benchmark()
