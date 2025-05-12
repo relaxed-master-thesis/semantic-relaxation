@@ -167,7 +167,7 @@ def parseFile(file):
     return parsed_imps, benches, log_file_name
 
 
-def plotSpeedupBenchmarks(parsed_imps, benches, log_file_name):
+def plotSpeedupBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
@@ -231,13 +231,18 @@ def plotSpeedupBenchmarks(parsed_imps, benches, log_file_name):
     error_fig.subplots_adjust(bottom=0.2)
     speed_fig.suptitle(f"{log_file_name} Speedup")
     speed_fig.subplots_adjust(bottom=0.2)
+    if(dest_dir != ""):
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        speed_fig.savefig(f"{dest_dir}{log_file_name}_tp.svg", format='svg')
+        error_fig.savefig(f"{dest_dir}{log_file_name}_error.svg", format='svg')
 
 def sort_key(s):
     match = re.search(r'(\D*)(\d*)$', s)  # Splits into text and optional number
     text_part = match.group(1)
     num_part = int(match.group(2)) if match.group(2) else float('-inf')  # Treat non-numeric as smallest
     return (text_part, num_part)
-def plotBenchmarks(parsed_imps, benches, log_file_name):
+def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
@@ -302,24 +307,32 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
     error_fig.subplots_adjust(bottom=0.2)
     speed_fig.suptitle(f"{log_file_name} Dequeues per second, {int(gets)} gets")
     speed_fig.subplots_adjust(bottom=0.2)
-
+    #save the figures to the given directory
+    if(dest_dir != ""):
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        speed_fig.savefig(f"{dest_dir}{log_file_name}_tp.svg", format='svg')
+        error_fig.savefig(f"{dest_dir}{log_file_name}_error.svg", format='svg')
 
 
 if __name__ == "__main__":
     #if sys.argv contains -d, then parse all files in the given directory
+    dest_dir = ""
+    if sys.argv.count("-dest") > 0:
+        dest_dir = sys.argv[sys.argv.index("-dest") + 1]
     if sys.argv.count("-d") > 0:
-        dir = sys.argv[2]
+        dir = sys.argv[sys.argv.index("-d") + 1]
         files = os.listdir(dir)
         for file in files:
             if file.endswith(".log"):
                 file = open(os.path.join(dir, file), "r")
                 parsed_imps, benches, log_file_name = parseFile(file)
-                plotBenchmarks(parsed_imps, benches, log_file_name)
+                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
                 # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     else: #assumes that sys.argv are files
         for i in range(1, len(sys.argv)):
             file = open(sys.argv[i], "r")
             parsed_imps, benches, log_file_name = parseFile(file)
-            plotBenchmarks(parsed_imps, benches, log_file_name)
+            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     plt.show()
