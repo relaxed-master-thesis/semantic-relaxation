@@ -94,12 +94,11 @@ def parseFile(file):
     bench_name_pattern = re.compile(r"-+ ([\S]+) gets: ([\d]+) -+")
     imps = []
     for line in lines:
-        if imp_pattern.match(line):
+        if imp_pattern.match(line) and imp_pattern.match(line).group(1) not in imps:
             imps.append(imp_pattern.match(line).group(1))
         elif bench_name_pattern.match(line):
             break 
-    
-    imps = list(set(imps))
+
     #parse all the benchmarks
     # Define ANSI color codes
     red_pattern = r"\033\[91m"
@@ -272,7 +271,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
 
     for i in range(3):
         speed_axs[i].set_xscale("log")
-        # speed_axs[i].set_yscale("log")
+        speed_axs[i].set_yscale("log")
         speed_axs[i].set_ylabel("Dequeues per second")
         speed_axs[i].set_xlabel("Mean relaxation error")
 
@@ -318,6 +317,8 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
 if __name__ == "__main__":
     #if sys.argv contains -d, then parse all files in the given directory
     dest_dir = ""
+    show = sys.argv.count("-show") > 0
+    sys.argv = [arg for arg in sys.argv if arg != "-show"]
     if sys.argv.count("-dest") > 0:
         dest_dir = sys.argv[sys.argv.index("-dest") + 1]
     if sys.argv.count("-d") > 0:
@@ -335,5 +336,5 @@ if __name__ == "__main__":
             parsed_imps, benches, log_file_name = parseFile(file)
             plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
-    if sys.argv.count("-show") > 0:
+    if show:
         plt.show()
