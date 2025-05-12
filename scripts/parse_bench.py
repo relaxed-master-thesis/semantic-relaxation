@@ -311,8 +311,8 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
     if(dest_dir != ""):
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        speed_fig.savefig(f"{dest_dir}{log_file_name}_tp.svg", format='svg')
-        error_fig.savefig(f"{dest_dir}{log_file_name}_error.svg", format='svg')
+        speed_fig.savefig(f"{dest_dir}{log_file_name}-tp.svg", format='svg')
+        error_fig.savefig(f"{dest_dir}{log_file_name}-error.svg", format='svg')
 
 
 if __name__ == "__main__":
@@ -335,4 +335,5 @@ if __name__ == "__main__":
             parsed_imps, benches, log_file_name = parseFile(file)
             plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
-    plt.show()
+    if sys.argv.count("-show") > 0:
+        plt.show()
