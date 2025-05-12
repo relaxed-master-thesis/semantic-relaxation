@@ -221,14 +221,22 @@ def plotSpeedupBenchmarks(parsed_imps, benches, log_file_name):
         ax.tick_params(axis='x', which='minor', bottom=False, labelbottom=False)
     #move legend outside of plot
     for ax in [speed_axs[2], error_axs[1]]:
-        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+       
+        handles, labels = ax.get_legend_handles_labels()
+        # sort both labels and handles by labels
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sort_key(t[0])))
+        ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(1, 1))
     #set names on plots
     error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
     speed_fig.suptitle(f"{log_file_name} Speedup")
     speed_fig.subplots_adjust(bottom=0.2)
 
-
+def sort_key(s):
+    match = re.search(r'(\D*)(\d*)$', s)  # Splits into text and optional number
+    text_part = match.group(1)
+    num_part = int(match.group(2)) if match.group(2) else float('-inf')  # Treat non-numeric as smallest
+    return (text_part, num_part)
 def plotBenchmarks(parsed_imps, benches, log_file_name):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
@@ -285,7 +293,10 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
     
     #move legend outside of plot
     for ax in [speed_axs[2], error_axs[1]]:
-        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        handles, labels = ax.get_legend_handles_labels()
+        # sort both labels and handles by labels
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sort_key(t[0])))
+        ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(1, 1))
     #set names on plots
     error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
