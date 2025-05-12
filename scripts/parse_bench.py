@@ -295,9 +295,20 @@ def plotBenchmarks(parsed_imps, benches, log_file_name):
 
 
 if __name__ == "__main__":
-    for i in range(1, len(sys.argv)):
-        file = open(sys.argv[i], "r")
-        parsed_imps, benches, log_file_name = parseFile(file)
-        plotBenchmarks(parsed_imps, benches, log_file_name)
-        # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
+    #if sys.argv contains -d, then parse all files in the given directory
+    if sys.argv.count("-d") > 0:
+        dir = sys.argv[2]
+        files = os.listdir(dir)
+        for file in files:
+            if file.endswith(".log"):
+                file = open(os.path.join(dir, file), "r")
+                parsed_imps, benches, log_file_name = parseFile(file)
+                plotBenchmarks(parsed_imps, benches, log_file_name)
+                # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
+    else: #assumes that sys.argv are files
+        for i in range(1, len(sys.argv)):
+            file = open(sys.argv[i], "r")
+            parsed_imps, benches, log_file_name = parseFile(file)
+            plotBenchmarks(parsed_imps, benches, log_file_name)
+            # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     plt.show()
