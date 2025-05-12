@@ -316,11 +316,13 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
 
 if __name__ == "__main__":
     #if sys.argv contains -d, then parse all files in the given directory
-    dest_dir = ""
+    dest_dir = sys.argv[sys.argv.index("-dest") + 1] if sys.argv.count("-dest") > 0 else ""
+    if dest_dir != "":
+        dest_idx = sys.argv.index("-dest")
+        sys.argv = sys.argv[:dest_idx] + sys.argv[dest_idx + 2:]
+
     show = sys.argv.count("-show") > 0
     sys.argv = [arg for arg in sys.argv if arg != "-show"]
-    if sys.argv.count("-dest") > 0:
-        dest_dir = sys.argv[sys.argv.index("-dest") + 1]
     if sys.argv.count("-d") > 0:
         dir = sys.argv[sys.argv.index("-d") + 1]
         files = os.listdir(dir)
