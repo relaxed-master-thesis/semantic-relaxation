@@ -11,6 +11,7 @@ class Benchmark:
         self.mean = data[baseline]["mean"]
         self.max = data[baseline]["max"]
         self.gets = data[baseline]["gets"]
+        self.queue_size = data[baseline]["queue_size"]
 
     def getTotTimeInSec(self, imp):
         total_time = self.data[imp]["tot"]
@@ -92,6 +93,7 @@ def parseFile(file):
     #figure out how many implementations were run
     imp_pattern = re.compile(r"Running bench::(.*)...")
     bench_name_pattern = re.compile(r"-+ ([\S]+) gets: ([\d]+) -+")
+    queue_size_pattern = re.compile(r"-i([\d]+)-")
     imps = []
     for line in lines:
         if imp_pattern.match(line) and imp_pattern.match(line).group(1) not in imps:
@@ -126,6 +128,7 @@ def parseFile(file):
         if bench_name_pattern.match(line):
             name = bench_name_pattern.match(line).group(1)
             gets = bench_name_pattern.match(line).group(2)
+            queue_size = queue_size_pattern.search(line)
             data = {}
             i += 1
             for j in range(i+1, i + len(imps) + 1):
@@ -143,6 +146,7 @@ def parseFile(file):
                     prep_speedup = float(match.group(12))
                     data[imp] = {"imp": imp,
                             "gets": float(gets),
+                            "queue_size": int(queue_size.group(1)) if queue_size else 0,
                             "mean": mean, 
                             "max": max_val, 
                             "tot": tot, 
@@ -241,7 +245,7 @@ def sort_key(s):
     text_part = match.group(1)
     num_part = int(match.group(2)) if match.group(2) else float('-inf')  # Treat non-numeric as smallest
     return (text_part, num_part)
-def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
+def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
@@ -254,7 +258,10 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
         x = []
         y = [[] for i in range(5)]
         for bench in benches:
-            x.append(bench.mean)
+            if(queueSize):
+                x.append(bench.data[imp.name]["queue_size"])
+            else:
+                x.append(bench.mean)
             y[0].append(gets / float(bench.getTotTimeInSec(imp.name)))
             y[1].append(gets / float(bench.getCalcTimeInSec(imp.name)))
             y[2].append(gets / float(bench.getPrepTimeInSec(imp.name)))
@@ -288,7 +295,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
     error_axs[1].set_ylabel("Error %")
     error_axs[1].set_xlabel("Mean relaxation error")
     error_axs[1].set_xscale("log")
-    ticks = [b.mean for b in benches]
+    ticks = [b.mean for b in benches] if not queueSize else [float(b.queue_size) for b in benches]
     rounded_labels = [f"{int(tick)}" if tick.is_integer() else f"{tick:.2f}" for tick in ticks]
     for ax in [*speed_axs.flat, *error_axs.flat]:
         ax.set_xticks(ticks)
@@ -321,6 +328,12 @@ if __name__ == "__main__":
         dest_idx = sys.argv.index("-dest")
         sys.argv = sys.argv[:dest_idx] + sys.argv[dest_idx + 2:]
 
+    queueSize = False
+    if sys.argv.count("-qs") > 0:
+        queueSize = True
+        sys.argv = [arg for arg in sys.argv if arg != "-qs"]
+    
+
     show = sys.argv.count("-show") > 0
     sys.argv = [arg for arg in sys.argv if arg != "-show"]
     if sys.argv.count("-d") > 0:
@@ -330,13 +343,18 @@ if __name__ == "__main__":
             if file.endswith(".log"):
                 file = open(os.path.join(dir, file), "r")
                 parsed_imps, benches, log_file_name = parseFile(file)
-                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
+                plotQs = queueSize or log_file_name.count("size") > 0
+                print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
+                print(f"plotting queue size: {queueSize} or {log_file_name.count('size') > 0}")
+
+                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
                 # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     else: #assumes that sys.argv are files
         for i in range(1, len(sys.argv)):
             file = open(sys.argv[i], "r")
             parsed_imps, benches, log_file_name = parseFile(file)
-            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir)
+            plotQs = queueSize or log_file_name.count("size") > 0
+            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     if show:
         plt.show()
