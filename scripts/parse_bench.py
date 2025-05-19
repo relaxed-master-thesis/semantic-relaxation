@@ -249,7 +249,14 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
-    speed_fig, speed_axs = plt.subplots(1, 3, figsize=(15, 5))  # 2 row, 3 columns
+    #bigger space between plots
+    plt.rcParams.update({'font.size': 15})
+    plt.rcParams['axes.titlesize'] = 15
+    plt.rcParams['axes.labelsize'] = 15
+    plt.rcParams['xtick.labelsize'] = 15
+    plt.rcParams['ytick.labelsize'] = 15
+    plt.rcParams['legend.fontsize'] = 15
+    speed_fig, speed_axs = plt.subplots(1, 3, figsize=(20, 5))  # 2 row, 3 columns
     error_fig, error_axs = plt.subplots(1, 2, figsize=(15, 5))  # 2 row, 3 columns
     markers = ["o", "x", "s", "D", "^", "v", "<", ">", "p", "P", "*", "h", "H", "+", "X"]
     line_styles = ["-", "--", "-.", ":", "-", "--", "-.", ":", "-", "--", "-.", ":", "-", "--", "-.", ":"]
@@ -299,7 +306,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
     rounded_labels = [f"{int(tick)}" if tick.is_integer() else f"{tick:.2f}" for tick in ticks]
     for ax in [*speed_axs.flat, *error_axs.flat]:
         ax.set_xticks(ticks)
-        ax.set_xticklabels(rounded_labels, rotation=45, fontsize=10)
+        ax.set_xticklabels(rounded_labels, rotation=45, fontsize=15)
         ax.tick_params(axis='x', which='minor', bottom=False, labelbottom=False)
     
     #move legend outside of plot
@@ -309,10 +316,13 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sort_key(t[0])))
         ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(1, 1))
     #set names on plots
-    error_fig.suptitle(f"{log_file_name} Error")
+    # error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
-    speed_fig.suptitle(f"{log_file_name} Dequeues per second, {int(gets)} gets")
+    error_fig.tight_layout(rect=[0, 0, 1, 1])
+    # speed_fig.suptitle(f"{log_file_name} Dequeues per second, {int(gets)} gets")
     speed_fig.subplots_adjust(bottom=0.2)
+    speed_fig.tight_layout(rect=[0, 0, 1, 1])
+
     #save the figures to the given directory
     if(dest_dir != ""):
         if not os.path.exists(dest_dir):
