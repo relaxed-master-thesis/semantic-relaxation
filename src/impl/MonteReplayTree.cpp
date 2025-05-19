@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <unordered_map>
 #include <vector>
+#include <unordered_set>
 
 namespace bench {
 
@@ -55,8 +56,14 @@ void MonteReplayTree::prepare(const InputData &data) {
 	}
 
 	events.resize(num_puts * 2);
+
+	std::unordered_set<size_t> put_indices{};	
 	for (size_t i = 0; i < num_puts; ++i) {
 		size_t idx = xorshf96() % (puts->size() - i);
+		if(!put_indices.insert(idx).second) {
+			--i;
+			continue;
+		}
 		const Operation &put = puts->at(idx);
 		uint64_t end_time = 0;
 		end_time =

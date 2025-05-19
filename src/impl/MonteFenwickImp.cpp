@@ -1,6 +1,7 @@
 #include "bench/impl/MonteFenwickImp.hpp"
-#include "bench/util/FenwickTree.hpp"
 #include "bench/util/FastRandom.hpp"
+#include "bench/util/FenwickTree.hpp"
+#include "bench/util/GNUOrderedSet.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -48,42 +49,49 @@ void MonteFenwickImp::prepare(const InputData &data) {
 	auto gets = data.getGets();
 	auto puts = data.getPuts();
 
-	std::unordered_map<int64_t, size_t> putMap{};
-	std::vector<PushedItem> all_pushed_items{};
-	for (size_t i = 0; i < puts->size(); ++i) {
-		auto &put = puts->at(i);
-		all_pushed_items.push_back({std::numeric_limits<int64_t>::max()});
-		putMap[put.value] = i;
+	std::unordered_map<int64_t, int> getMap{};
+	uint64_t i = 0;
+	for (auto &get : *gets) {
+		getMap[get.value] = ++i;
 	}
-	size_t num_gets = gets->size() * counting_share;
-	// num_gets = std::max(num_gets, (size_t)1000);
-	std::unordered_set<size_t> get_indices;
-	for(size_t i = 0; i < num_gets; ) {
-		if(get_indices.insert(xorshf96() % (gets->size() - 1)).second) {
+	std::unordered_set<size_t> put_indices{};
+	ordered_set<uint64_t, std::less<uint64_t>> pop_order_tree;
+	int64_t max_pop_order = std::numeric_limits<int64_t>::max();
+	uint64_t num_puts = puts->size() * counting_share;
+	for (size_t i = 0; i < num_puts;) {
+		size_t idx = xorshf96() % (puts->size() - i);
+		if (put_indices.insert(idx).second) {
 			++i;
 		}
 	}
-	size_t pop_order = 1;
-	for (size_t i = 0; i < num_gets; ++i) {
-		if(get_indices.find(i) == get_indices.end()) {
+	for (size_t idx = 0; idx < puts->size(); ++idx) {
+		if (put_indices.find(idx) == put_indices.end()) {
 			continue;
 		}
-		auto &get = gets->at(i);
-		all_pushed_items[putMap[get.value]].pop_time = pop_order++;
-	}
-	pop_order = 1;
-	for(size_t i = 0; i < all_pushed_items.size(); ++i) {
-		if(all_pushed_items[i].pop_time != std::numeric_limits<int64_t>::max()) {
-			pushed_items.emplace_back(all_pushed_items[i].pop_time);
+		const Operation &put = puts->at(idx);
+		if (getMap.contains(put.value)) {
+			pushed_items.push_back({getMap[put.value]});
+			pop_order_tree.insert(getMap[put.value]);
+			continue;
+		} else {
+			pushed_items.push_back({max_pop_order});
 		}
 	}
 	std::cout << "Pushed items size: " << pushed_items.size() << "\n";
-	std::cout << "All pushed items size: " << all_pushed_items.size() << "\n";
-
+	for (size_t i = 0; i < pushed_items.size(); ++i) {
+		int64_t pop_order = pushed_items[i].pop_time;
+		if (pop_order == max_pop_order) {
+			continue;
+		}
+		pushed_items[i].pop_time = pop_order_tree.order_of_key(pop_order) + 1;
+	}
 }
 
 AbstractExecutor::Measurement MonteFenwickImp::execute() {
 	return calcMaxMeanError();
 }
-void MonteFenwickImp::reset() { pushed_items.clear(); reset_random(); }
+void MonteFenwickImp::reset() {
+	pushed_items.clear();
+	reset_random();
+}
 } // namespace bench
