@@ -15,7 +15,7 @@ AbstractExecutor::Measurement ReplayTreeStackImp::calcMaxMeanError() {
 	for (auto &event : events) {
 		if (event.isPush) {
 			push_tree.insert(event.pushOrder);
-		} else if (event.hasPop) {
+		} else{
 			push_tree.erase(event.pushOrder);
 			// how many elements in the stack are pushed after me
 			uint64_t rank = push_tree.order_of_key(event.pushOrder);
@@ -42,15 +42,13 @@ void ReplayTreeStackImp::prepare(const InputData &data) {
 	events.reserve(puts->size() + gets->size());
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		events.push_back({false, true, 0, get.time});
+		events.push_back({false, 0, get.time});
 		getMap[get.value] = i;
 	}
 	for (size_t i = 0; i < puts->size(); ++i) {
 		auto &put = puts->at(i);
-		if (getMap.find(put.value) == getMap.end()) {
-			events.push_back({true, false, i + 1, put.time});
-		} else {
-			events.push_back({true, true, i + 1, put.time});
+		events.push_back({true, i + 1, put.time});
+		if (getMap.find(put.value) != getMap.end()) {
 			events[getMap[put.value]].pushOrder = i + 1;
 		}
 	}

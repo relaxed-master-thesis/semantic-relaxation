@@ -19,15 +19,13 @@ void FenwickStackImp::prepare(const InputData &data) {
 	std::unordered_map<int64_t, size_t> getMap{};
 	for (size_t i = 0; i < gets->size(); ++i) {
 		auto &get = gets->at(i);
-		elems.emplace_back(false, true, 0, get.time);
+		elems.emplace_back(false, 0, get.time);
 		getMap[get.value] = i;
 	}
 	for (size_t i = 0; i < puts->size(); ++i) {
 		auto &put = puts->at(i);
-		if (getMap.find(put.value) == getMap.end()) {
-            elems.emplace_back(true, false, i + 1, put.time);
-		} else {
-            elems.emplace_back(true, true, i + 1, put.time);
+        elems.emplace_back(true, i + 1, put.time);
+		if (getMap.find(put.value) != getMap.end()) {
 			elems[getMap[put.value]].pushOrder = i + 1;
         }
 	}
@@ -46,7 +44,8 @@ AbstractExecutor::Measurement FenwickStackImp::execute() {
 	for (const auto &elem : elems) {
 		if (elem.isPush) {
 			BIT.update(elem.pushOrder, 1);
-		} else if (elem.hasPop) {
+		// } else if (elem.hasPop) {
+		} else {
 			BIT.update(elem.pushOrder, -1);
 			int64_t rank = BIT.query(elem.pushOrder);
 			sum += rank;

@@ -17,11 +17,10 @@ namespace bench {
 
       private:
 struct event {
-    event(bool isPush, bool hasPop, uint64_t pushOrder, uint64_t time)
-        : isPush(isPush), hasPop(hasPop), pushOrder(pushOrder), time(time) {}
+    event(bool isPush, uint64_t pushOrder, uint64_t time)
+        : isPush(isPush),  pushOrder(pushOrder), time(time) {}
 
     bool isPush;
-    bool hasPop;
     uint64_t pushOrder;
     uint64_t time;
   };

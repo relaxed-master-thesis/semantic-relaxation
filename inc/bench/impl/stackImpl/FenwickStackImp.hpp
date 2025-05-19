@@ -16,11 +16,10 @@ class FenwickStackImp : public AccurateStackExecutor {
 
   private:
   struct event {
-    event(bool isPush, bool hasPop, int64_t pushOrder, int64_t time)
-        : isPush(isPush), hasPop(hasPop), pushOrder(pushOrder), time(time) {}
+    event(bool isPush, int64_t pushOrder, int64_t time)
+        : isPush(isPush), pushOrder(pushOrder), time(time) {}
 
     bool isPush;
-    bool hasPop;
     int64_t pushOrder;
     int64_t time;
   };
