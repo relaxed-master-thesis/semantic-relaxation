@@ -287,7 +287,10 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
         speed_axs[i].set_xscale("log")
         speed_axs[i].set_yscale("log")
         speed_axs[i].set_ylabel("Dequeues per second")
-        speed_axs[i].set_xlabel("Mean relaxation error")
+        if(plotQs):
+            speed_axs[i].set_xlabel("Queue size")
+        else:
+            speed_axs[i].set_xlabel("Mean relaxation error")
 
     speed_axs[0].set_title("Total Dequeues per second")
     speed_axs[2].legend()
@@ -355,7 +358,6 @@ if __name__ == "__main__":
                 parsed_imps, benches, log_file_name = parseFile(file)
                 plotQs = queueSize or log_file_name.count("size") > 0
                 print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
-                print(f"plotting queue size: {queueSize} or {log_file_name.count('size') > 0}")
 
                 plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
                 # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
@@ -364,6 +366,9 @@ if __name__ == "__main__":
             file = open(sys.argv[i], "r")
             parsed_imps, benches, log_file_name = parseFile(file)
             plotQs = queueSize or log_file_name.count("size") > 0
+            print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
+
+
             plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     if show:
