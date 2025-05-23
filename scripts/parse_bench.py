@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullLocator, FixedFormatter, FixedLocator
 import os
 
+#enum of plot types
+class PlotType:
+    DEFAULT = 0
+    QUEUE_SIZE = 1
+    INPUT_SIZE = 2 
+
 class Benchmark:
     def __init__(self, name, data, baseline="GeijerImp"):
         self.name = name
@@ -245,7 +251,7 @@ def sort_key(s):
     text_part = match.group(1)
     num_part = int(match.group(2)) if match.group(2) else float('-inf')  # Treat non-numeric as smallest
     return (text_part, num_part)
-def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
+def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
@@ -265,8 +271,10 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
         x = []
         y = [[] for i in range(5)]
         for bench in benches:
-            if(queueSize):
+            if(plotType == PlotType.QUEUE_SIZE):
                 x.append(bench.data[imp.name]["queue_size"])
+            elif(plotType == PlotType.INPUT_SIZE):
+                x.append(bench.data[imp.name]["gets"])
             else:
                 x.append(bench.mean)
             y[0].append(gets / float(bench.getTotTimeInSec(imp.name)))
@@ -287,8 +295,10 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
         speed_axs[i].set_xscale("log")
         speed_axs[i].set_yscale("log")
         speed_axs[i].set_ylabel("Dequeues per second")
-        if(plotQs):
+        if(plotType == PlotType.QUEUE_SIZE):
             speed_axs[i].set_xlabel("Queue size")
+        elif(plotType == PlotType.INPUT_SIZE):
+            speed_axs[i].set_xlabel("Number of dequeues")
         else:
             speed_axs[i].set_xlabel("Mean relaxation error")
 
@@ -305,7 +315,13 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, queueSize):
     error_axs[1].set_ylabel("Error %")
     error_axs[1].set_xlabel("Mean relaxation error")
     error_axs[1].set_xscale("log")
-    ticks = [b.mean for b in benches] if not queueSize else [float(b.queue_size) for b in benches]
+    # ticks = [b.mean for b in benches] if not plotType else [float(b.queue_size) for b in benches]
+    ticks = [b.mean for b in benches]
+    if(plotType == PlotType.QUEUE_SIZE):
+        ticks = [float(b.queue_size) for b in benches]
+    elif(plotType == PlotType.INPUT_SIZE):
+        ticks = [float(b.gets) for b in benches]
+    
     rounded_labels = [f"{int(tick)}" if tick.is_integer() else f"{tick:.2f}" for tick in ticks]
     for ax in [*speed_axs.flat, *error_axs.flat]:
         ax.set_xticks(ticks)
@@ -341,10 +357,13 @@ if __name__ == "__main__":
         dest_idx = sys.argv.index("-dest")
         sys.argv = sys.argv[:dest_idx] + sys.argv[dest_idx + 2:]
 
-    queueSize = False
+    plotType = PlotType.DEFAULT
     if sys.argv.count("-qs") > 0:
-        queueSize = True
+        plotType = PlotType.QUEUE_SIZE
         sys.argv = [arg for arg in sys.argv if arg != "-qs"]
+    elif sys.argv.count("-is") > 0:
+        plotType = PlotType.INPUT_SIZE
+        sys.argv = [arg for arg in sys.argv if arg != "-is"]
     
 
     show = sys.argv.count("-show") > 0
@@ -356,20 +375,27 @@ if __name__ == "__main__":
             if file.endswith(".log"):
                 file = open(os.path.join(dir, file), "r")
                 parsed_imps, benches, log_file_name = parseFile(file)
-                plotQs = queueSize or log_file_name.count("size") > 0
-                print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
 
-                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
+                if(log_file_name.count("queue") > 0):
+                    plotType = PlotType.QUEUE_SIZE
+                elif(log_file_name.count("input") > 0):
+                    plotType = PlotType.INPUT_SIZE
+                print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations, with plot type {plotType}")
+
+                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType)
                 # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     else: #assumes that sys.argv are files
         for i in range(1, len(sys.argv)):
             file = open(sys.argv[i], "r")
             parsed_imps, benches, log_file_name = parseFile(file)
-            plotQs = queueSize or log_file_name.count("size") > 0
-            print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
+            if(log_file_name.count("queue") > 0):
+                plotType = PlotType.QUEUE_SIZE
+            elif(log_file_name.count("input") > 0):
+                plotType = PlotType.INPUT_SIZE
+            print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations, with plot type {plotType}")
 
 
-            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotQs)
+            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     if show:
         plt.show()

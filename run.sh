@@ -19,6 +19,7 @@ dcboBatchLogFile=""
 dcboApproxLogFile=""
 dcboDelayLogFile=""
 queueSizeLogFile=""
+inputSizeLogFile=""
 
 # change to 1s
 testDurMs=200
@@ -34,6 +35,9 @@ twoddPreset="2ddq"
 dcboPreset="dcbo"
 
 twoddqType="2ddqopt"
+
+#can be changed to input or queue
+sizeType="queue"
 
 declare -a twoddcfgs=(
     "8 4"
@@ -54,6 +58,16 @@ declare -a dcbocfgs=(
     "8192"
     "32768"
     "65536"
+)
+declare -a dataSizeCfgs=(
+    "100"
+    "1000"
+    "10000"
+    "100000"
+    "1000000"
+    "10000000"
+    # "100000000"
+    # "1000000000"
 )
 
 Help()
@@ -108,13 +122,13 @@ Benchmark_2ddq()
             fi
             getCount=$(wc -l < "$getFile")
             if [ "$getCount" -lt "$dataSize" ]; then
-                echo "Not enough data, fixing test duration..."
+                echo "Not enough data (${getCount}), fixing test duration..."
                 # dataProp=$((getCount / dataSize))
                 # dataProp="scale=2 ; $getCount / $dataSize" | bc
                 # dataProp=$(( dataProp > 0 ? dataProp : testDurMs * 2 ))
                 # testDurMs=$((testDurMs * dataProp))
                 testDurMs=$((testDurMs * 2))
-                rm -rf $dataPath
+                # rm -rf $dataPath
                 dataPath="../semantic-relaxation/data/benchData/${twoddqType}-w${strarr[0]}-l${strarr[1]}-i${startSize}-n${numThreads}-d${testDurMs}"
                 echo "New test duration: $testDurMs"
             fi
@@ -299,10 +313,15 @@ Benchmark_graph() {
         fi
     fi
 }
-Benchmark_queueSize()
+Benchmark_size()
 {
     oldTestDurMs=$testDurMs
-    for elem in "${twoddcfgs[@]}"; do
+    cfg=("${twoddcfgs[@]}")
+    prevDataSize=$dataSize
+    if [ "$sizeType" = "input" ]; then
+        cfg=("${dataSizeCfgs[@]}")
+    fi
+    for elem in "${cfg[@]}"; do
         read -a strarr <<< "$elem"
 
         if [ -d results/timestamps ]; then
@@ -311,6 +330,10 @@ Benchmark_queueSize()
 
         # change to 1'000'000
         startSize=$((strarr[0] * strarr[1] * 2))
+        if [ "$sizeType" = "input" ]; then
+            startSize=256
+            dataSize=$elem
+        fi
 
         if [ "$twoddqType" = "2ddqopt" ]; then
             echo "Running: ./bin/2Dd-queue_optimized -w 16 -l 8 -i ${startSize} -n ${numThreads} -d ${testDurMs}"
@@ -370,12 +393,21 @@ Benchmark_queueSize()
         fi
 
         if [ -f ./../semantic-relaxation/tmp.txt ]; then
-            queueSizeLogFile="${twoddqType}-queue-size-w8-l16-mean-ca-26-$(date -d "today" +"%Y%m%d%H%M").log"
-            mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$queueSizeLogFile
+            if [ "$sizeType" = "input" ]; then
+                queueSizeLogFile="${twoddqType}-input-size-w8-l16-mean-ca-26-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$queueSizeLogFile
+            else
+                inputSizeLogFile="${twoddqType}-queue-size-w8-l16-mean-ca-26-$(date -d "today" +"%Y%m%d%H%M").log"
+                mv ./../semantic-relaxation/tmp.txt ./../semantic-relaxation/logs/$inputSizeLogFile
+            fi
         fi
     fi
     testDurMs=$oldTestDurMs
     echo "Resetting test duration to $testDurMs"
+    if [ "$sizeType" = "input" ]; then
+        dataSize=$prevDataSize
+        echo "Resetting data size to $dataSize"
+    fi
 }
 Benchmark_2ddStack() {
     oldTestDurMs=$testDurMs
@@ -516,20 +548,25 @@ Benchmark()
     # twoddPreset="batch"
     # Benchmark_2ddq
 
-    twoddPreset="approx"
-    Benchmark_2ddq
+    # twoddPreset="approx"
+    # Benchmark_2ddq
 
     # twoddPreset="delay"
     # Benchmark_2ddq
 
-    # #run stack test benchmark
+    #run stack test benchmark
     # Benchmark_2ddStack
 
     # run graph test benchmark
     # Benchmark_graph
 
     # run queue size test benchmark
-    # Benchmark_queueSize
+    sizeType="queue"
+    Benchmark_size
+    
+    # run input size test benchmark
+    sizeType="input"
+    Benchmark_size
     
     echo "Leaving ../semantic-relaxation-dcbo"
     cd ./../semantic-relaxation
@@ -606,6 +643,9 @@ Plot()
     fi
     if [ -n "$queueSizeLogFile" ]; then
         pythonArgs="${pythonArgs} logs/${queueSizeLogFile} -show"
+    fi
+    if [ -n "$inputSizeLogFile" ]; then
+        pythonArgs="${pythonArgs} logs/${inputSizeLogFile} -show"
     fi
 
     pythonArgs="${pythonArgs} -show"
