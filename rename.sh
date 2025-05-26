@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cp ../benchmark-data/correct-data/cut-files/timestamps-2dd-8-4-29err data/benchData/2ddq-w8-l4-i64-n64-d1
 cp ../benchmark-data/correct-data/cut-files/timestamps-2dd-16-8 data/benchData/2ddq-w16-l8-i256-n64-d1
 cp ../benchmark-data/correct-data/cut-files/timestamps-2dd-32-16 data/benchData/2ddq-w32-l16-i1024-n64-d1
