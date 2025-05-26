@@ -3,11 +3,8 @@
 #include "bench/util/FenwickTree.hpp"
 #include "bench/util/GNUOrderedSet.hpp"
 
-#include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <limits>
 #include <unordered_map>
 #include <unordered_set>
@@ -41,7 +38,6 @@ AbstractExecutor::Measurement MonteFenwickImp::calcMaxMeanError() {
 		BIT.update(pop_time, 1);
 	}
 
-	std::cout << "Counted elems: " << countedElems << "\n";
 	return {static_cast<uint64_t>(max), (double)sum / countedElems};
 }
 
@@ -77,7 +73,6 @@ void MonteFenwickImp::prepare(const InputData &data) {
 			pushed_items.push_back({max_pop_order});
 		}
 	}
-	std::cout << "Pushed items size: " << pushed_items.size() << "\n";
 	for (size_t i = 0; i < pushed_items.size(); ++i) {
 		int64_t pop_order = pushed_items[i].pop_time;
 		if (pop_order == max_pop_order) {
