@@ -4,6 +4,37 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullLocator, FixedFormatter, FixedLocator
 import os
 
+name_dict = {
+    "GeijerImp" : "Baseline",
+    "GeijerDelayImp" : "DelayBaseline",
+    "StackReplayImp" : "DelayBaseline",
+    "FenwickImp" : "Fenwick",
+    "FenwickDelayImp" : "DelayFenwick",
+    "FenwickAImp" : "FenwickApproximation",
+    "ParallelFenwickImp" : "ParallelFenwick",
+    "FenwickStackImp" : "LIFOFenwick",
+    "MonteFenwickImp" : "MonteFenwick",
+    "GeijerBatch_1" : "ReorderBatching_1",
+    "GeijerBatch_10" : "ReorderBatching_10",
+    "GeijerBatch_100" : "ReorderBatching_100",
+    "GeijerBatch_1000" : "ReorderBatching_1000",
+    "GeijerBatch_10000" : "ReorderBatching_10000",
+    "GeijerBatch_100000" : "ReorderBatching_100000",
+    "GeijerBatch_1000000" : "ReorderBatching_1000000",
+    "ParallelBatchImp" : "ParallelBatch",
+    "ReplayTreeImp" : "ReplayTree",
+    "ReplayTreeStackImp" : "LIFOReplayTree",
+    "ReplayTreeAImp" : "ReplayTreeApproximation",
+    "MonteReplayTree" : "MonteReplayTree",
+
+    "MinMax2DDAImp" : "TailoredApproximation"
+}
+def getName(imp):
+    if imp in name_dict:
+        return name_dict[imp]
+    else:
+        return imp 
+
 #enum of plot types
 class PlotType:
     DEFAULT = 0
@@ -234,7 +265,8 @@ def plotSpeedupBenchmarks(parsed_imps, benches, log_file_name, dest_dir):
         handles, labels = ax.get_legend_handles_labels()
         # sort both labels and handles by labels
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sort_key(t[0])))
-        ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(1, 1))
+        names = [getName(label) for label in labels]
+        ax.legend(handles, names, loc='upper left', bbox_to_anchor=(1, 1))
     #set names on plots
     error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
