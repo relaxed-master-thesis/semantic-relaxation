@@ -283,7 +283,7 @@ def sort_key(s):
     text_part = match.group(1)
     num_part = int(match.group(2)) if match.group(2) else float('-inf')  # Treat non-numeric as smallest
     return (text_part, num_part)
-def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType):
+def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType, res_file_type):
 
     print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations")
     #plot all benches, with mean on x axix and speedup on y axis
@@ -306,6 +306,7 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType):
             if(plotType == PlotType.QUEUE_SIZE):
                 x.append(bench.data[imp.name]["queue_size"])
             elif(plotType == PlotType.INPUT_SIZE):
+                gets = bench.data[imp.name]["gets"]
                 x.append(bench.data[imp.name]["gets"])
             else:
                 x.append(bench.mean)
@@ -365,7 +366,8 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType):
         handles, labels = ax.get_legend_handles_labels()
         # sort both labels and handles by labels
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sort_key(t[0])))
-        ax.legend(handles, labels, loc='upper left', bbox_to_anchor=(1, 1))
+        names = [getName(label) for label in labels]
+        ax.legend(handles, names, loc='upper left', bbox_to_anchor=(1, 1))
     #set names on plots
     # error_fig.suptitle(f"{log_file_name} Error")
     error_fig.subplots_adjust(bottom=0.2)
@@ -378,11 +380,25 @@ def plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType):
     if(dest_dir != ""):
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        speed_fig.savefig(f"{dest_dir}{log_file_name}-tp.svg", format='svg')
-        error_fig.savefig(f"{dest_dir}{log_file_name}-error.svg", format='svg')
+        speed_fig.savefig(f"{dest_dir}{log_file_name}-tp." + res_file_type, format=res_file_type)
+        error_fig.savefig(f"{dest_dir}{log_file_name}-error." + res_file_type, format=res_file_type)
+        print(f"Saved plots to {dest_dir}{log_file_name}-tp.{res_file_type} and {dest_dir}{log_file_name}-error.{res_file_type}")
 
+
+def help():
+    print("Usage: python parse_bench.py [-d <directory>] [-dest <destination directory>] [-qs] [-is] [-show] [-restype <file type>]")
+    print("Options:")
+    print("\t-d <directory>\t\tParse all .log files in the given directory")
+    print("\t-dest <destination directory>\tSave the plots to the given directory")
+    print("\t-qs\t\t\tPlot queue size")
+    print("\t-is\t\t\tPlot input size")
+    print("\t-show\t\t\tShow the plots")
+    print("\t-restype <file type>\tSet the file type for the plots (default: svg)")
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2 or sys.argv[1] in ["-h", "--help"]:
+        help()
+        sys.exit(0)
     #if sys.argv contains -d, then parse all files in the given directory
     dest_dir = sys.argv[sys.argv.index("-dest") + 1] if sys.argv.count("-dest") > 0 else ""
     if dest_dir != "":
@@ -400,6 +416,12 @@ if __name__ == "__main__":
 
     show = sys.argv.count("-show") > 0
     sys.argv = [arg for arg in sys.argv if arg != "-show"]
+    res_file_type = sys.argv.count("-restype") > 0
+    if res_file_type:
+        res_file_type = sys.argv[sys.argv.index("-restype") + 1]
+        sys.argv = [arg for arg in sys.argv if arg != "-restype" and arg != res_file_type]
+    else:
+        res_file_type = "svg"
     if sys.argv.count("-d") > 0:
         dir = sys.argv[sys.argv.index("-d") + 1]
         files = os.listdir(dir)
@@ -414,7 +436,7 @@ if __name__ == "__main__":
                     plotType = PlotType.INPUT_SIZE
                 print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations, with plot type {plotType}")
 
-                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType)
+                plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType, res_file_type)
                 # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     else: #assumes that sys.argv are files
         for i in range(1, len(sys.argv)):
@@ -427,7 +449,7 @@ if __name__ == "__main__":
             print(f"Plotting {log_file_name} with {len(parsed_imps)} implementations, with plot type {plotType}")
 
 
-            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType)
+            plotBenchmarks(parsed_imps, benches, log_file_name, dest_dir, plotType, res_file_type)
             # plotSpeedupBenchmarks(parsed_imps, benches, log_file_name)
     if show:
         plt.show()
