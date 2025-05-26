@@ -62,6 +62,7 @@ struct BenchCfg {
 		TEST_BATCH_SIZE,
 		DELAY,
 		APPROX,
+		SIZE
 	};
 
 	enum class QueueType {

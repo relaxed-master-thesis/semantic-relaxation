@@ -22,9 +22,9 @@ queueSizeLogFile=""
 inputSizeLogFile=""
 
 # change to 1s
-testDurMs=200
+testDurMs=1
 # change -n to 16 threads
-numThreads=12
+numThreads=64
 # should be at least 3
 numRuns=3
 # number of gets to calculate
@@ -40,24 +40,24 @@ twoddqType="2ddqopt"
 sizeType="queue"
 
 declare -a twoddcfgs=(
-    "8 4"
-    "16 8"
-    "32 16"
-    "64 32"
-    "128 64"
-    "256 128"
-    "512 256"
+    "8 4" #8*4*2 = 64
+    "16 8" #16*8*2 = 256
+    "32 16" #32*16*2 = 1024
+    "64 32" #64*32*2 = 4096
+    "128 64" #128*64*2 = 16384
+    "256 128" #256*128*2 = 65536
+    "512 256" #512*256*2 = 262144
 )
 
 declare -a dcbocfgs=(
-    "8"
-    "32"
-    "128"
-    "512"
-    "2048"
-    "8192"
-    "32768"
-    "65536"
+    "8" # 8*4 = 32
+    "32" # 32*4 = 128
+    "128" # 128*4 = 512
+    "512" # 512*4 = 2048
+    "2048" # 2048*4 = 8192
+    "8192" # 8192*4 = 32768
+    "32768" # 32768*4 = 131072
+    "65536" # 65536*4 = 262144
 )
 declare -a dataSizeCfgs=(
     "100"
@@ -66,8 +66,8 @@ declare -a dataSizeCfgs=(
     "100000"
     "1000000"
     "10000000"
-    # "100000000"
-    # "1000000000"
+    "100000000"
+    "1000000000"
 )
 
 Help()
@@ -313,6 +313,7 @@ Benchmark_graph() {
         fi
     fi
 }
+
 Benchmark_size()
 {
     oldTestDurMs=$testDurMs
@@ -327,24 +328,25 @@ Benchmark_size()
         if [ -d results/timestamps ]; then
             rm -rf results/timestamps
         fi
-
+        dataPath=""
         # change to 1'000'000
         startSize=$((strarr[0] * strarr[1] * 2))
         if [ "$sizeType" = "input" ]; then
-            startSize=256
+            startSize=65536
             dataSize=$elem
-        fi
-
-        if [ "$twoddqType" = "2ddqopt" ]; then
-            echo "Running: ./bin/2Dd-queue_optimized -w 16 -l 8 -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+            dataPath="/home/victorvi/2ddq-w256-l128-i65536-n64-d1"
         else
-            echo "Running: ./bin/2Dd-queue -w 16 -l 8 -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+            if [ "$twoddqType" = "2ddqopt" ]; then
+                echo "Running: ./bin/2Dd-queue_optimized -w 16 -l 8 -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+            else
+                echo "Running: ./bin/2Dd-queue -w 16 -l 8 -i ${startSize} -n ${numThreads} -d ${testDurMs}"
+            fi
+            dataPath="../semantic-relaxation/data/benchData/${twoddqType}-w16-l8-i${startSize}-n${numThreads}-d${testDurMs}"
         fi
 
-        dataPath="../semantic-relaxation/data/benchData/${twoddqType}-w16-l8-i${startSize}-n${numThreads}-d${testDurMs}"
 
         getCount=0
-        while [[ "$getCount" -lt "$dataSize" ]]; 
+        while [ "$sizeType" = "queue" ] && [ "$getCount" -lt "$dataSize" ]; 
         do
             getFile="$dataPath/combined_get_stamps.txt"
             # check if dataPath does not exist
@@ -376,7 +378,7 @@ Benchmark_size()
         done
         
         if [ $? -eq 0 ]; then
-            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p generic -q 2ddq"
+            runArg="./../semantic-relaxation/build/src/SemanticRelaxation -i ${dataPath} -r ${numRuns} -g ${dataSize} -p size -q 2ddq"
             if [ "$optSaveLog" = true ]; then
                 eval "$runArg" >> ./../semantic-relaxation/tmp.txt
             else
@@ -409,6 +411,7 @@ Benchmark_size()
         echo "Resetting data size to $dataSize"
     fi
 }
+
 Benchmark_2ddStack() {
     oldTestDurMs=$testDurMs
     for elem in "${twoddcfgs[@]}"; do
@@ -561,8 +564,8 @@ Benchmark()
     # Benchmark_graph
 
     # run queue size test benchmark
-    sizeType="queue"
-    Benchmark_size
+    # sizeType="queue"
+    # Benchmark_size
     
     # run input size test benchmark
     sizeType="input"

@@ -162,6 +162,8 @@ parseArguments(int argc, char *argv[]) {
 			bType = btype::DELAY;
 		} else if (preset == "approx") {
 			bType = btype::APPROX;
+		} else if (preset == "size") {
+			bType = btype::SIZE;
 		} else {
 			std::cerr << "Invalid preset specified (-p " << preset << ")\n";
 			return std::nullopt;
@@ -295,7 +297,11 @@ int runPresetIfDefined(
 		if (info.is2Ddqopt) {
 			myBench.addConfig<bench::MinMax2DDAImp>(0.1f, info.width, info.height);
 		}
-	} else {
+	} else if(bType == btype::SIZE){
+		std::cout << "Running size benchmark with " << optCfg.value().first.numGets << " gets\n";
+		myBench.setBaseline<bench::FenwickImp>()
+			.addConfig<bench::ReplayTreeImp>();
+	}else {
 		return 0;
 	}
 
