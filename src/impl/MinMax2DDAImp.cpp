@@ -43,7 +43,7 @@ void MinMax2DDAImp::reset() {
 void MinMax2DDAImp::prepare(const InputData &data) {
 	const auto gets = data.getGets();
 	const auto puts = data.getPuts();
-	size_t nElems = puts->size() * countingShare;
+	size_t nElems = gets->size() * countingShare;
 
 	if (expectedHeight == 0 || expectedWidth == 0) {
 		throw std::runtime_error("Expected height and width must be set");
@@ -52,21 +52,20 @@ void MinMax2DDAImp::prepare(const InputData &data) {
 	size_t boxSize = expectedHeight * expectedWidth;
 	size_t numBoxes = (nElems / boxSize) + 1;
 	size_t elemsToCount = std::min(numBoxes * boxSize, getsSize);
-	size_t half = getsSize / 2;
+	size_t half = (getsSize - elemsToCount) / 2;
 	size_t startIdx = half - (half % boxSize);
-	startIdx = 0;
 
 	if (getsSize < boxSize) {
 		boxSize = getsSize;
 	}
 
 	std::unordered_map<uint64_t, int> getMap{};
-	for (size_t i = 0; i < boxSize; ++i) {
+	for (size_t i = 0; i < elemsToCount; ++i) {
 		auto &put = gets->at(i + startIdx);
 		getMap[put.value] = i+1;
 	}
 
-	for (size_t i = 0; i < boxSize; ++i) {
+	for (size_t i = 0; i < elemsToCount; ++i) {
 		auto &put = puts->at(i + startIdx);
 		if (getMap.find(put.value) != getMap.end()) {
 			pushed_items.emplace_back(getMap[put.value]);
