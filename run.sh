@@ -491,7 +491,7 @@ Benchmark()
 
     echo "Entering ../semantic-relaxation-dcbo"
     cd ../semantic-relaxation-dcbo
-    rm ./../semantic-relaxation/bench.txt
+    rm -f ./../semantic-relaxation/bench.txt
 
     if [ "$twoddType" = "2ddqopt" ]; then
         echo "Compiling 2Dd-queue_optimized..."
@@ -552,8 +552,8 @@ Benchmark()
     # twoddPreset="batch"
     # Benchmark_2ddq
 
-    # twoddPreset="approx"
-    # Benchmark_2ddq
+    twoddPreset="approx"
+    Benchmark_2ddq
 
     # twoddPreset="delay"
     # Benchmark_2ddq
@@ -565,8 +565,8 @@ Benchmark()
     # Benchmark_graph
 
     # run queue size test benchmark
-    sizeType="queue"
-    Benchmark_size
+    # sizeType="queue"
+    # Benchmark_size
     
     # run input size test benchmark
     # sizeType="input"
