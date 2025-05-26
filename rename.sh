@@ -24,14 +24,14 @@ mv data/benchData/2ddq-w128-l64-i16384-n64-d1/combined_put_stamps_cut.txt data/b
 mv data/benchData/2ddq-w256-l128-i65536-n64-d1/combined_put_stamps_cut.txt data/benchData/2ddq-w256-l128-i65536-n64-d1/combined_put_stamps.txt
 mv data/benchData/2ddq-w512-l256-i262144-n64-d1/combined_put_stamps_cut.txt data/benchData/2ddq-w512-l256-i262144-n64-d1/combined_put_stamps.txt
 
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-8 data/benchData/dcbo-w8-i32-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-32 data/benchData/dcbo-w32-i128-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-128 data/benchData/dcbo-w128-i512-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-512 data/benchData/dcbo-w512-i2048-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-2048 data/benchData/dcbo-w2048-i8192-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-8192 data/benchData/dcbo-w8192-i32768-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-32768 data/benchData/dcbo-w32768-i131072-n64-d1
-cp -r ../benchmark-data/correct-data/cut-files/dcbo-65536 data/benchData/dcbo-w65536-i262144-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-8 data/benchData/dcbo-w8-i32-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-32 data/benchData/dcbo-w32-i128-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-128 data/benchData/dcbo-w128-i512-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-512 data/benchData/dcbo-w512-i2048-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-2048 data/benchData/dcbo-w2048-i8192-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-8192 data/benchData/dcbo-w8192-i32768-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-32768 data/benchData/dcbo-w32768-i131072-n64-d1
+cp -r ../benchmark-data/correct-data/cut-files/timestamps-dcbo-65536 data/benchData/dcbo-w65536-i262144-n64-d1
 
 mv data/benchData/dcbo-w8-i32-n64-d1/combined_get_stamps_cut.txt data/benchData/dcbo-w8-i32-n64-d1/combined_get_stamps.txt
 mv data/benchData/dcbo-w32-i128-n64-d1/combined_get_stamps_cut.txt data/benchData/dcbo-w32-i128-n64-d1/combined_get_stamps.txt
