@@ -105,6 +105,7 @@ Benchmark_2ddq()
         getCount=0
         while [[ "$getCount" -lt "$dataSize" ]]; 
         do
+            echo "pwd: $(pwd)"
             getFile="$dataPath/combined_get_stamps.txt"
             # check if dataPath does not exist
             if [ ! -d $dataPath ] || [ $(wc -l < "$getFile") -lt "$dataSize" ]; then
@@ -538,8 +539,8 @@ Benchmark()
     # dcboPreset="batch"
     # Benchmark_dcbo
 
-    dcboPreset="approx"
-    Benchmark_dcbo
+    # # dcboPreset="approx"
+    # Benchmark_dcbo
 
     # dcboPreset="delay"
     # Benchmark_dcbo
@@ -551,8 +552,8 @@ Benchmark()
     # twoddPreset="batch"
     # Benchmark_2ddq
 
-    twoddPreset="approx"
-    Benchmark_2ddq
+    # twoddPreset="approx"
+    # Benchmark_2ddq
 
     # twoddPreset="delay"
     # Benchmark_2ddq
