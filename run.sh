@@ -538,8 +538,8 @@ Benchmark()
     # dcboPreset="batch"
     # Benchmark_dcbo
 
-    # dcboPreset="approx"
-    # Benchmark_dcbo
+    dcboPreset="approx"
+    Benchmark_dcbo
 
     # dcboPreset="delay"
     # Benchmark_dcbo
@@ -551,8 +551,8 @@ Benchmark()
     # twoddPreset="batch"
     # Benchmark_2ddq
 
-    # twoddPreset="approx"
-    # Benchmark_2ddq
+    twoddPreset="approx"
+    Benchmark_2ddq
 
     # twoddPreset="delay"
     # Benchmark_2ddq
@@ -564,12 +564,12 @@ Benchmark()
     # Benchmark_graph
 
     # run queue size test benchmark
-    # sizeType="queue"
-    # Benchmark_size
+    sizeType="queue"
+    Benchmark_size
     
     # run input size test benchmark
-    sizeType="input"
-    Benchmark_size
+    # sizeType="input"
+    # Benchmark_size
     
     echo "Leaving ../semantic-relaxation-dcbo"
     cd ./../semantic-relaxation
